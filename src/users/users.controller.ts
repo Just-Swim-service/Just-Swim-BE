@@ -14,6 +14,7 @@ import { KakaoAuthGuard } from 'src/auth/guard/kakao.guard';
 import { AuthService } from 'src/auth/auth.service';
 import * as NodeCache from 'node-cache';
 import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
+import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 
 @Controller()
 export class UsersController {
@@ -101,6 +102,46 @@ export class UsersController {
     let name: string = profile.name;
     let email: string = profile.email;
     let profileImage: string = profile.profileImage;
+    let userType: string = session.userType;
+
+    const exUser = await this.authService.validateUser(email, provider);
+    if (exUser) {
+      const accessToken = await this.authService.getToken(exUser.userId);
+      res.redirect(process.env.REDIRECT_URI);
+    }
+    if (exUser === null) {
+      const newUser = await this.authService.createUser({
+        email,
+        profileImage,
+        name,
+        provider,
+        userType,
+      });
+      delete session.userType;
+
+      const accessToken = await this.authService.getToken(newUser.userId);
+      res.redirect(process.env.REDIRECT_URI);
+    }
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('Oauth/google')
+  async googleLogin(): Promise<void> {
+    return;
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('Oauth/google/callback')
+  async googleCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Session() session: Record<string, any>,
+  ): Promise<void> {
+    let profile: any = req.user;
+    let provider: string = profile.provider;
+    let name: string = profile._json.name;
+    let email: string = profile._json.email;
+    let profileImage: string = profile._json.picture;
     let userType: string = session.userType;
 
     const exUser = await this.authService.validateUser(email, provider);

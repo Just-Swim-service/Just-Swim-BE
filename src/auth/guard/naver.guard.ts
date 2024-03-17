@@ -2,9 +2,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContext, Injectable } from '@nestjs/common';
 
 @Injectable()
-export class KakaoAuthGuard extends AuthGuard('kakao') {
+export class NaverAuthGuard extends AuthGuard('naver') {
   constructor() {
-    super(); // Guard의 super를 통해 kakao 소셜로그인으로 접근
+    super();
   }
   handleRequest<TUser = any>(
     err: any,

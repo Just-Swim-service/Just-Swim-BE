@@ -15,7 +15,9 @@ import { AuthService } from 'src/auth/auth.service';
 import * as NodeCache from 'node-cache';
 import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
 @Controller()
 export class UsersController {
   cache: NodeCache;
@@ -27,6 +29,10 @@ export class UsersController {
   }
 
   @Get(':userType')
+  @ApiOperation({ summary: 'userType 선택' })
+  @ApiParam({ name: 'userType', description: 'userType 지정', type: 'string' })
+  @ApiResponse({ status: 200, description: 'userType 지정 완료' })
+  @ApiResponse({ status: 400, description: 'userType을 지정해주세요' })
   async selectUserType(
     @Param('userType') userType: string,
     @Res() res: Response,
@@ -46,12 +52,14 @@ export class UsersController {
 
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao')
+  @ApiOperation({ summary: 'Kakao login' })
   async kakaoLogin(): Promise<void> {
     return;
   }
 
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao/callback')
+  @ApiOperation({ summary: 'Kakao callback' })
   async kakaoCallback(
     @Req() req: Request,
     @Res() res: Response,
@@ -67,6 +75,8 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
       const accessToken = await this.authService.getToken(exUser.userId);
+      delete session.userType;
+
       res.redirect(process.env.REDIRECT_URI);
     }
     if (exUser === null) {
@@ -86,12 +96,14 @@ export class UsersController {
 
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver')
+  @ApiOperation({ summary: 'Naver login' })
   async naverLogin(): Promise<void> {
     return;
   }
 
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver/callback')
+  @ApiOperation({ summary: 'Naver callback' })
   async naverCallback(
     @Req() req: Request,
     @Res() res: Response,
@@ -107,6 +119,8 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
       const accessToken = await this.authService.getToken(exUser.userId);
+      delete session.userType;
+
       res.redirect(process.env.REDIRECT_URI);
     }
     if (exUser === null) {
@@ -126,12 +140,14 @@ export class UsersController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google')
+  @ApiOperation({ summary: 'Google login' })
   async googleLogin(): Promise<void> {
     return;
   }
 
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google/callback')
+  @ApiOperation({ summary: 'Google callback' })
   async googleCallback(
     @Req() req: Request,
     @Res() res: Response,
@@ -147,6 +163,8 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
       const accessToken = await this.authService.getToken(exUser.userId);
+      delete session.userType;
+
       res.redirect(process.env.REDIRECT_URI);
     }
     if (exUser === null) {

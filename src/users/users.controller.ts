@@ -16,6 +16,7 @@ import * as NodeCache from 'node-cache';
 import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UsersDto } from './dto/users.dto';
 
 @ApiTags('Users')
 @Controller()
@@ -80,13 +81,14 @@ export class UsersController {
       res.redirect(process.env.REDIRECT_URI);
     }
     if (exUser === null) {
-      const newUser = await this.authService.createUser({
+      const newUserData: UsersDto = {
         email,
         profileImage,
         name,
         provider,
         userType,
-      });
+      };
+      const newUser = await this.authService.createUser(newUserData);
       delete session.userType;
 
       const accessToken = await this.authService.getToken(newUser.userId);

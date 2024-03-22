@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Users } from 'src/users/entity/users.entity';
 import { UsersService } from 'src/users/users.service';
 import * as jwt from 'jsonwebtoken';
+import { UsersDto } from 'src/users/dto/users.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,19 +24,7 @@ export class AuthService {
     return accessToken;
   }
 
-  async createUser({
-    email,
-    profileImage,
-    name,
-    provider,
-    userType,
-  }): Promise<Users> {
-    return await this.usersService.createUser({
-      email,
-      profileImage,
-      name,
-      provider,
-      userType,
-    });
+  async createUser(userData: UsersDto): Promise<Users> {
+    return await this.usersService.createUser(userData);
   }
 }

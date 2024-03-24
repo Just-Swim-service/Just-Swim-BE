@@ -2,11 +2,27 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import * as session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:80'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    optionsSuccessStatus: 204,
+  });
   app.setGlobalPrefix('api'); // 글로벌 프리픽스 설정
-  app.useGlobalPipes(new ValidationPipe()); // 유효성 검사
+  app.useGlobalPipes(new ValidationPipe()); // 유효성 검사 파이프라인
+
+  // session 설정
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
 
   // swagger 설정
   const config = new DocumentBuilder()

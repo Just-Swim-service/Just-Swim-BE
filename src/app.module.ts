@@ -6,6 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtService } from '@nestjs/jwt';
+import { CustomerModule } from './customer/customer.module';
+import { InstructorModule } from './instructor/instructor.module';
 
 @Module({
   imports: [
@@ -21,11 +23,13 @@ import { JwtService } from '@nestjs/jwt';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      // synchronize: true,
-      synchronize: false,
+      synchronize: true,
+      // synchronize: false,
     }),
     UsersModule,
     AuthModule,
+    CustomerModule,
+    InstructorModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],

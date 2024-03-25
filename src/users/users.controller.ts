@@ -17,6 +17,8 @@ import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
+import { CustomerService } from 'src/customer/customer.service';
+import { InstructorService } from 'src/instructor/instructor.service';
 
 @ApiTags('Users')
 @Controller()
@@ -25,6 +27,8 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly customerService: CustomerService,
+    private readonly instructorService: InstructorService,
   ) {
     this.cache = new NodeCache();
   }
@@ -39,9 +43,9 @@ export class UsersController {
     @Res() res: Response,
     @Session() session: Record<string, any>,
   ) {
-    let value: string = userType;
+    let userTypeValue: string = userType;
 
-    if (!value) {
+    if (!userTypeValue) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: 'userType을 지정해주세요' });
@@ -89,6 +93,15 @@ export class UsersController {
         userType,
       };
       const newUser = await this.authService.createUser(newUserData);
+      let userId: number = newUser.userId;
+
+      if (userType === 'customer') {
+        await this.customerService.createCustomer(userId);
+      }
+      if (userType === 'instructor') {
+        await this.instructorService.createInstructor(userId);
+      }
+
       delete session.userType;
 
       const accessToken = await this.authService.getToken(newUser.userId);
@@ -126,13 +139,23 @@ export class UsersController {
       res.redirect(process.env.REDIRECT_URI);
     }
     if (exUser === null) {
-      const newUser = await this.authService.createUser({
+      const newUserData: UsersDto = {
         email,
         profileImage,
         name,
         provider,
         userType,
-      });
+      };
+      const newUser = await this.authService.createUser(newUserData);
+      let userId: number = newUser.userId;
+
+      if (userType === 'customer') {
+        await this.customerService.createCustomer(userId);
+      }
+      if (userType === 'instructor') {
+        await this.instructorService.createInstructor(userId);
+      }
+
       delete session.userType;
 
       const accessToken = await this.authService.getToken(newUser.userId);
@@ -170,13 +193,22 @@ export class UsersController {
       res.redirect(process.env.REDIRECT_URI);
     }
     if (exUser === null) {
-      const newUser = await this.authService.createUser({
+      const newUserData: UsersDto = {
         email,
         profileImage,
         name,
         provider,
         userType,
-      });
+      };
+      const newUser = await this.authService.createUser(newUserData);
+      let userId: number = newUser.userId;
+
+      if (userType === 'customer') {
+        await this.customerService.createCustomer(userId);
+      }
+      if (userType === 'instructor') {
+        await this.instructorService.createInstructor(userId);
+      }
       delete session.userType;
 
       const accessToken = await this.authService.getToken(newUser.userId);

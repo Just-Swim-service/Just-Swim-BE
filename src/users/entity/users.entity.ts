@@ -1,8 +1,11 @@
+import { Customer } from 'src/customer/entity/customer.entity';
+import { Instructor } from 'src/instructor/entity/instructor.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -41,4 +44,10 @@ export class Users {
 
   @DeleteDateColumn({ type: 'datetime', nullable: true })
   userDeletedAt: Date;
+
+  @OneToMany(() => Customer, (customer) => customer.userId)
+  customer: Customer[];
+
+  @OneToMany(() => Instructor, (instructor) => instructor.userId)
+  instructor: Instructor[];
 }

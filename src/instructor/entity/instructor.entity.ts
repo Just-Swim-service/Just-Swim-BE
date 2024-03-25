@@ -31,7 +31,7 @@ export class Instructor {
   @Column({ type: 'varchar', nullable: true })
   Introduction: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'mediumtext', nullable: true })
   curriculum: string;
 
   @Column({ type: 'varchar', nullable: true })

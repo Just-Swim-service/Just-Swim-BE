@@ -48,6 +48,8 @@ describe('AuthService', () => {
         userCreatedAt: new Date(),
         userUpdatedAt: new Date(),
         userDeletedAt: null,
+        customer: [],
+        instructor: [],
       };
       (usersService.findUserByEmail as jest.Mock).mockResolvedValue(exUser);
 
@@ -103,6 +105,8 @@ describe('AuthService', () => {
         userCreatedAt: new Date(),
         userUpdatedAt: new Date(),
         userDeletedAt: null,
+        customer: [],
+        instructor: [],
       };
       (usersService.createUser as jest.Mock).mockResolvedValue(newUser);
 

@@ -29,7 +29,7 @@ export class Instructor {
   history: string;
 
   @Column({ type: 'varchar', nullable: true })
-  Introduction: string;
+  introduction: string;
 
   @Column({ type: 'mediumtext', nullable: true })
   curriculum: string;

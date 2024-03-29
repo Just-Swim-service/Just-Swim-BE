@@ -125,8 +125,11 @@ describe('UsersController', () => {
       providers: [
         UsersService,
         { provide: AuthService, useClass: MockAuthService },
-        CustomerService,
-        InstructorService,
+        { provide: CustomerService, useValue: { createCustomer: jest.fn() } },
+        {
+          provide: InstructorService,
+          useValue: { createInstructor: jest.fn() },
+        },
         { provide: UsersRepository, useClass: MockUsersRepository },
         { provide: CustomerRepository, useClass: MockCustomerRepository },
         { provide: InstructorRepository, useClass: MockInstructorRepository },
@@ -194,15 +197,29 @@ describe('UsersController', () => {
           },
         },
       };
+      const session = { userType: 'customer' };
 
       const res: Partial<Response> = {
         redirect: jest.fn(),
       };
 
-      await controller.kakaoCallback(req as Request, res as Response, {});
+      await controller.kakaoCallback(req as Request, res as Response, session);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
+      const [userArgs] = (authService.createUser as jest.Mock).mock.calls[0];
+      const newUser = userArgs[0];
+      if (session.userType === 'customer') {
+        expect(customerService.createCustomer).toHaveBeenCalledWith(
+          newUser.userId,
+        );
+      }
+      if (session.userType === 'instructor') {
+        expect(instructorService.createInstructor).toHaveBeenCalledWith(
+          newUser.userId,
+        );
+      }
+
       expect(res.redirect).toHaveBeenCalled();
     });
   });
@@ -217,12 +234,13 @@ describe('UsersController', () => {
           profileImage: null,
         },
       };
+      const session = { userType: 'customer' };
 
       const res: Partial<Response> = {
         redirect: jest.fn(),
       };
 
-      await controller.naverCallback(req as Request, res as Response, {});
+      await controller.naverCallback(req as Request, res as Response, session);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
@@ -242,12 +260,13 @@ describe('UsersController', () => {
           },
         },
       };
+      const session = { userType: 'customer' };
 
       const res: Partial<Response> = {
         redirect: jest.fn(),
       };
 
-      await controller.googleCallback(req as Request, res as Response, {});
+      await controller.googleCallback(req as Request, res as Response, session);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();

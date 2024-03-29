@@ -58,6 +58,58 @@ export class MockUsersRepository {
       instructor: [],
     },
   ];
+
+  findUserByEmail(email: string, provider: string): Users | undefined {
+    return this.users.find(
+      (user) => user.email === email && user.provider === provider,
+    );
+  }
+
+  createUser(userData: Partial<Users>): Users {
+    const newUser: Users = {
+      userId: this.users.length + 1,
+      email: userData.email!,
+      provider: userData.provider!,
+      name: userData.name!,
+      birth: userData.birth || null,
+      profileImage: userData.profileImage || null,
+      phoneNumber: userData.phoneNumber || null,
+      userType: userData.userType!,
+      userCreatedAt: new Date(),
+      userUpdatedAt: new Date(),
+      userDeletedAt: null,
+      customer: [],
+      instructor: [],
+    };
+    this.users.push(newUser);
+    return newUser;
+  }
+}
+
+export class MockAuthService {
+  private readonly mockUsersRepository: MockUsersRepository;
+
+  constructor() {
+    this.mockUsersRepository = new MockUsersRepository();
+  }
+
+  validateUser = jest
+    .fn()
+    .mockImplementation((email: string, provider: string) => {
+      const exUser = this.mockUsersRepository.findUserByEmail(email, provider);
+      if (!exUser) {
+        return null;
+      }
+      return exUser;
+    });
+
+  getToken = jest.fn().mockImplementation((userId: number) => {
+    return 'mocked-token'; // Return a mocked token
+  });
+
+  createUser = jest.fn().mockImplementation((userData: Partial<Users>) => {
+    return this.mockUsersRepository.createUser(userData);
+  });
 }
 
 describe('UsersController', () => {
@@ -72,7 +124,7 @@ describe('UsersController', () => {
       controllers: [UsersController],
       providers: [
         UsersService,
-        AuthService,
+        { provide: AuthService, useClass: MockAuthService },
         CustomerService,
         InstructorService,
         { provide: UsersRepository, useClass: MockUsersRepository },
@@ -126,89 +178,80 @@ describe('UsersController', () => {
     );
   });
 
-  // describe('kakaoCallback', () => {
-  //   it('should handle Kakao login callback', async () => {
-  //     const req: Partial<Request> = {
-  //       user: {
-  //         profile: {
-  //           provider: 'kakao',
-  //           username: '홍길동',
-  //           _json: {
-  //             kakao_account: {
-  //               email: 'test@daum.net',
-  //             },
-  //             properties: {
-  //               profile_image: null,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     };
+  describe('kakaoCallback', () => {
+    it('should handle Kakao login callback', async () => {
+      const req: Partial<Request> = {
+        user: {
+          provider: 'kakao',
+          username: '홍길동',
+          _json: {
+            kakao_account: {
+              email: 'test@daum.net',
+            },
+            properties: {
+              profile_image: null,
+            },
+          },
+        },
+      };
 
-  //     const res: Partial<Response> = {
-  //       redirect: jest.fn(),
-  //     };
+      const res: Partial<Response> = {
+        redirect: jest.fn(),
+      };
 
-  //     await controller.kakaoCallback(req as Request, res as Response, {});
+      await controller.kakaoCallback(req as Request, res as Response, {});
 
-  //     expect(authService.validateUser).toHaveBeenCalled();
-  //     expect(authService.getToken).toHaveBeenCalled();
-  //     expect(authService.createUser).toHaveBeenCalled();
-  //     expect(res.redirect).toHaveBeenCalled();
-  //   });
-  // });
+      expect(authService.validateUser).toHaveBeenCalled();
+      expect(authService.createUser).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalled();
+    });
+  });
 
-  // describe('naverCallback', () => {
-  //   it('should handle naver login callback', async () => {
-  //     const req: Partial<Request> = {
-  //       user: {
-  //         profile: {
-  //           provider: 'naver',
-  //           name: '홍길동',
-  //           email: 'test@naver.com',
-  //           profileImage: null,
-  //         },
-  //       },
-  //     };
+  describe('naverCallback', () => {
+    it('should handle naver login callback', async () => {
+      const req: Partial<Request> = {
+        user: {
+          provider: 'naver',
+          name: '홍길동',
+          email: 'test@naver.com',
+          profileImage: null,
+        },
+      };
 
-  //     const res: Partial<Response> = {
-  //       redirect: jest.fn(),
-  //     };
+      const res: Partial<Response> = {
+        redirect: jest.fn(),
+      };
 
-  //     await controller.naverCallback(req as Request, res as Response, {});
+      await controller.naverCallback(req as Request, res as Response, {});
 
-  //     expect(authService.validateUser).toHaveBeenCalled();
-  //     expect(authService.getToken).toHaveBeenCalled();
-  //     expect(authService.createUser).toHaveBeenCalled();
-  //     expect(res.redirect).toHaveBeenCalled();
-  //   });
-  // });
+      expect(authService.validateUser).toHaveBeenCalled();
+      expect(authService.createUser).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalled();
+    });
+  });
 
-  // describe('googleCallback', () => {
-  //   it('should handle naver login callback', async () => {
-  //     const req: Partial<Request> = {
-  //       user: {
-  //         profile: {
-  //           provider: 'google',
-  //           _json: {
-  //             name: '홍길동',
-  //             email: 'test@google.com',
-  //             picture: null,
-  //           },
-  //         },
-  //       },
-  //     };
+  describe('googleCallback', () => {
+    it('should handle naver login callback', async () => {
+      const req: Partial<Request> = {
+        user: {
+          provider: 'google',
+          _json: {
+            name: '홍길동',
+            email: 'test@google.com',
+            picture: null,
+          },
+        },
+      };
 
-  //     const res: Partial<Response> = {
-  //       redirect: jest.fn(),
-  //     };
+      const res: Partial<Response> = {
+        redirect: jest.fn(),
+      };
 
-  //     await controller.kakaoCallback(req as Request, res as Response, {});
+      await controller.googleCallback(req as Request, res as Response, {});
 
-  //     expect(authService.validateUser).toHaveBeenCalled();
-  //     expect(authService.getToken).toHaveBeenCalled();
-  //     expect(authService.createUser).toHaveBeenCalled();
-  //     expect(res.redirect).toHaveBeenCalled();
-  //   });
-  // });
+      expect(authService.validateUser).toHaveBeenCalled();
+      expect(authService.createUser).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalled();
+    });
+  });
 });

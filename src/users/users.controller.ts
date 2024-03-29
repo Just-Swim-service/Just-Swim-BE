@@ -79,7 +79,7 @@ export class UsersController {
 
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
-      const accessToken = await this.authService.getToken(exUser.userId);
+      // const accessToken = await this.authService.getToken(exUser.userId);
       delete session.userType;
 
       res.redirect(process.env.REDIRECT_URI);
@@ -104,7 +104,7 @@ export class UsersController {
 
       delete session.userType;
 
-      const accessToken = await this.authService.getToken(newUser.userId);
+      // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.REDIRECT_URI);
     }
   }
@@ -133,7 +133,7 @@ export class UsersController {
 
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
-      const accessToken = await this.authService.getToken(exUser.userId);
+      // const accessToken = await this.authService.getToken(exUser.userId);
       delete session.userType;
 
       res.redirect(process.env.REDIRECT_URI);
@@ -158,7 +158,7 @@ export class UsersController {
 
       delete session.userType;
 
-      const accessToken = await this.authService.getToken(newUser.userId);
+      // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.REDIRECT_URI);
     }
   }
@@ -187,7 +187,7 @@ export class UsersController {
 
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
-      const accessToken = await this.authService.getToken(exUser.userId);
+      // const accessToken = await this.authService.getToken(exUser.userId);
       delete session.userType;
 
       res.redirect(process.env.REDIRECT_URI);
@@ -211,7 +211,7 @@ export class UsersController {
       }
       delete session.userType;
 
-      const accessToken = await this.authService.getToken(newUser.userId);
+      // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.REDIRECT_URI);
     }
   }

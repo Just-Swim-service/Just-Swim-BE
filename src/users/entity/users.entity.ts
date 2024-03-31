@@ -15,7 +15,7 @@ export class Users {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   userType: string;
 
   @Column({ type: 'varchar' })

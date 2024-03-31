@@ -159,28 +159,6 @@ describe('UsersController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('selectUserType', () => {
-    it.each`
-      userType        | expectedStatus | expectedMessage
-      ${'customer'}   | ${200}         | ${'userType 저장 완료'}
-      ${'instructor'} | ${200}         | ${'userType 저장 완료'}
-      ${''}           | ${400}         | ${'userType을 지정해주세요'}
-    `(
-      'should return $expectedMessage message when userType is $userType',
-      async ({ userType, expectedStatus, expectedMessage }) => {
-        const res: Partial<Response> = {
-          status: jest.fn().mockReturnThis(),
-          json: jest.fn(),
-        };
-
-        await controller.selectUserType(userType, res as Response, {});
-
-        expect(res.status).toHaveBeenCalledWith(expectedStatus);
-        expect(res.json).toHaveBeenCalledWith({ message: expectedMessage });
-      },
-    );
-  });
-
   describe('kakaoCallback', () => {
     it('should handle Kakao login callback', async () => {
       const req: Partial<Request> = {
@@ -197,28 +175,15 @@ describe('UsersController', () => {
           },
         },
       };
-      const session = { userType: 'customer' };
 
       const res: Partial<Response> = {
         redirect: jest.fn(),
       };
 
-      await controller.kakaoCallback(req as Request, res as Response, session);
+      await controller.kakaoCallback(req as Request, res as Response);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
-      const [userArgs] = (authService.createUser as jest.Mock).mock.calls[0];
-      const newUser = userArgs[0];
-      if (session.userType === 'customer') {
-        expect(customerService.createCustomer).toHaveBeenCalledWith(
-          newUser.userId,
-        );
-      }
-      if (session.userType === 'instructor') {
-        expect(instructorService.createInstructor).toHaveBeenCalledWith(
-          newUser.userId,
-        );
-      }
 
       expect(res.redirect).toHaveBeenCalled();
     });
@@ -240,7 +205,7 @@ describe('UsersController', () => {
         redirect: jest.fn(),
       };
 
-      await controller.naverCallback(req as Request, res as Response, session);
+      await controller.naverCallback(req as Request, res as Response);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
@@ -266,11 +231,33 @@ describe('UsersController', () => {
         redirect: jest.fn(),
       };
 
-      await controller.googleCallback(req as Request, res as Response, session);
+      await controller.googleCallback(req as Request, res as Response);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalled();
     });
   });
+
+  // describe('selectUserType', () => {
+  //   it.each`
+  //     userType        | expectedStatus | expectedMessage
+  //     ${'customer'}   | ${200}         | ${'userType 저장 완료'}
+  //     ${'instructor'} | ${200}         | ${'userType 저장 완료'}
+  //     ${''}           | ${400}         | ${'userType을 지정해주세요'}
+  //   `(
+  //     'should return $expectedMessage message when userType is $userType',
+  //     async ({ userType, expectedStatus, expectedMessage }) => {
+  //       const res: Partial<Response> = {
+  //         status: jest.fn().mockReturnThis(),
+  //         json: jest.fn(),
+  //       };
+
+  //       await controller.selectUserType(userType, res as Response, {});
+
+  //       expect(res.status).toHaveBeenCalledWith(expectedStatus);
+  //       expect(res.json).toHaveBeenCalledWith({ message: expectedMessage });
+  //     },
+  //   );
+  // });
 });

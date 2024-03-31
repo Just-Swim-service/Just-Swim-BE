@@ -3,15 +3,6 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UsersDto {
   @ApiProperty({
-    example: 'customer',
-    description: 'userType',
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsString()
-  readonly userType: string;
-
-  @ApiProperty({
     example: '로그인 제공 사이트',
     description: 'provider',
     required: true,

@@ -168,6 +168,9 @@ describe('UsersController', () => {
           _json: {
             kakao_account: {
               email: 'test@daum.net',
+              birthyear: '1995',
+              birthday: '0913',
+              phone_number: '+82 010-1234-5678',
             },
             properties: {
               profile_image: null,
@@ -197,9 +200,11 @@ describe('UsersController', () => {
           name: '홍길동',
           email: 'test@naver.com',
           profileImage: null,
+          birthYear: '1995',
+          birthday: '09-13',
+          mobile: '010-1234-5678',
         },
       };
-      const session = { userType: 'customer' };
 
       const res: Partial<Response> = {
         redirect: jest.fn(),
@@ -225,7 +230,6 @@ describe('UsersController', () => {
           },
         },
       };
-      const session = { userType: 'customer' };
 
       const res: Partial<Response> = {
         redirect: jest.fn(),

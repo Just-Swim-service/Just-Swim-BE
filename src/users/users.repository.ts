@@ -24,6 +24,8 @@ export class UsersRepository {
     user.name = userData.name;
     user.profileImage = userData.profileImage;
     user.provider = userData.provider;
+    user.phoneNumber = userData.phoneNumber;
+    user.birth = userData.birth;
     await this.usersRepository.save(user);
     return user;
   }

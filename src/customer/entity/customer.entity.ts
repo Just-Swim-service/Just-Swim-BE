@@ -20,7 +20,7 @@ export class Customer {
   userId: number;
 
   @Column({ type: 'varchar', nullable: true })
-  nickName: string;
+  customerNickname: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   customerCreatedAt: Date;

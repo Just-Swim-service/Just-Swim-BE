@@ -9,7 +9,7 @@ export class MockCustomerRepository {
     {
       customerId: 1,
       userId: 2,
-      nickName: null,
+      customerNickname: null,
       customerCreatedAt: new Date(),
       customerUpdatedAt: new Date(),
       customerDeletedAt: null,

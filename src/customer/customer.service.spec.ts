@@ -32,7 +32,7 @@ describe('CustomerService', () => {
       const newCustomer: Customer = {
         customerId: 1,
         ...customerData,
-        nickName: null,
+        customerNickname: null,
         customerCreatedAt: new Date(),
         customerUpdatedAt: new Date(),
         customerDeletedAt: null,

@@ -9,5 +9,5 @@ export class CustomerDto {
   })
   @IsOptional()
   @IsString()
-  readonly nickName: string;
+  readonly customerNickname: string;
 }

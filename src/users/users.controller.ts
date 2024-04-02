@@ -4,7 +4,6 @@ import {
   Get,
   HttpStatus,
   Param,
-  Patch,
   Post,
   Req,
   Res,
@@ -54,9 +53,17 @@ export class UsersController {
   ): Promise<void> {
     let profile: any = req.user;
     let provider: string = profile.provider;
-    let name: string = profile.username;
+    let name: string = profile._json.kakao_account.name;
     let email: string = profile._json.kakao_account.email;
     let profileImage: string = profile._json.properties.profile_image;
+    // birth
+    let birthYear: string = profile._json.kakao_account.birthyear;
+    let birthDay: string = profile._json.kakao_account.birthday;
+    let birth: string = `${birthYear}.${birthDay.substring(0, 2)}.${birthDay.substring(2)}`;
+    // phoneNumber
+    let phone_number: string = profile._json.kakao_account.phone_number;
+    let cleanedNumber: string = phone_number.replace(/\D/g, '');
+    let phoneNumber: string = `010-${cleanedNumber.substring(4, 8)}-${cleanedNumber.substring(8, 13)}`;
 
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
@@ -76,6 +83,8 @@ export class UsersController {
         profileImage,
         name,
         provider,
+        birth,
+        phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
       let userId: number = newUser.userId;
@@ -104,6 +113,12 @@ export class UsersController {
     let name: string = profile.name;
     let email: string = profile.email;
     let profileImage: string = profile.profileImage;
+    // birth
+    let birthYear: string = profile.birthYear;
+    let birthDay: string = profile.birthday;
+    let birth: string = `${birthYear}.${birthDay.substring(0, 2)}.${birthDay.substring(3)}`;
+    // phoneNumber
+    let phoneNumber: string = profile.mobile;
 
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
@@ -123,6 +138,8 @@ export class UsersController {
         profileImage,
         name,
         provider,
+        birth,
+        phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
       let userId: number = newUser.userId;

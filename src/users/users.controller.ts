@@ -17,6 +17,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -253,6 +254,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'userType 지정 완료' })
   @ApiResponse({ status: 400, description: 'userType을 지정해주세요' })
   @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
   async selectUserType(
     @Param('userType') userType: string,
     @Res() res: Response,
@@ -293,12 +295,50 @@ export class UsersController {
     }
   }
 
+  @Get('user/myProfile')
+  @ApiOperation({ summary: '프로필 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '프로필 조회',
+    schema: {
+      example: {
+        email: 'test@example.com',
+        userType: 'instructor',
+        name: '홍길동',
+        profileImage:
+          'http://k.kakaocdn.net/dn/bjZYua/btsGes2FtXY/FJRzFxTN7KX16kw5HzR3kk/img_640x640.jpg',
+        birth: '1995.09.13',
+        phoneNumber: '010-1234-1234',
+      },
+    },
+  })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async findUserProfile(@Res() res: Response) {
+    try {
+      const { userId } = res.locals.user;
+      const userProfile = await this.usersService.findUserByPk(userId);
+      if (!userProfile) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'user 정보를 찾을 수 없습니다.' });
+      }
+
+      return res.status(HttpStatus.OK).json(userProfile);
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
+  }
+
   @Patch('user/edit')
   @ApiOperation({ summary: '유저 프로필 수정' })
   @ApiBody({ type: EditUserDto })
   @ApiResponse({ status: 200, description: '프로필 수정 완료' })
   @ApiResponse({ status: 400, description: '프로필을 수정할 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
   async editUserProfile(
     @Body() editUserDto: EditUserDto,
     @Res() res: Response,

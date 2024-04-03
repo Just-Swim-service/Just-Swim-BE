@@ -47,6 +47,7 @@ export class AppModule implements NestModule {
       .forRoutes(
         { path: 'user/:userType', method: RequestMethod.POST },
         { path: 'user/edit', method: RequestMethod.PATCH },
+        { path: 'user/myProfile', method: RequestMethod.GET },
       );
   }
 }

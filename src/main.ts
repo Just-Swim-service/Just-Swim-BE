@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,7 @@ async function bootstrap() {
     credentials: true,
     optionsSuccessStatus: 204,
   });
+  app.use(cookieParser());
   app.setGlobalPrefix('api'); // 글로벌 프리픽스 설정
   app.useGlobalPipes(new ValidationPipe()); // 유효성 검사 파이프라인
 

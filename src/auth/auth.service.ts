@@ -18,9 +18,7 @@ export class AuthService {
 
   async getToken(userId: number): Promise<string> {
     const tokenExpiry: number = 3600;
-    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-      expiresIn: tokenExpiry,
-    });
+    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET);
     return accessToken;
   }
 

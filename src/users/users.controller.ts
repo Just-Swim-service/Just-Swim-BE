@@ -4,6 +4,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   Res,
@@ -25,7 +26,7 @@ import {
 import { UsersDto } from './dto/users.dto';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { UserTypeDto } from './dto/userType.dto';
+import { EditUserDto } from './dto/editUser.dto';
 
 @ApiTags('Users')
 @Controller()
@@ -196,37 +197,130 @@ export class UsersController {
     }
   }
 
-  @Post('user/:userId')
-  @ApiOperation({ summary: 'userType 선택' })
-  @ApiParam({ name: 'userId', description: 'userId', type: 'number' })
-  @ApiBody({ type: UserTypeDto })
-  @ApiResponse({ status: 200, description: 'userType 지정 완료' })
-  @ApiResponse({ status: 400, description: 'userType을 지정해주세요' })
-  async selectUserType(
-    @Param('userId') userId: number,
-    @Body() userTypeDto: UserTypeDto,
+  /* 개발자를 위한 로그인 */
+  @Post('login')
+  @ApiBody({
+    description: '로그인 정보',
+    schema: {
+      type: 'object',
+      properties: {
+        email: {
+          description: '이메일',
+          type: 'string',
+          example: 'user@example.com',
+        },
+        provider: {
+          description: '소셜 제공자',
+          type: 'string',
+          example: 'kakao',
+        },
+      },
+      required: ['email', 'provider'],
+    },
+  })
+  @ApiResponse({ status: 200, description: '로그인 성공' })
+  @ApiResponse({ status: 400, description: '올바른 요청 형식이 아닙니다.' })
+  @ApiResponse({ status: 401, description: '사용자를 찾을 수 없습니다.' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async login(
+    @Body('email') email: string,
+    @Body('provider') provider: string,
     @Res() res: Response,
   ) {
-    const user = await this.usersService.findUserByPk(userId);
-    if (!user) {
-      return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({ message: '유저 정보를 확인해주세요' });
-    }
-    if (user.userType !== null) {
-      return res
-        .status(HttpStatus.NOT_ACCEPTABLE)
-        .json({ message: '계정에 타입이 이미 지정되어 있습니다.' });
-    }
+    try {
+      const user = await this.usersService.findUserByEmail(email, provider);
+      if (!user) {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .json({ message: '사용자를 찾을 수 없습니다.' });
+      }
 
-    if (userTypeDto.userType === 'customer') {
-      await this.customerService.createCustomer(userId);
-    }
-    if (userTypeDto.userType === 'instructor') {
-      await this.instructorService.createInstructor(userId);
-    }
+      let userId: number = user.userId;
+      let token: string = await this.authService.getToken(userId);
 
-    await this.usersService.selectUserType(userId, userTypeDto);
-    return res.status(HttpStatus.OK).json({ message: 'userType 지정 완료' });
+      res.cookie('authorization', token);
+      return res.status(HttpStatus.OK).json({ message: '로그인 성공' });
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
+  }
+
+  @Post('user/:userType')
+  @ApiOperation({ summary: 'userType 선택' })
+  @ApiParam({ name: 'userType', description: 'userType', type: 'string' })
+  @ApiResponse({ status: 200, description: 'userType 지정 완료' })
+  @ApiResponse({ status: 400, description: 'userType을 지정해주세요' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async selectUserType(
+    @Param('userType') userType: string,
+    @Res() res: Response,
+  ) {
+    try {
+      if (userType !== 'customer' && userType !== 'instructor') {
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: 'userType을 지정해주세요.' });
+      }
+
+      const { userId } = res.locals.user;
+      const user = await this.usersService.findUserByPk(userId);
+      if (!user) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: '유저 정보를 확인해주세요' });
+      }
+      if (user.userType !== null) {
+        return res
+          .status(HttpStatus.NOT_ACCEPTABLE)
+          .json({ message: '계정에 타입이 이미 지정되어 있습니다.' });
+      }
+
+      if (userType === 'customer') {
+        await this.customerService.createCustomer(userId);
+      }
+      if (userType === 'instructor') {
+        await this.instructorService.createInstructor(userId);
+      }
+
+      await this.usersService.selectUserType(userId, userType);
+      return res.status(HttpStatus.OK).json({ message: 'userType 지정 완료' });
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
+  }
+
+  @Patch('user/edit')
+  @ApiOperation({ summary: '유저 프로필 수정' })
+  @ApiBody({ type: EditUserDto })
+  @ApiResponse({ status: 200, description: '프로필 수정 완료' })
+  @ApiResponse({ status: 400, description: '프로필을 수정할 수 없습니다.' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async editUserProfile(
+    @Body() editUserDto: EditUserDto,
+    @Res() res: Response,
+  ) {
+    try {
+      const { userId } = res.locals.user;
+
+      const editUser = await this.usersService.editUserProfile(
+        userId,
+        editUserDto,
+      );
+      if (!editUser.affected) {
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '프로필을 수정할 수 없습니다.' });
+      }
+
+      return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
   }
 }

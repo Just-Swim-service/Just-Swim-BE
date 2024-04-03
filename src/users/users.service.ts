@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { Users } from './entity/users.entity';
 import { UsersDto } from './dto/users.dto';
-import { UserTypeDto } from './dto/userType.dto';
 import { UpdateResult } from 'typeorm';
+import { EditUserDto } from './dto/editUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -26,8 +26,15 @@ export class UsersService {
 
   async selectUserType(
     userId: number,
-    userTypeDto: UserTypeDto,
+    userType: string,
   ): Promise<UpdateResult> {
-    return await this.usersRepository.selectUserType(userId, userTypeDto);
+    return await this.usersRepository.selectUserType(userId, userType);
+  }
+
+  async editUserProfile(
+    userId: number,
+    editUserDto: EditUserDto,
+  ): Promise<UpdateResult> {
+    return await this.usersRepository.editUserProfile(userId, editUserDto);
   }
 }

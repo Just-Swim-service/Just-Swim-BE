@@ -4,7 +4,7 @@ import { IsOptional, IsString } from 'class-validator';
 export class CustomerDto {
   @ApiProperty({
     example: '돌핀맨',
-    description: 'nickName',
+    description: 'customerNickname',
     required: false,
   })
   @IsOptional()

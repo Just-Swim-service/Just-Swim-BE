@@ -3,8 +3,8 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UsersDto {
   @ApiProperty({
-    example: '로그인 제공 사이트',
-    description: 'provider',
+    example: 'kakao',
+    description: '로그인 제공 사이트',
     required: true,
   })
   @IsNotEmpty()
@@ -12,8 +12,8 @@ export class UsersDto {
   readonly provider: string;
 
   @ApiProperty({
-    example: '유저 이메일',
-    description: 'email',
+    example: 'test@example.com',
+    description: '사용자 이메일',
     required: true,
   })
   @IsNotEmpty()
@@ -21,8 +21,8 @@ export class UsersDto {
   readonly email: string;
 
   @ApiProperty({
-    example: '유저 이름',
-    description: 'name',
+    example: '홍길동',
+    description: '사용자 이름',
     required: true,
   })
   @IsNotEmpty()
@@ -30,8 +30,8 @@ export class UsersDto {
   readonly name: string;
 
   @ApiProperty({
-    example: '유저 프로필 이미지',
-    description: 'profileImage',
+    example: 'URL',
+    description: '사용자 프로필 이미지',
     required: false,
   })
   @IsOptional()
@@ -39,8 +39,8 @@ export class UsersDto {
   readonly profileImage?: string;
 
   @ApiProperty({
-    example: '유저 생년월일',
-    description: 'birth',
+    example: '1995.09.13',
+    description: '사용자 생년월일',
     required: false,
   })
   @IsOptional()
@@ -48,8 +48,8 @@ export class UsersDto {
   readonly birth?: string;
 
   @ApiProperty({
-    example: '유저 전화 번호',
-    description: 'phoneNumber',
+    example: '010-1234-1234',
+    description: '사용자 핸드폰 번호',
     required: false,
   })
   @IsOptional()

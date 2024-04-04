@@ -11,7 +11,8 @@ import { InstructorService } from 'src/instructor/instructor.service';
 import { MockCustomerRepository } from 'src/customer/customer.controller.spec';
 import { MockInstructorRepository } from 'src/instructor/instructor.controller.spec';
 import { MockUsersRepository } from './users.service.spec';
-import { HttpStatus } from '@nestjs/common';
+import { Body, HttpStatus } from '@nestjs/common';
+import { EditUserDto } from './dto/editUser.dto';
 
 class MockKakaoAuthGuard {
   canActivate = jest.fn().mockReturnValue(true);
@@ -273,6 +274,103 @@ describe('UsersController', () => {
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: 'userType 지정 완료' });
+    });
+  });
+
+  describe('findUserProfile', () => {
+    it('user 프로필 return', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      const mockUserProfile = {
+        email: 'test@example.com',
+        userType: 'customer',
+        name: '홍길동',
+        profileImage: 'testImage.jpg',
+        birth: '1995.09.13',
+        phoneNumber: '010-1234-1234',
+      };
+
+      usersService.findUserByPk.mockResolvedValue(mockUserProfile);
+
+      await controller.findUserProfile(res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+      expect(res.json).toHaveBeenCalledWith(mockUserProfile);
+    });
+
+    it('user 프로필 조회 실패 시 not found return', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      usersService.findUserByPk.mockResolvedValue(null);
+
+      await controller.findUserProfile(res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'user 정보를 찾을 수 없습니다.',
+      });
+    });
+  });
+
+  describe('editUserProfile', () => {
+    it('프로필 수정이 정상적으로 진행되지 않을 경우 bad request return', async () => {
+      const req: Partial<Request> = { body: { ediUserDto: EditUserDto } };
+
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      usersService.editUserProfile.mockResolvedValue({ affected: 0 });
+
+      await controller.editUserProfile(req.body, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(res.json).toHaveBeenCalledWith({
+        message: '프로필을 수정할 수 없습니다.',
+      });
+    });
+
+    it('프로필 수정이 정상적으로 진행 된 경우 success return', async () => {
+      const req: Partial<Request> = { body: { ediUserDto: EditUserDto } };
+
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      usersService.editUserProfile.mockResolvedValue({ affected: 1 });
+
+      await controller.editUserProfile(req.body, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+      expect(res.json).toHaveBeenCalledWith({ message: '프로필 수정 완료' });
     });
   });
 });

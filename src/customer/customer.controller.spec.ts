@@ -5,7 +5,7 @@ import { Customer } from './entity/customer.entity';
 import { CustomerRepository } from './customer.repository';
 
 export class MockCustomerRepository {
-  private readonly customer: Customer[] = [
+  readonly customer: Customer[] = [
     {
       customerId: 1,
       userId: 2,

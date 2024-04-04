@@ -5,7 +5,7 @@ import { InstructorRepository } from './instructor.repository';
 import { Instructor } from './entity/instructor.entity';
 
 export class MockInstructorRepository {
-  private readonly instructor: Instructor[] = [
+  readonly instructor: Instructor[] = [
     {
       instructorId: 1,
       userId: 3,

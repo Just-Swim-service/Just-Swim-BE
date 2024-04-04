@@ -33,7 +33,7 @@ describe('AuthService', () => {
   });
 
   describe('validateUser', () => {
-    it('should return user when a user with the specified email and provider exists', async () => {
+    it('email과 provider가 맞는 user가 있을 경우 user 정보 return', async () => {
       const email = 'test@example.com';
       const provider = 'test_provider';
       const exUser: Users = {
@@ -58,7 +58,7 @@ describe('AuthService', () => {
       expect(result).toEqual(exUser);
     });
 
-    it('should return null when no user with the specified email and provider exists', async () => {
+    it('email과 provider가 맞는 user가 없을 경우 null return', async () => {
       const email = 'nonexistent@example.com';
       const provider = 'nonexistent_provider';
       (usersService.findUserByEmail as jest.Mock).mockResolvedValue(null);
@@ -70,7 +70,7 @@ describe('AuthService', () => {
   });
 
   describe('getToken', () => {
-    it('should return a token for the provided user ID', async () => {
+    it('userId를 포함하는 token return', async () => {
       const userId = 1;
       const accessToken = 'mocked_access_token';
       (jwt.sign as jest.Mock).mockReturnValue(accessToken);
@@ -78,13 +78,7 @@ describe('AuthService', () => {
       const result = await service.getToken(userId);
 
       expect(result).toEqual(accessToken);
-      expect(jwt.sign).toHaveBeenCalledWith(
-        { userId },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: 3600,
-        },
-      );
+      expect(jwt.sign).toHaveBeenCalledWith({ userId }, process.env.JWT_SECRET);
     });
   });
 

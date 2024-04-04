@@ -4,16 +4,14 @@ import { UsersService } from './users.service';
 import { AuthService } from 'src/auth/auth.service';
 import { KakaoAuthGuard } from 'src/auth/guard/kakao.guard';
 import { Request, Response } from 'express';
-import { UsersRepository } from './users.repository';
-import { Users } from './entity/users.entity';
 import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { CustomerRepository } from 'src/customer/customer.repository';
 import { MockCustomerRepository } from 'src/customer/customer.controller.spec';
-import { InstructorRepository } from 'src/instructor/instructor.repository';
 import { MockInstructorRepository } from 'src/instructor/instructor.controller.spec';
+import { MockUsersRepository } from './users.service.spec';
+import { HttpStatus } from '@nestjs/common';
 
 class MockKakaoAuthGuard {
   canActivate = jest.fn().mockReturnValue(true);
@@ -25,114 +23,54 @@ class MockGoogleAuthGuard {
   canActivate = jest.fn().mockReturnValue(true);
 }
 
-export class MockUsersRepository {
-  private readonly users: Users[] = [
-    {
-      userId: 1,
-      email: 'test@example.com',
-      provider: 'kakao',
-      name: '홍길동',
-      birth: null,
-      profileImage: null,
-      phoneNumber: null,
-      userType: 'customer',
-      userCreatedAt: new Date(),
-      userUpdatedAt: new Date(),
-      userDeletedAt: null,
-      customer: [],
-      instructor: [],
-    },
-    {
-      userId: 2,
-      email: 'test@example.com',
-      provider: 'kakao',
-      name: '홍길동',
-      birth: null,
-      profileImage: null,
-      phoneNumber: null,
-      userType: 'customer',
-      userCreatedAt: new Date(),
-      userUpdatedAt: new Date(),
-      userDeletedAt: null,
-      customer: [],
-      instructor: [],
-    },
-  ];
-
-  findUserByEmail(email: string, provider: string): Users | undefined {
-    return this.users.find(
-      (user) => user.email === email && user.provider === provider,
-    );
-  }
-
-  createUser(userData: Partial<Users>): Users {
-    const newUser: Users = {
-      userId: this.users.length + 1,
-      email: userData.email!,
-      provider: userData.provider!,
-      name: userData.name!,
-      birth: userData.birth || null,
-      profileImage: userData.profileImage || null,
-      phoneNumber: userData.phoneNumber || null,
-      userType: userData.userType!,
-      userCreatedAt: new Date(),
-      userUpdatedAt: new Date(),
-      userDeletedAt: null,
-      customer: [],
-      instructor: [],
-    };
-    this.users.push(newUser);
-    return newUser;
-  }
+class MockUsersService {
+  findUserByEmail = jest.fn();
+  findUserByPk = jest.fn();
+  selectUserType = jest.fn();
+  editUserProfile = jest.fn();
 }
 
-export class MockAuthService {
-  private readonly mockUsersRepository: MockUsersRepository;
+class MockAuthService {
+  validateUser = jest.fn();
+  createUser = jest.fn();
+  getToken = jest.fn();
+}
 
-  constructor() {
-    this.mockUsersRepository = new MockUsersRepository();
-  }
+class MockCustomerService {
+  createCustomer = jest.fn();
+}
 
-  validateUser = jest
-    .fn()
-    .mockImplementation((email: string, provider: string) => {
-      const exUser = this.mockUsersRepository.findUserByEmail(email, provider);
-      if (!exUser) {
-        return null;
-      }
-      return exUser;
-    });
-
-  getToken = jest.fn().mockImplementation((userId: number) => {
-    return 'mocked-token'; // Return a mocked token
-  });
-
-  createUser = jest.fn().mockImplementation((userData: Partial<Users>) => {
-    return this.mockUsersRepository.createUser(userData);
-  });
+class MockInstructorService {
+  createInstructor = jest.fn();
 }
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let usersService: UsersService;
-  let authService: AuthService;
-  let customerService: CustomerService;
-  let instructorService: InstructorService;
+  let usersService: MockUsersService;
+  let authService: MockAuthService;
+  let customerService: MockCustomerService;
+  let instructorService: MockInstructorService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
-        UsersService,
-        { provide: AuthService, useClass: MockAuthService },
-        { provide: CustomerService, useValue: { createCustomer: jest.fn() } },
+        {
+          provide: UsersService,
+          useClass: MockUsersService,
+        },
+        {
+          provide: AuthService,
+          useClass: MockAuthService,
+        },
+        {
+          provide: CustomerService,
+          useClass: MockCustomerService,
+        },
         {
           provide: InstructorService,
-          useValue: { createInstructor: jest.fn() },
+          useClass: MockInstructorService,
         },
-        { provide: UsersRepository, useClass: MockUsersRepository },
-        { provide: CustomerRepository, useClass: MockCustomerRepository },
-        { provide: InstructorRepository, useClass: MockInstructorRepository },
         {
           provide: KakaoAuthGuard,
           useClass: MockKakaoAuthGuard,
@@ -149,10 +87,14 @@ describe('UsersController', () => {
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
-    usersService = module.get<UsersService>(UsersService);
-    authService = module.get<AuthService>(AuthService);
-    customerService = module.get<CustomerService>(CustomerService);
-    instructorService = module.get<InstructorService>(InstructorService);
+    usersService = module.get<UsersService, MockUsersService>(UsersService);
+    authService = module.get<AuthService, MockAuthService>(AuthService);
+    customerService = module.get<CustomerService, MockCustomerService>(
+      CustomerService,
+    );
+    instructorService = module.get<InstructorService, MockInstructorService>(
+      InstructorService,
+    );
   });
 
   it('should be defined', () => {
@@ -160,7 +102,7 @@ describe('UsersController', () => {
   });
 
   describe('kakaoCallback', () => {
-    it('should handle Kakao login callback', async () => {
+    it('kakao 소셜 로그인 callback', async () => {
       const req: Partial<Request> = {
         user: {
           provider: 'kakao',
@@ -183,17 +125,22 @@ describe('UsersController', () => {
         redirect: jest.fn(),
       };
 
+      authService.validateUser.mockResolvedValue(null);
+      authService.createUser.mockResolvedValue({ userId: 1 });
+      authService.getToken.mockResolvedValue('accessToken');
+
       await controller.kakaoCallback(req as Request, res as Response);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
-
-      expect(res.redirect).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith(
+        process.env.SELECT_USERTYPE_REDIRECT_URI,
+      );
     });
   });
 
   describe('naverCallback', () => {
-    it('should handle naver login callback', async () => {
+    it('naver 소셜 로그인 callback', async () => {
       const req: Partial<Request> = {
         user: {
           provider: 'naver',
@@ -210,16 +157,22 @@ describe('UsersController', () => {
         redirect: jest.fn(),
       };
 
+      authService.validateUser.mockResolvedValue(null);
+      authService.createUser.mockResolvedValue({ userId: 1 });
+      authService.getToken.mockResolvedValue('accessToken');
+
       await controller.naverCallback(req as Request, res as Response);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
-      expect(res.redirect).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith(
+        process.env.SELECT_USERTYPE_REDIRECT_URI,
+      );
     });
   });
 
   describe('googleCallback', () => {
-    it('should handle naver login callback', async () => {
+    it('google 소셜 로그인 callback', async () => {
       const req: Partial<Request> = {
         user: {
           provider: 'google',
@@ -235,33 +188,91 @@ describe('UsersController', () => {
         redirect: jest.fn(),
       };
 
+      authService.validateUser.mockResolvedValue(null);
+      authService.createUser.mockResolvedValue({ userId: 1 });
+      authService.getToken.mockResolvedValue('accessToken');
+
       await controller.googleCallback(req as Request, res as Response);
 
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
-      expect(res.redirect).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith(
+        process.env.SELECT_USERTYPE_REDIRECT_URI,
+      );
     });
   });
 
-  // describe('selectUserType', () => {
-  //   it.each`
-  //     userType        | expectedStatus | expectedMessage
-  //     ${'customer'}   | ${200}         | ${'userType 저장 완료'}
-  //     ${'instructor'} | ${200}         | ${'userType 저장 완료'}
-  //     ${''}           | ${400}         | ${'userType을 지정해주세요'}
-  //   `(
-  //     'should return $expectedMessage message when userType is $userType',
-  //     async ({ userType, expectedStatus, expectedMessage }) => {
-  //       const res: Partial<Response> = {
-  //         status: jest.fn().mockReturnThis(),
-  //         json: jest.fn(),
-  //       };
+  describe('selectUserType', () => {
+    it('유효하지 않은 userType 지정했을 시 bad request return', async () => {
+      const req: Partial<Request> = {
+        params: {
+          userType: 'invalidType',
+        },
+      };
 
-  //       await controller.selectUserType(userType, res as Response, {});
+      const res: Partial<Response> = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
 
-  //       expect(res.status).toHaveBeenCalledWith(expectedStatus);
-  //       expect(res.json).toHaveBeenCalledWith({ message: expectedMessage });
-  //     },
-  //   );
-  // });
+      await controller.selectUserType(req.params.userType, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'userType을 지정해주세요.',
+      });
+    });
+
+    it('userType을 이미 지정 했을 경우 not acceptable return', async () => {
+      const req: Partial<Request> = {
+        params: {
+          userType: 'customer',
+        },
+      };
+
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      usersService.findUserByPk.mockResolvedValue({ userType: 'customer' });
+
+      await controller.selectUserType(req.params.userType, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.NOT_ACCEPTABLE);
+      expect(res.json).toHaveBeenCalledWith({
+        message: '계정에 타입이 이미 지정되어 있습니다.',
+      });
+    });
+
+    it('userType이 지정 될 경우 success return', async () => {
+      const req: Partial<Request> = {
+        params: {
+          userType: 'customer',
+        },
+      };
+
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      usersService.findUserByPk.mockResolvedValue({ userType: null });
+
+      await controller.selectUserType(req.params.userType, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+      expect(res.json).toHaveBeenCalledWith({ message: 'userType 지정 완료' });
+    });
+  });
 });

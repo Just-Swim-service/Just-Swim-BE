@@ -10,7 +10,7 @@ export class MockInstructorRepository {
       instructorId: 1,
       userId: 3,
       workingLocation: null,
-      carrer: null,
+      career: null,
       history: null,
       introduction: null,
       curriculum: null,
@@ -20,6 +20,7 @@ export class MockInstructorRepository {
       instructorCreatedAt: new Date(),
       instructorUpdatedAt: new Date(),
       instructorDeletedAt: null,
+      lectures: []
     },
   ];
 }

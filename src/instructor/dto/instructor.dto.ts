@@ -10,10 +10,10 @@ export class InstructorDto {
 
   @ApiProperty({
     example: '생활체육지도자 자격증 2급',
-    description: 'carrer',
+    description: 'career',
     required: false,
   })
-  readonly carrer: string;
+  readonly career: string;
 
   @ApiProperty({
     example: '일산올림픽스포츠센터 2019-2022',

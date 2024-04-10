@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtService } from '@nestjs/jwt';
 import { CustomerModule } from './customer/customer.module';
 import { InstructorModule } from './instructor/instructor.module';
+import { LectureModule } from './lecture/lecture.module';
 import { AuthMiddleWare } from './auth/middleware/auth.middleware';
 
 @Module({
@@ -36,6 +37,7 @@ import { AuthMiddleWare } from './auth/middleware/auth.middleware';
     AuthModule,
     CustomerModule,
     InstructorModule,
+    LectureModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],

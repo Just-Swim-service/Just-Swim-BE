@@ -15,6 +15,7 @@ import { CustomerModule } from './customer/customer.module';
 import { InstructorModule } from './instructor/instructor.module';
 import { LectureModule } from './lecture/lecture.module';
 import { AuthMiddleWare } from './auth/middleware/auth.middleware';
+import { MemberModule } from './member/member.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AuthMiddleWare } from './auth/middleware/auth.middleware';
     CustomerModule,
     InstructorModule,
     LectureModule,
+    MemberModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],
@@ -50,6 +52,7 @@ export class AppModule implements NestModule {
         { path: 'user/:userType', method: RequestMethod.POST },
         { path: 'user/edit', method: RequestMethod.PATCH },
         { path: 'user/myProfile', method: RequestMethod.GET },
+        { path: 'member/*', method: RequestMethod.ALL },
       );
   }
 }

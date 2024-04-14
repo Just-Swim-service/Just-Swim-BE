@@ -1,4 +1,5 @@
 import { Instructor } from 'src/instructor/entity/instructor.entity';
+import { Member } from 'src/member/entity/member.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,6 +9,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('lecture')
@@ -18,6 +20,9 @@ export class Lecture {
   @ManyToOne(() => Instructor, (instructor) => instructor.lectures)
   @JoinColumn({ name: 'instructorId' })
   instructor: Instructor;
+
+  @OneToMany(() => Member, member => member.lectureId)
+  members: Member[];
 
   @Column({ type: 'varchar' })
   lectureTime: string;

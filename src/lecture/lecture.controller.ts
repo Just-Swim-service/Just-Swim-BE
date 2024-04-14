@@ -1,10 +1,14 @@
 import { Controller, Post, Body, Get, Param, ParseIntPipe, NotFoundException, Delete } from '@nestjs/common';
 import { LectureService } from './lecture.service';
+import { MemberService } from 'src/member/member.service';
 import { Lecture } from './entity/lecture.entity';
 
 @Controller('lecture')
 export class LectureController {
-  constructor(private readonly lectureService: LectureService) {}
+  constructor(
+    private readonly lectureService: LectureService,
+    private readonly memberService: MemberService
+  ) {}
 
   // 강의 전체 조회
   @Get()
@@ -49,5 +53,13 @@ export class LectureController {
     @Body('lectureQRCode') lectureQRCode: string,
   ): Promise<void> {
     await this.lectureService.createLecture(instructorId, lectureTime, lectureDays, lectureLevel, lectureContent, lectureQRCode);
+  }
+
+  // 강의 QE코드 생성
+  @Post('/:lectureId/qr-code')
+  async createQRCode(
+    @Param('lectureId', ParseIntPipe) lectureId: number, 
+    @Body('lectureQRCode') lectureQRCode: string): Promise<void> {
+    await this.lectureService.saveQRCode(lectureId, lectureQRCode);
   }
 }

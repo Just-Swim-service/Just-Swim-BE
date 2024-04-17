@@ -70,13 +70,14 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
       if (exUser.userType === null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       }
       if (exUser.userType !== null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-        res.redirect(process.env.HOME_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
     if (exUser === null) {

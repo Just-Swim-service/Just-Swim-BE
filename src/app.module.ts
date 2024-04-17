@@ -15,6 +15,7 @@ import { CustomerModule } from './customer/customer.module';
 import { InstructorModule } from './instructor/instructor.module';
 import { LectureModule } from './lecture/lecture.module';
 import { AuthMiddleWare } from './auth/middleware/auth.middleware';
+import { MemberModule } from './member/member.module';
 
 @Module({
   imports: [
@@ -38,18 +39,25 @@ import { AuthMiddleWare } from './auth/middleware/auth.middleware';
     CustomerModule,
     InstructorModule,
     LectureModule,
+    MemberModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleWare)
-      .forRoutes(
-        { path: 'user/:userType', method: RequestMethod.POST },
-        { path: 'user/edit', method: RequestMethod.PATCH },
-        { path: 'user/myProfile', method: RequestMethod.GET },
-      );
+    consumer.apply(AuthMiddleWare).forRoutes(
+      // Users
+      { path: 'user/:userType', method: RequestMethod.POST },
+      { path: 'user/edit', method: RequestMethod.PATCH },
+      { path: 'user/myProfile', method: RequestMethod.GET },
+      // Lecture
+      { path: 'lecture', method: RequestMethod.POST },
+      { path: 'lecture/schedule', method: RequestMethod.GET },
+      { path: 'lecture/myLectures', method: RequestMethod.GET },
+      { path: 'lecture/:lectureId', method: RequestMethod.GET },
+      { path: 'lecture/:lectureId', method: RequestMethod.PATCH },
+      { path: 'lecture/:lectureId', method: RequestMethod.DELETE },
+    );
   }
 }

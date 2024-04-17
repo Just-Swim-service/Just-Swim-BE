@@ -1,5 +1,7 @@
 import { Customer } from 'src/customer/entity/customer.entity';
 import { Instructor } from 'src/instructor/entity/instructor.entity';
+import { Lecture } from 'src/lecture/entity/lecture.entity';
+import { Member } from 'src/member/entity/member.entity';
 import {
   Column,
   CreateDateColumn,
@@ -50,4 +52,10 @@ export class Users {
 
   @OneToMany(() => Instructor, (instructor) => instructor.userId)
   instructor: Instructor[];
+
+  @OneToMany(() => Member, (member) => member.userId)
+  member: Member[];
+
+  @OneToMany(() => Lecture, (lecture) => lecture.userId)
+  lecture: Lecture[];
 }

@@ -16,4 +16,12 @@ export class CustomerRepository {
     await this.customerRepository.save(customer);
     return customer;
   }
+
+  async findCustomer(userId: number): Promise<Customer> {
+    return await this.customerRepository
+      .createQueryBuilder('customer')
+      .select(['customerId', 'userId', 'customerNickname'])
+      .where('customer.userId = :userId', { userId })
+      .getRawOne();
+  }
 }

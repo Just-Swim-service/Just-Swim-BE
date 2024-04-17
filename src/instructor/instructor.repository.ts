@@ -16,4 +16,23 @@ export class InstructorRepository {
     await this.instructorRepository.save(instructor);
     return instructor;
   }
+
+  async findInstructor(userId: number): Promise<Instructor> {
+    return await this.instructorRepository
+      .createQueryBuilder('instructor')
+      .select([
+        'instructorId',
+        'userId',
+        'workingLocation',
+        'career',
+        'history',
+        'introduction',
+        'curriculum',
+        'youtubeLink',
+        'instagramLink',
+        'facebookLink',
+      ])
+      .where('instructor.userId = :userId', { userId })
+      .getRawOne();
+  }
 }

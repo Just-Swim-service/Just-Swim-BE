@@ -9,4 +9,8 @@ export class CustomerService {
   async createCustomer(userId: number): Promise<Customer> {
     return await this.customerRepository.createCustomer(userId);
   }
+
+  async findCustomer(userId: number): Promise<Customer> {
+    return await this.customerRepository.findCustomer(userId);
+  }
 }

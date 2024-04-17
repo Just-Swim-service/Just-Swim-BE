@@ -1,21 +1,13 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
-import { MemberRepository } from 'src/member/member.repository';
 import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class LectureService {
-  constructor(
-    private readonly lectureRepository: LectureRepository,
-    private readonly memberRepository: MemberRepository,
-  ) {}
+  constructor(private readonly lectureRepository: LectureRepository) {}
 
   /* 강의 전체 조회 */
   async getLectures(): Promise<Lecture[]> {
@@ -69,14 +61,9 @@ export class LectureService {
 
   // 강의 생성
   async createLecture(
-    instructorId: number,
+    userId: number,
     lectureDto: LectureDto,
-  ): Promise<void> {
-    try {
-      await this.lectureRepository.createLecture(instructorId, lectureDto);
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
-    }
+  ): Promise<Lecture> {
+    return await this.lectureRepository.createLecture(userId, lectureDto);
   }
 }

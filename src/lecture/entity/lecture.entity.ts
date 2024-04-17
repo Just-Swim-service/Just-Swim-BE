@@ -22,7 +22,7 @@ export class Lecture {
   userId: number;
 
   @OneToMany(() => Member, (member) => member.lectureId)
-  members: Member[];
+  member: Member[];
 
   @Column({ type: 'varchar' })
   lectureTitle: string;
@@ -56,4 +56,6 @@ export class Lecture {
 
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   lectureDeletedAt: Date;
+
+  lectureMembers: Member[];
 }

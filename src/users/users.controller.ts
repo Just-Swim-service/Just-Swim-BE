@@ -351,7 +351,7 @@ export class UsersController {
         userId,
         editUserDto,
       );
-      if (!editUser.affected) {
+      if (editUser.affected === 0) {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '프로필을 수정할 수 없습니다.' });

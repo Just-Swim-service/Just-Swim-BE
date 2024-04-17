@@ -298,11 +298,7 @@ export class LectureController {
   @ApiBody({ description: '강의 생성을 위한 ', type: LectureDto })
   @ApiResponse({ status: 200, description: '강의 생성 완료' })
   @ApiBearerAuth('accessToken')
-  async createLecture(
-    @Res() res: Response,
-    @Body('instructorId') instructorId: number,
-    @Body() lectureDto: LectureDto,
-  ) {
+  async createLecture(@Res() res: Response, @Body() lectureDto: LectureDto) {
     try {
       const user = res.locals.user;
       const userId = user.userId;
@@ -314,7 +310,16 @@ export class LectureController {
           .json({ message: '강의 생성 권한이 없습니다.' });
       }
 
-      await this.lectureService.createLecture(userId, lectureDto);
+      const newLecture = await this.lectureService.createLecture(
+        userId,
+        lectureDto,
+      );
+
+      if (!newLecture) {
+        return res
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '강의 생성 실패' });
+      }
 
       return res.status(HttpStatus.OK).json({ message: '강의 생성 성공' });
     } catch (e) {

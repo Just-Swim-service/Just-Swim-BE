@@ -20,7 +20,6 @@ export class MockInstructorRepository {
       instructorCreatedAt: new Date(),
       instructorUpdatedAt: new Date(),
       instructorDeletedAt: null,
-      lectures: []
     },
   ];
 }

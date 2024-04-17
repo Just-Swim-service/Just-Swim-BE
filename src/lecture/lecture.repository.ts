@@ -90,7 +90,10 @@ export class LectureRepository {
   }
 
   // 강의 생성
-  async createLecture(userId: number, lectureDto: LectureDto): Promise<void> {
+  async createLecture(
+    userId: number,
+    lectureDto: LectureDto,
+  ): Promise<Lecture> {
     const {
       lectureTitle,
       lectureContent,
@@ -101,7 +104,7 @@ export class LectureRepository {
       lectureLocation,
       lectureEndDate,
     } = lectureDto;
-    await this.lectureRepository.query(
+    return await this.lectureRepository.query(
       'CALL CREATE_LECTURE(?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         userId,

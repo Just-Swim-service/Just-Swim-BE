@@ -39,6 +39,7 @@ export class AuthMiddleWare implements NestMiddleware<Request, Response> {
 
       if (user) {
         res.locals.user = user;
+        req.user = user;
         next();
       } else {
         return res

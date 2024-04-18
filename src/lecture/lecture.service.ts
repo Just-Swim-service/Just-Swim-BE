@@ -66,4 +66,9 @@ export class LectureService {
   ): Promise<Lecture> {
     return await this.lectureRepository.createLecture(userId, lectureDto);
   }
+
+  // 강의 QR 코드 생성
+  async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
+    await this.lectureRepository.saveQRCode(lectureId, lectureQRCode);
+  }
 }

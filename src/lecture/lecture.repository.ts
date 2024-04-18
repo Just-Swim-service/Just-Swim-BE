@@ -119,4 +119,9 @@ export class LectureRepository {
       ],
     );
   }
+
+  // 강의 QR 코드 생성
+  async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
+    await this.lectureRepository.query('CALL SAVE_QR_CODE(?, ?)', [lectureId, lectureQRCode]);
+  }
 }

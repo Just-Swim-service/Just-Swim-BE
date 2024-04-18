@@ -22,11 +22,16 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { MemberService } from 'src/member/member.service';
+import { Lecture } from './entity/lecture.entity';
 
 @ApiTags('Lecture')
 @Controller('lecture')
 export class LectureController {
-  constructor(private readonly lectureService: LectureService) {}
+  constructor(
+    private readonly lectureService: LectureService,
+    private readonly memberService: MemberService
+  ) {}
 
   /* 스케줄 - 강의 전체 조회(종료된 강의는 제외) */
   @Get('schedule')
@@ -327,5 +332,13 @@ export class LectureController {
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ message: e.message || '서버 오류' });
     }
+  }
+
+  // 강의 QE코드 생성
+  @Post('/:lectureId/qr-code')
+  async createQRCode(
+    @Param('lectureId', ParseIntPipe) lectureId: number, 
+    @Body('lectureQRCode') lectureQRCode: string): Promise<void> {
+    await this.lectureService.saveQRCode(lectureId, lectureQRCode);
   }
 }

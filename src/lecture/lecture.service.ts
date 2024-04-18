@@ -95,4 +95,9 @@ export class LectureService {
       throw new InternalServerErrorException();
     }
   }
+
+  // 강의 QR 코드 생성
+  async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
+    await this.lectureRepository.saveQRCode(lectureId, lectureQRCode);
+  }
 }

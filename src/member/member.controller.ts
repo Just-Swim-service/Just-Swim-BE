@@ -1,3 +1,5 @@
+import { Controller } from '@nestjs/common';
+import { MemberService } from './member.service';
 import {
   Controller,
   Get,
@@ -8,7 +10,6 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { MemberService } from 'src/member/member.service';
 import { Request, Response } from 'express';
 import { AuthMiddleWare } from 'src/auth/middleware/auth.middleware';
 

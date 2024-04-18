@@ -1,5 +1,4 @@
 import { Users } from 'src/users/entity/users.entity';
-import { Lecture } from 'src/lecture/entity/lecture.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,7 +6,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -20,9 +18,6 @@ export class Instructor {
   @ManyToOne(() => Users, (user) => user.instructor)
   @JoinColumn({ name: 'userId' })
   userId: number;
-
-  @OneToMany(() => Lecture, (lecture) => lecture.instructor)
-  lectures: Lecture[];
 
   @Column({ type: 'varchar', nullable: true })
   workingLocation: string;

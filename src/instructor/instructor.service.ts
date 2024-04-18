@@ -9,4 +9,8 @@ export class InstructorService {
   async createInstructor(userId: number): Promise<Instructor> {
     return await this.instructorRepository.createInstructor(userId);
   }
+
+  async findInstructor(userId: number): Promise<Instructor> {
+    return await this.instructorRepository.findInstructor(userId);
+  }
 }

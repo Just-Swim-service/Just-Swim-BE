@@ -1,5 +1,6 @@
-import { Instructor } from 'src/instructor/entity/instructor.entity';
 import { Member } from 'src/member/entity/member.entity';
+import { Users } from 'src/users/entity/users.entity';
+import { Instructor } from 'src/instructor/entity/instructor.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -17,9 +18,18 @@ export class Lecture {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   lectureId: number;
 
-  @ManyToOne(() => Instructor, (instructor) => instructor.lectures)
-  @JoinColumn({ name: 'instructorId' })
-  instructor: Instructor;
+  @ManyToOne(() => Users, (user) => user.lecture)
+  @JoinColumn({ name: 'userId' })
+  userId: number;
+
+  @OneToMany(() => Member, (member) => member.lectureId)
+  member: Member[];
+
+  @Column({ type: 'varchar' })
+  lectureTitle: string;
+
+  @Column({ type: 'mediumtext' })
+  lectureContent: string;
 
   @OneToMany(() => Member, member => member.lectureId)
   members: Member[];
@@ -31,13 +41,16 @@ export class Lecture {
   lectureDays: string;
 
   @Column({ type: 'varchar' })
-  lectureLevel: string;
+  lectureLocation: string;
 
-  @Column({ type: 'mediumtext' })
-  lectureContent: string;
+  @Column({ type: 'varchar' })
+  lectureColor: string;
 
   @Column({ type: 'varchar', nullable: true })
   lectureQRCode: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  lectureEndDate: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   lectureCreatedAt: Date;
@@ -47,4 +60,6 @@ export class Lecture {
 
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   lectureDeletedAt: Date;
+
+  lectureMembers: Member[];
 }

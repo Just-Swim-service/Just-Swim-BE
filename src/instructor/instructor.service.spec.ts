@@ -42,7 +42,6 @@ describe('InstructorService', () => {
         youtubeLink: null,
         instagramLink: null,
         facebookLink: null,
-        lectures: null, // Add the 'lectures' property
         instructorCreatedAt: new Date(),
         instructorUpdatedAt: new Date(),
         instructorDeletedAt: null,

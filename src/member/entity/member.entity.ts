@@ -1,25 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
-import { Customer } from 'src/customer/entity/customer.entity';
 import { Lecture } from 'src/lecture/entity/lecture.entity';
 import { Users } from 'src/users/entity/users.entity';
-
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('member')
 export class Member {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   memberId: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.members)
-  @JoinColumn({ name: 'customerId' })
-  customerId: number;
-
-  @ManyToOne(() => Lecture, (lecture) => lecture.members)
-  @JoinColumn({ name: 'lectureId' })
-  lectureId: number;
-
-  @ManyToOne(() => Users, (user) => user.customer)
+  @ManyToOne(() => Users, (user) => user.member)
   @JoinColumn({ name: 'userId' })
   userId: number;
+
+  @ManyToOne(() => Lecture, (lecture) => lecture.member)
+  @JoinColumn({ name: 'lectureId' })
+  lectureId: number;
 
   @Column({ type: 'varchar', nullable: true })
   memberNickname: string;

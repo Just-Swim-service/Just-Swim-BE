@@ -8,10 +8,7 @@ import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { MockCustomerRepository } from 'src/customer/customer.controller.spec';
-import { MockInstructorRepository } from 'src/instructor/instructor.controller.spec';
-import { MockUsersRepository } from './users.service.spec';
-import { Body, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { EditUserDto } from './dto/editUser.dto';
 
 class MockKakaoAuthGuard {

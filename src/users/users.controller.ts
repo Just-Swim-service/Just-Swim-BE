@@ -70,13 +70,14 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     if (exUser) {
       if (exUser.userType === null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       }
       if (exUser.userType !== null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-        res.redirect(process.env.HOME_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
     if (exUser === null) {
@@ -350,7 +351,7 @@ export class UsersController {
         userId,
         editUserDto,
       );
-      if (!editUser.affected) {
+      if (editUser.affected === 0) {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '프로필을 수정할 수 없습니다.' });

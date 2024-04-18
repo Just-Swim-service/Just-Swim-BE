@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { LectureController } from './lecture.controller';
 import { LectureService } from './lecture.service';
 import { LectureRepository } from './lecture.repository';

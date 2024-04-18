@@ -19,6 +19,8 @@ export class MockUsersRepository {
     userDeletedAt: null,
     customer: [],
     instructor: [],
+    member: [],
+    lecture: [],
   };
 }
 
@@ -94,6 +96,8 @@ describe('UsersService', () => {
         userDeletedAt: null,
         customer: [],
         instructor: [],
+        member: [],
+        lecture: [],
       };
       (repository.createUser as jest.Mock).mockResolvedValue(newUser);
 

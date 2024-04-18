@@ -1,4 +1,3 @@
-import { Controller } from '@nestjs/common';
 import { MemberService } from './member.service';
 import {
   Controller,
@@ -20,7 +19,7 @@ export class MemberController {
   // QR코드를 통한 회원 등록
   @UseGuards(AuthMiddleWare)
   @Get('/qr-code')
-  async InsertMemberFromQR(
+  async insertMemberFromQR(
     // @Query('customerId', ParseIntPipe) customerId: number,
     @Query('lectureId', ParseIntPipe) lectureId: number,
     @Res() res: Response,
@@ -31,18 +30,23 @@ export class MemberController {
     console.log('user 1', user);
 
     try {
-        const isExist = await this.memberService.CheckCustomerId(parseInt(user.userId));
-        console.log('isExist', isExist);
+      const isExist = await this.memberService.checkCustomerId(
+        parseInt(user.userId),
+      );
+      console.log('isExist', isExist);
 
-        if (!isExist) {
-            return res.redirect('/signup');
-        } else {
-            await this.memberService.InsertMemberFromQR(parseInt(user.userId), lectureId);
-            res.redirect(`/api/lecture/${lectureId}`);
-        }
+      if (!isExist) {
+        return res.redirect('/signup');
+      } else {
+        await this.memberService.insertMemberFromQR(
+          parseInt(user.userId),
+          lectureId,
+        );
+        res.redirect(`/api/lecture/${lectureId}`);
+      }
     } catch (error) {
-        console.log('서버 에러', error);
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
+      console.log('서버 에러', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
     }
   }
 }

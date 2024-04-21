@@ -19,18 +19,18 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { MemberService } from 'src/member/member.service';
-import { Lecture } from './entity/lecture.entity';
 
 @ApiTags('Lecture')
 @Controller('lecture')
 export class LectureController {
   constructor(
     private readonly lectureService: LectureService,
-    private readonly memberService: MemberService
+    private readonly memberService: MemberService,
   ) {}
 
   /* 스케줄 - 강의 전체 조회(종료된 강의는 제외) */
@@ -175,6 +175,11 @@ export class LectureController {
   @ApiOperation({
     summary: '강의 상세 조회',
     description: '강의를 상세한 내용을 조회한다',
+  })
+  @ApiParam({
+    name: 'lectureId',
+    type: 'number',
+    description: '강의 Id',
   })
   @ApiResponse({
     status: 200,
@@ -334,11 +339,72 @@ export class LectureController {
     }
   }
 
-  // 강의 QE코드 생성
-  @Post('/:lectureId/qr-code')
+  // 강의 QR코드 생성
+  @Post(':lectureId/qr-code')
   async createQRCode(
-    @Param('lectureId', ParseIntPipe) lectureId: number, 
-    @Body('lectureQRCode') lectureQRCode: string): Promise<void> {
+    @Param('lectureId', ParseIntPipe) lectureId: number,
+    @Body('lectureQRCode') lectureQRCode: string,
+  ): Promise<void> {
     await this.lectureService.saveQRCode(lectureId, lectureQRCode);
+  }
+
+  /* 강의에 해당하는 수강생 목록 */
+  @Get('memberList/:lectureId')
+  @ApiOperation({
+    summary: '수강생 목록을 조회',
+    description: 'instructor가 개설한 강의 목록에 참여한 수강생 list를 조회',
+  })
+  @ApiParam({
+    name: 'lectureId',
+    type: 'number',
+    description: '강의 Id',
+  })
+  @ApiResponse({
+    status: 200,
+    content: {
+      'application/json': {
+        examples: {
+          members: {
+            value: [
+              {
+                memberId: '1',
+                userId: '1',
+                memberNickname: '홍길동',
+                profileImage: 'URL',
+              },
+              {
+                memberId: '2',
+                userId: '10',
+                memberNickname: '홍길순',
+                profileImage: 'URL',
+              },
+            ],
+          },
+        },
+      },
+    },
+  })
+  @ApiBearerAuth('accessToken')
+  async getAllMemberByInstructor(
+    @Res() res: Response,
+    @Param('lectureId', ParseIntPipe) lectureId: number,
+  ) {
+    try {
+      const user = res.locals.user;
+      const userType = user.userType;
+
+      if (userType !== 'instructor') {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .json({ message: '접근 권한이 없습니다.' });
+      }
+      const memberList =
+        await this.memberService.getAllMemberByInstructor(lectureId);
+      return res.status(HttpStatus.OK).json(memberList);
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
   }
 }

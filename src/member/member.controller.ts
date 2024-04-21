@@ -7,33 +7,42 @@ import {
   Res,
   Req,
   HttpStatus,
-  UseGuards,
+  Param,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { AuthMiddleWare } from 'src/auth/middleware/auth.middleware';
 
+@ApiTags('Member')
 @Controller('member')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   // QR코드를 통한 회원 등록
-  @UseGuards(AuthMiddleWare)
   @Get('/qr-code')
+  @ApiOperation({
+    summary: '강의 QR코드를 통한 회원 등록',
+    description: 'QR 코드를 통해 고객들이 강의 member가 될 수 있습니다.',
+  })
+  @ApiResponse({
+    status: 200,
+  })
+  @ApiBearerAuth('accessToken')
   async insertMemberFromQR(
-    // @Query('customerId', ParseIntPipe) customerId: number,
     @Query('lectureId', ParseIntPipe) lectureId: number,
     @Res() res: Response,
     @Req() req: Request,
-  ): Promise<void> {
-    console.log('Cookies:', req.cookies);
-    const user = req.user as any;
-    console.log('user 1', user);
-
+  ) {
     try {
-      const isExist = await this.memberService.checkCustomerId(
+      const user = res.locals.user;
+
+      const isExist = await this.memberService.checkCustomer(
         parseInt(user.userId),
       );
-      console.log('isExist', isExist);
 
       if (!isExist) {
         return res.redirect('/signup');

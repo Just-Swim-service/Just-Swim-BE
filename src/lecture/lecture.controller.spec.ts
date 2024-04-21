@@ -6,6 +6,8 @@ import { MockLectureRepository } from './lecture.service.spec';
 import { HttpStatus } from '@nestjs/common';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
+import { MemberService } from 'src/member/member.service';
+import { MockMemberRepository } from 'src/member/member.service.spec';
 
 class MockLectureService {
   getLectures = jest.fn();
@@ -17,22 +19,32 @@ class MockLectureService {
   createLecture = jest.fn();
 }
 
+class MockMemberService {
+  getAllMemberByInstructor = jest.fn();
+}
+
 const mockLecture = new MockLectureRepository().mockLecture;
+const mockMember = new MockMemberRepository().mockMember;
 
 describe('LectureController', () => {
   let controller: LectureController;
   let lectureService: MockLectureService;
+  let memberService: MockMemberService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LectureController],
-      providers: [{ provide: LectureService, useClass: MockLectureService }],
+      providers: [
+        { provide: LectureService, useClass: MockLectureService },
+        { provide: MemberService, useClass: MockMemberService },
+      ],
     }).compile();
 
     controller = module.get<LectureController>(LectureController);
     lectureService = module.get<LectureService, MockLectureService>(
       LectureService,
     );
+    memberService = module.get<MemberService, MockMemberService>(MemberService);
   });
 
   it('should be defined', () => {
@@ -179,6 +191,30 @@ describe('LectureController', () => {
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: '강의 생성 성공' });
+    });
+  });
+
+  describe('getAllMemberByInstructor', () => {
+    it('instructor가 개설한 강의 목록에 참여한 수강생 list를 조회', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'instructor',
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      const lectureId = 1;
+
+      memberService.getAllMemberByInstructor.mockResolvedValue([mockMember]);
+
+      await controller.getAllMemberByInstructor(res as Response, lectureId);
+
+      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+      expect(res.json).toHaveBeenCalledWith([mockMember]);
     });
   });
 });

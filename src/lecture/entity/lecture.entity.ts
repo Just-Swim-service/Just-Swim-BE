@@ -31,9 +31,6 @@ export class Lecture {
   @Column({ type: 'mediumtext' })
   lectureContent: string;
 
-  @OneToMany(() => Member, member => member.lectureId)
-  members: Member[];
-
   @Column({ type: 'varchar' })
   lectureTime: string;
 
@@ -60,6 +57,4 @@ export class Lecture {
 
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   lectureDeletedAt: Date;
-
-  lectureMembers: Member[];
 }

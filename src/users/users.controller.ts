@@ -90,7 +90,7 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      let userId: number = newUser.userId;
+      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
@@ -145,7 +145,7 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      let userId: number = newUser.userId;
+      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
@@ -192,7 +192,7 @@ export class UsersController {
         provider,
       };
       const newUser = await this.authService.createUser(newUserData);
-      let userId: number = newUser.userId;
+      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);

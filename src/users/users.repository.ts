@@ -7,48 +7,50 @@ import { EditUserDto } from './dto/editUser.dto';
 
 @Injectable()
 export class UsersRepository {
+
   constructor(
     @InjectRepository(Users) private usersRepository: Repository<Users>,
   ) {}
 
-  async findUserByEmail(
-    email: string,
-    provider: string,
-  ): Promise<Users | undefined> {
-    return await this.usersRepository.findOne({ where: { email, provider } });
+  async findUserByEmail(email: string, provider: string): Promise<Users | undefined> {
+    const result = await this.usersRepository.query(`CALL FIND_USER_BY_EMAIL(?, ?)`, [email, provider]);
+
+    // 데이터가 존재하면 첫번째 데이터를 반환
+    // 이 조건문이 없으니 신규 유저 생성시 생성이 되지 않음
+    if (result.length > 0) {
+      return result[0][0];
+    }
   }
 
   async createUser(userData: UsersDto): Promise<Users> {
-    const user = new Users();
-    user.email = userData.email;
-    user.name = userData.name;
-    user.profileImage = userData.profileImage;
-    user.provider = userData.provider;
-    user.phoneNumber = userData.phoneNumber;
-    user.birth = userData.birth;
-    await this.usersRepository.save(user);
-    return user;
+    const result = await this.usersRepository.query(
+        `CALL CREATE_USER(?, ?, ?, ?, ?, ?)`, 
+        [userData.email, userData.name, userData.profileImage, userData.provider, userData.phoneNumber, userData.birth]
+    );
+
+    return result;
   }
 
   async findUserByPk(userId: number): Promise<Users> {
-    return await this.usersRepository.findOne({ where: { userId } });
-  }
-
-  async selectUserType(
-    userId: number,
-    userType: string,
-  ): Promise<UpdateResult> {
-    return await this.usersRepository.update(userId, { userType });
-  }
-
-  async editUserProfile(
-    userId: number,
-    editUserDto: EditUserDto,
-  ): Promise<UpdateResult> {
-    const { name, profileImage, birth, phoneNumber } = editUserDto;
-    return await this.usersRepository.update(
-      { userId },
-      { name, profileImage, birth, phoneNumber },
+    const result = await this.usersRepository.query(
+      `CALL FIND_USER_BY_PK(?)`, [userId]
     );
+    return result;
+  }
+
+  async selectUserType(userId: number, userType: string): Promise<UpdateResult> {
+    const result = await this.usersRepository.query(
+      `CALL SELECT_USER_TYPE(?, ?)`, [userId, userType]
+    );
+    return result;
+  }
+
+  async editUserProfile(userId: number, editUserDto: EditUserDto): Promise<UpdateResult> {
+    const { name, profileImage, birth, phoneNumber } = editUserDto;
+    const result = await this.usersRepository.query(
+      `CALL EDIT_USER_PROFILE(?, ?, ?, ?, ?)`, 
+      [userId, name, profileImage, birth, phoneNumber]
+    );
+    return result;
   }
 }

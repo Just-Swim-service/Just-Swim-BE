@@ -16,6 +16,7 @@ import { InstructorModule } from './instructor/instructor.module';
 import { LectureModule } from './lecture/lecture.module';
 import { AuthMiddleWare } from './auth/middleware/auth.middleware';
 import { MemberModule } from './member/member.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -31,8 +32,8 @@ import { MemberModule } from './member/member.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      // synchronize: true,
-      synchronize: false,
+      synchronize: true,
+      // synchronize: false,
     }),
     UsersModule,
     AuthModule,
@@ -40,6 +41,7 @@ import { MemberModule } from './member/member.module';
     InstructorModule,
     LectureModule,
     MemberModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],
@@ -52,15 +54,20 @@ export class AppModule implements NestModule {
       { path: 'user/edit', method: RequestMethod.PATCH },
       { path: 'user/myProfile', method: RequestMethod.GET },
       // Lecture
-      { path: 'lecture', method: RequestMethod.POST },
       { path: 'lecture/schedule', method: RequestMethod.GET },
       { path: 'lecture/myLectures', method: RequestMethod.GET },
-      { path: 'lecture/memberList/:lectureId', method: RequestMethod.GET },
       { path: 'lecture/:lectureId', method: RequestMethod.GET },
       { path: 'lecture/:lectureId', method: RequestMethod.PATCH },
       { path: 'lecture/:lectureId', method: RequestMethod.DELETE },
+      { path: 'lecture/:lectureId/qr-code', method: RequestMethod.POST },
       // Member
-      { path: 'member/*', method: RequestMethod.ALL },
+      { path: 'member/qr-code', method: RequestMethod.GET },
+      // feedback
+      { path: 'feedback', method: RequestMethod.GET },
+      { path: 'feedback/:feedbackId', method: RequestMethod.GET },
+      { path: 'feedback', method: RequestMethod.POST },
+      { path: 'feedback/:feedbackId', method: RequestMethod.PATCH },
+      { path: 'feedback/:feedbackId', method: RequestMethod.DELETE },
     );
   }
 }

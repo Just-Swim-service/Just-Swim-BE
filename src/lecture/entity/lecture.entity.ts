@@ -1,6 +1,5 @@
 import { Member } from 'src/member/entity/member.entity';
 import { Users } from 'src/users/entity/users.entity';
-import { Instructor } from 'src/instructor/entity/instructor.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,

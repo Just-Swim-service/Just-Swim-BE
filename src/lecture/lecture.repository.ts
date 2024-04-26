@@ -66,7 +66,7 @@ export class LectureRepository {
       lectureEndDate,
     } = editLectureDto;
 
-    return await this.lectureRepository.query(
+    const result = await this.lectureRepository.query(
       'CALL UPDATE_LECTURE(?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         lectureId,
@@ -80,13 +80,17 @@ export class LectureRepository {
         lectureEndDate,
       ],
     );
+    return result[0][0];
   }
 
   // 강의 삭제(소프트 삭제)
   async softDeleteLecture(lectureId: number): Promise<UpdateResult> {
-    return await this.lectureRepository.query('CALL SOFT_DELETE_LECTURE(?)', [
-      lectureId,
-    ]);
+    const result = await this.lectureRepository.query(
+      'CALL SOFT_DELETE_LECTURE(?)',
+      [lectureId],
+    );
+
+    return result[0][0];
   }
 
   // 강의 생성
@@ -122,6 +126,9 @@ export class LectureRepository {
 
   // 강의 QR 코드 생성
   async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
-    await this.lectureRepository.query('CALL SAVE_QR_CODE(?, ?)', [lectureId, lectureQRCode]);
+    await this.lectureRepository.query('CALL SAVE_QR_CODE(?, ?)', [
+      lectureId,
+      lectureQRCode,
+    ]);
   }
 }

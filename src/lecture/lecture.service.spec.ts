@@ -20,7 +20,6 @@ export class MockLectureRepository {
     lectureUpdatedAt: new Date(),
     lectureDeletedAt: null,
     member: [],
-    lectureMembers: [],
   };
 }
 
@@ -180,7 +179,6 @@ describe('LectureService', () => {
         lectureUpdatedAt: new Date(),
         lectureDeletedAt: null,
         member: [],
-        lectureMembers: [],
       };
       (repository.createLecture as jest.Mock).mockResolvedValue(newLecture);
 

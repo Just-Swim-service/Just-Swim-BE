@@ -1,6 +1,5 @@
 import { Member } from 'src/member/entity/member.entity';
 import { Users } from 'src/users/entity/users.entity';
-import { Instructor } from 'src/instructor/entity/instructor.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -31,9 +30,6 @@ export class Lecture {
   @Column({ type: 'mediumtext' })
   lectureContent: string;
 
-  @OneToMany(() => Member, member => member.lectureId)
-  members: Member[];
-
   @Column({ type: 'varchar' })
   lectureTime: string;
 
@@ -60,6 +56,4 @@ export class Lecture {
 
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   lectureDeletedAt: Date;
-
-  lectureMembers: Member[];
 }

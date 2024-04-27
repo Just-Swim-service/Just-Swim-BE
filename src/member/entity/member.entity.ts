@@ -1,3 +1,4 @@
+import { Feedback } from 'src/feedback/entity/feedback.entity';
 import { Lecture } from 'src/lecture/entity/lecture.entity';
 import { Users } from 'src/users/entity/users.entity';
 import {
@@ -7,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';

@@ -1,9 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
-import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class LectureService {
@@ -11,17 +10,29 @@ export class LectureService {
 
   /* 강의 전체 조회 */
   async getLectures(): Promise<Lecture[]> {
-    return await this.lectureRepository.getLectures();
+    try {
+      return await this.lectureRepository.getLectures();
+    } catch (error) {
+      throw new Error('강의 전체 조회 중에 오류가 발생했습니다.');
+    }
   }
 
   /* 스케줄 - 강사용 강의 조회 */
   async getLecturesByInstructor(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getLecturesByInstructor(userId);
+    try {
+      return await this.lectureRepository.getLecturesByInstructor(userId);
+    } catch (error) {
+      throw new Error('강사의 스케줄 조회 중에 오류가 발생했습니다.');
+    }
   }
 
   /* 강사 모든 강의 조회 */
   async getAllLecturesByInstructor(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getAllLecturesByInstructor(userId);
+    try {
+      return await this.lectureRepository.getAllLecturesByInstructor(userId);
+    } catch (error) {
+      throw new Error('강사가 생성한 모든 강의 조회 중에 오류가 발생했습니다.');
+    }
   }
 
   // 회원용 강의 조회
@@ -36,27 +47,36 @@ export class LectureService {
 
   /* 강의 상세 조회 */
   async getLectureById(lectureId: number) {
-    const lecture = await this.lectureRepository.getLectureById(lectureId);
-    if (!lecture) {
-      return null;
+    try {
+      const lecture = await this.lectureRepository.getLectureById(lectureId);
+      if (!lecture) {
+        return null;
+      }
+      return lecture;
+    } catch (error) {
+      throw new Error('강의 상세 조회 중에 오류가 발생했습니다.');
     }
-    return lecture;
   }
 
   // 강의 수정
   async updateLecture(
     lectureId: number,
     editLectureDto: EditLectureDto,
-  ): Promise<UpdateResult> {
-    return await this.lectureRepository.updateLecture(
-      lectureId,
-      editLectureDto,
-    );
+  ): Promise<void> {
+    try {
+      await this.lectureRepository.updateLecture(lectureId, editLectureDto);
+    } catch (error) {
+      throw new Error('강의 수정 중에 오류가 발생했습니다.');
+    }
   }
 
   // 강의 삭제(소프트 삭제)
-  async softDeleteLecture(lectureId: number): Promise<UpdateResult> {
-    return await this.lectureRepository.softDeleteLecture(lectureId);
+  async softDeleteLecture(lectureId: number): Promise<void> {
+    try {
+      await this.lectureRepository.softDeleteLecture(lectureId);
+    } catch (error) {
+      throw new Error('강의 삭제 중에 오류가 발생했습니다.');
+    }
   }
 
   // 강의 생성
@@ -64,11 +84,19 @@ export class LectureService {
     userId: number,
     lectureDto: LectureDto,
   ): Promise<Lecture> {
-    return await this.lectureRepository.createLecture(userId, lectureDto);
+    try {
+      return await this.lectureRepository.createLecture(userId, lectureDto);
+    } catch (error) {
+      throw new Error('강의 생성 중에 오류가 발생했습니다.');
+    }
   }
 
   // 강의 QR 코드 생성
   async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
-    await this.lectureRepository.saveQRCode(lectureId, lectureQRCode);
+    try {
+      await this.lectureRepository.saveQRCode(lectureId, lectureQRCode);
+    } catch (error) {
+      throw new Error('강의 QR 코드 생성 중에 오류가 발생했습니다.');
+    }
   }
 }

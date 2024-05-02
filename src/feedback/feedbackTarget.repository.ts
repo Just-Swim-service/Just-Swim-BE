@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FeedbackTarget } from './entity/feedbackTarget.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class FeedbackTargetRepository {
@@ -25,16 +25,16 @@ export class FeedbackTargetRepository {
   async updateFeedbackTarget(
     feedbackId: number,
     feedbackTarget: string,
-  ): Promise<UpdateResult> {
-    return await this.feedbackTargetRepository.query(
+  ): Promise<void> {
+    await this.feedbackTargetRepository.query(
       'CALL UPDATE_FEEDBACK_TARGET(?, ?)',
       [feedbackId, feedbackTarget],
     );
   }
 
   /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(feedbackId: number): Promise<DeleteResult> {
-    return await this.feedbackTargetRepository.query(
+  async deleteFeedbackTarget(feedbackId: number): Promise<void> {
+    await this.feedbackTargetRepository.query(
       'CALL DELETE_FEEDBACK_TARGET(?)',
       [feedbackId],
     );

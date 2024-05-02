@@ -16,16 +16,27 @@ export class FeedbackService {
 
   /* 강사용 전체 feedback 조회 */
   async getAllFeedbackByInstructor(userId: number): Promise<Feedback[]> {
-    const feedbacks =
-      await this.feedbackRepository.getAllFeedbackByInstructor(userId);
+    try {
+      const feedbacks =
+        await this.feedbackRepository.getAllFeedbackByInstructor(userId);
 
-    return feedbacks;
+      return feedbacks;
+    } catch (error) {
+      throw new Error(
+        '강사가 작성한 전체 feedback 조회 중 오류가 발생했습니다.',
+      );
+    }
   }
 
   /* feedback 상세 조회 */
   async getFeedbackById(feedbackId: number): Promise<Feedback> {
-    const feedback = await this.feedbackRepository.getFeedbackById(feedbackId);
-    return feedback;
+    try {
+      const feedback =
+        await this.feedbackRepository.getFeedbackById(feedbackId);
+      return feedback;
+    } catch (error) {
+      throw new Error('feedback 상세 조회 중 오류가 발생했습니다.');
+    }
   }
 
   /* feedback 생성 */
@@ -33,7 +44,11 @@ export class FeedbackService {
     userId: number,
     feedbackDto: FeedbackDto,
   ): Promise<Feedback> {
-    return await this.feedbackRepository.createFeedback(userId, feedbackDto);
+    try {
+      return await this.feedbackRepository.createFeedback(userId, feedbackDto);
+    } catch (error) {
+      throw new Error('feedback 생성 중 오류가 발생했습니다.');
+    }
   }
 
   /* feedbackTarget 생성 */
@@ -41,41 +56,58 @@ export class FeedbackService {
     feedbackId: number,
     feedbackTarget: string,
   ): Promise<FeedbackTarget> {
-    return await this.feedbackTargetRepository.createFeedbackTarget(
-      feedbackId,
-      feedbackTarget,
-    );
+    try {
+      return await this.feedbackTargetRepository.createFeedbackTarget(
+        feedbackId,
+        feedbackTarget,
+      );
+    } catch (error) {
+      throw new Error('feedbackTarget 생성 중 오류가 발생했습니다.');
+    }
   }
 
   /* feedback 수정 */
   async updateFeedback(
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
-  ): Promise<UpdateResult> {
-    return await this.feedbackRepository.updateFeedback(
-      feedbackId,
-      editFeedbackDto,
-    );
+  ): Promise<void> {
+    try {
+      await this.feedbackRepository.updateFeedback(feedbackId, editFeedbackDto);
+    } catch (error) {
+      throw new Error('feedback 수정 중 오류가 발생했습니다.');
+    }
   }
 
   /* feedbackTarget 수정 */
   async updateFeedbackTarget(
     feedbackId: number,
     feedbackTarget: string,
-  ): Promise<UpdateResult> {
-    return await this.feedbackTargetRepository.updateFeedbackTarget(
-      feedbackId,
-      feedbackTarget,
-    );
+  ): Promise<void> {
+    try {
+      await this.feedbackTargetRepository.updateFeedbackTarget(
+        feedbackId,
+        feedbackTarget,
+      );
+    } catch (error) {
+      throw new Error('feedbackTarget 수정 중 오류가 발생했습니다.');
+    }
   }
 
   /* feedback 삭제(softDelete) */
-  async softDeleteFeedback(feedbackId: number): Promise<UpdateResult> {
-    return await this.feedbackRepository.softDeleteFeedback(feedbackId);
+  async softDeleteFeedback(feedbackId: number): Promise<void> {
+    try {
+      await this.feedbackRepository.softDeleteFeedback(feedbackId);
+    } catch (error) {
+      throw new Error('feedback 삭제 중 오류가 발생했습니다.');
+    }
   }
 
   /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(feedbackId: number): Promise<DeleteResult> {
-    return await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
+  async deleteFeedbackTarget(feedbackId: number): Promise<void> {
+    try {
+      await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
+    } catch (error) {
+      throw new Error('feedbackTarget 삭제 중 오류가 발생했습니다.');
+    }
   }
 }

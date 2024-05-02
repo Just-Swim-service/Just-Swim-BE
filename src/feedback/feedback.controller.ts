@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -20,11 +21,15 @@ import {
 import { Response } from 'express';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
+import { DataSource } from 'typeorm';
 
 @ApiTags('Feedback')
 @Controller('feedback')
 export class FeedbackController {
-  constructor(private readonly feedbackService: FeedbackService) {}
+  constructor(
+    private readonly feedbackService: FeedbackService,
+    private readonly dataSource: DataSource,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -179,7 +184,7 @@ export class FeedbackController {
     } catch (e) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: e || '서버 오류' });
+        .json({ message: e.message || '서버 오류' });
     }
   }
 
@@ -208,8 +213,12 @@ export class FeedbackController {
           .json({ message: 'feedback 수정 권한이 없습니다.' });
       }
 
-      if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
-        try {
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
           await Promise.all([
             this.feedbackService.updateFeedback(feedbackId, editFeedbackDto),
             this.feedbackService.updateFeedbackTarget(
@@ -217,25 +226,23 @@ export class FeedbackController {
               editFeedbackDto.feedbackTarget,
             ),
           ]);
-          return res
-            .status(HttpStatus.OK)
-            .json({ message: 'feedback 수정 성공' });
-        } catch (e) {
-          return res
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .json({ error: 'feedback 수정 실패' });
+        } else {
+          await this.feedbackService.updateFeedback(
+            feedbackId,
+            editFeedbackDto,
+          );
         }
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw new HttpException(
+          'feedback 수정 실패',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      } finally {
+        await queryRunner.release();
       }
 
-      const updateResult = await this.feedbackService.updateFeedback(
-        feedbackId,
-        editFeedbackDto,
-      );
-      if (updateResult.affected === 0) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: 'feedback 수정 실패' });
-      }
       return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });
     } catch (e) {
       return res
@@ -268,15 +275,24 @@ export class FeedbackController {
           .json({ message: 'feedback 삭제 권한이 없습니다.' });
       }
 
-      const updateResult =
-        await this.feedbackService.softDeleteFeedback(feedbackId);
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-      if (updateResult.affected === 0) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: 'feedback 삭제 실패' });
+      try {
+        await Promise.all([
+          this.feedbackService.softDeleteFeedback(feedbackId),
+          this.feedbackService.deleteFeedbackTarget(feedbackId),
+        ]);
+      } catch (error) {
+        throw new HttpException(
+          'feedback 삭제 실패',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      } finally {
+        await queryRunner.release();
       }
-      await this.feedbackService.deleteFeedbackTarget(feedbackId);
+
       return res.status(HttpStatus.OK).json({ message: 'feedback 삭제 성공' });
     } catch (e) {
       return res

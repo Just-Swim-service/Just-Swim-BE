@@ -13,11 +13,11 @@ export class FeedbackTargetRepository {
   /* feedbackTarget 생성 */
   async createFeedbackTarget(
     feedbackId: number,
-    feedbackTarget: string,
+    userId: number,
   ): Promise<FeedbackTarget> {
     return await this.feedbackTargetRepository.query(
-      'CALL CREATE_FEEDBACK_TARGET(?, ?)',
-      [feedbackId, feedbackTarget],
+      'CALL CREATE_FEEDBACK_TARGET_1(?, ?)',
+      [feedbackId, userId],
     );
   }
 

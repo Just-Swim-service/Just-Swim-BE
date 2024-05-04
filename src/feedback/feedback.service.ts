@@ -52,17 +52,35 @@ export class FeedbackService {
   }
 
   /* feedbackTarget 생성 */
-  async createFeedbackTarget(
-    feedbackId: number,
-    feedbackTarget: string,
-  ): Promise<FeedbackTarget> {
-    try {
-      return await this.feedbackTargetRepository.createFeedbackTarget(
-        feedbackId,
-        feedbackTarget,
-      );
-    } catch (error) {
-      throw new Error('feedbackTarget 생성 중 오류가 발생했습니다.');
+  // async createFeedbackTarget(
+  //   feedbackId: number,
+  //   feedbackTarget: string,
+  // ): Promise<FeedbackTarget> {
+  //   try {
+  //     return await this.feedbackTargetRepository.createFeedbackTarget(
+  //       feedbackId,
+  //       feedbackTarget,
+  //     );
+  //   } catch (error) {
+  //     throw new Error('feedbackTarget 생성 중 오류가 발생했습니다.');
+  //   }
+  // }
+  async createFeedbackTarget(feedbackId: number, feedbackTarget: string): Promise<void> {
+    const userIds = feedbackTarget.split(',').map(id => parseInt(id.trim()));
+
+    console.log('userIds:', userIds);
+    
+    
+    // for 루프를 사용하여 각 사용자 ID에 대해 데이터베이스에 피드백 대상을 추가
+    for (let i = 0; i < userIds.length; i++) {
+      const userId = userIds[i];  // 배열의 인덱스를 사용하여 현재 userId를 얻음
+      console.log('userId:', userId);
+      
+      if (!isNaN(userId)) { // 유효한 숫자인지 확인
+        await this.feedbackTargetRepository.createFeedbackTarget(
+          feedbackId, userId
+        );
+      }
     }
   }
 

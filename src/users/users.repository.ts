@@ -47,27 +47,29 @@ export class UsersRepository {
     const result = await this.usersRepository.query(`CALL FIND_USER_BY_PK(?)`, [
       userId,
     ]);
-    return result;
+    return result[0][0];
   }
 
-  async selectUserType(userId: number, userType: string): Promise<void> {
-    await this.usersRepository.query(`CALL SELECT_USER_TYPE(?, ?)`, [
-      userId,
-      userType,
-    ]);
+  async selectUserType(
+    userId: number,
+    userType: string,
+  ): Promise<UpdateResult> {
+    const result = await this.usersRepository.query(
+      `CALL SELECT_USER_TYPE(?, ?)`,
+      [userId, userType],
+    );
+    return result;
   }
 
   async editUserProfile(
     userId: number,
     editUserDto: EditUserDto,
-  ): Promise<void> {
+  ): Promise<UpdateResult> {
     const { name, profileImage, birth, phoneNumber } = editUserDto;
-    await this.usersRepository.query(`CALL EDIT_USER_PROFILE(?, ?, ?, ?, ?)`, [
-      userId,
-      name,
-      profileImage,
-      birth,
-      phoneNumber,
-    ]);
+    const result = await this.usersRepository.query(
+      `CALL EDIT_USER_PROFILE(?, ?, ?, ?, ?)`,
+      [userId, name, profileImage, birth, phoneNumber],
+    );
+    return result;
   }
 }

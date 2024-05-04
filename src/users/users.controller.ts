@@ -233,7 +233,7 @@ export class UsersController {
       const user = await this.usersService.findUserByEmail(email, provider);
       if (!user) {
         return res
-          .status(HttpStatus.UNAUTHORIZED)
+          .status(HttpStatus.NOT_FOUND)
           .json({ message: '사용자를 찾을 수 없습니다.' });
       }
 
@@ -347,15 +347,7 @@ export class UsersController {
     try {
       const { userId } = res.locals.user;
 
-      const editUser = await this.usersService.editUserProfile(
-        userId,
-        editUserDto,
-      );
-      if (editUser.affected === 0) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '프로필을 수정할 수 없습니다.' });
-      }
+      await this.usersService.editUserProfile(userId, editUserDto);
 
       return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
     } catch (e) {

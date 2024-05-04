@@ -11,10 +11,11 @@ export class CustomerRepository {
   ) {}
 
   async createCustomer(userId: number): Promise<Customer> {
-    const customer = new Customer();
-    customer.userId = userId;
-    await this.customerRepository.save(customer);
-    return customer;
+    const result = await this.customerRepository.query(
+      `CALL CREATE_CUSTOMER(?)`,
+      [userId],
+    );
+    return result;
   }
 
   async findCustomer(userId: number): Promise<Customer> {

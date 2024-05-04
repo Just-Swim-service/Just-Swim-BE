@@ -9,20 +9,32 @@ export class AuthService {
   constructor(private readonly usersService: UsersService) {}
 
   async validateUser(email: string, provider: string): Promise<Users | null> {
-    const exUser = await this.usersService.findUserByEmail(email, provider);
-    if (!exUser) {
-      return null;
+    try {
+      const exUser = await this.usersService.findUserByEmail(email, provider);
+      if (!exUser) {
+        return null;
+      }
+      return exUser;
+    } catch (error) {
+      throw new Error('사용자 유효성을 확인하는 중에 오류가 발생했습니다.');
     }
-    return exUser;
   }
 
   async getToken(userId: number): Promise<string> {
-    const tokenExpiry: number = 3600;
-    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET);
-    return accessToken;
+    try {
+      const tokenExpiry: number = 3600;
+      const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET);
+      return accessToken;
+    } catch (error) {
+      throw new Error('토큰 생성 중에 오류가 발생했습니다.');
+    }
   }
 
   async createUser(userData: UsersDto): Promise<Users> {
-    return await this.usersService.createUser(userData);
+    try {
+      return await this.usersService.createUser(userData);
+    } catch (error) {
+      throw new Error('사용자 생성 중에 오류가 발생했습니다.');
+    }
   }
 }

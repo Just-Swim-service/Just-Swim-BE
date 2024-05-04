@@ -1,4 +1,5 @@
 import {
+  Logger,
   MiddlewareConsumer,
   Module,
   NestModule,
@@ -17,6 +18,8 @@ import { LectureModule } from './lecture/lecture.module';
 import { AuthMiddleWare } from './auth/middleware/auth.middleware';
 import { MemberModule } from './member/member.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
 
 @Module({
   imports: [
@@ -44,7 +47,12 @@ import { FeedbackModule } from './feedback/feedback.module';
     FeedbackModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtService],
+  providers: [
+    AppService,
+    JwtService,
+    Logger,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

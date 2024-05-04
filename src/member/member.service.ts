@@ -8,16 +8,30 @@ export class MemberService {
 
   /* QR코드를 통한 회원 등록 */
   async insertMemberFromQR(userId: number, lectureId: number): Promise<Member> {
-    return await this.memberRepository.insertMemberFromQR(userId, lectureId);
+    try {
+      return await this.memberRepository.insertMemberFromQR(userId, lectureId);
+    } catch (error) {
+      throw new Error('QR코드를 통한 회원 등록 중에 오류가 발생했습니다.');
+    }
   }
 
   /* 회원 가입 여부 확인 */
   async checkCustomer(userId: number): Promise<boolean> {
-    return await this.memberRepository.checkCustomer(userId);
+    try {
+      return await this.memberRepository.checkCustomer(userId);
+    } catch (error) {
+      throw new Error('회원 가입 여부를 확인하는 중에 오류가 발생했습니다.');
+    }
   }
 
   /* 강사가 개설한 강의에 해당하는 수강생 */
   async getAllMemberByInstructor(lectureId: number): Promise<Member[]> {
-    return await this.memberRepository.getAllMemberByInstructor(lectureId);
+    try {
+      return await this.memberRepository.getAllMemberByInstructor(lectureId);
+    } catch (error) {
+      throw new Error(
+        '강의에 해당하는 수강생을 조회하는 중에 오류가 발생했습니다.',
+      );
+    }
   }
 }

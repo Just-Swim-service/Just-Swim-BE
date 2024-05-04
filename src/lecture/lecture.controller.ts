@@ -9,7 +9,6 @@ import {
   Res,
   HttpStatus,
   Patch,
-  NotFoundException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LectureService } from './lecture.service';
@@ -170,7 +169,7 @@ export class LectureController {
     }
   }
 
-  // 강의 상세 조회
+  /* 강의 상세 조회 */
   @Get('/:lectureId')
   @ApiOperation({
     summary: '강의 상세 조회',
@@ -217,7 +216,7 @@ export class LectureController {
     }
   }
 
-  // 강의 수정
+  /* 강의 수정 */
   @Patch(':lectureId')
   @ApiOperation({
     summary: '강의 수정',
@@ -243,15 +242,8 @@ export class LectureController {
           .json({ message: '강의 수정 권한이 없습니다.' });
       }
 
-      const updateResult = await this.lectureService.updateLecture(
-        lectureId,
-        editLectureDto,
-      );
-      if (updateResult.affected === 0) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '강의 수정 실패' });
-      }
+      await this.lectureService.updateLecture(lectureId, editLectureDto);
+
       return res.status(HttpStatus.OK).json({ message: '강의 수정 성공' });
     } catch (e) {
       return res
@@ -260,7 +252,7 @@ export class LectureController {
     }
   }
 
-  // 강의 삭제(소프트 삭제)
+  /* 강의 삭제(소프트 삭제) */
   @Delete('/:lectureId')
   @ApiOperation({
     summary: '강의 삭제',
@@ -284,13 +276,9 @@ export class LectureController {
           .status(HttpStatus.UNAUTHORIZED)
           .json({ message: '강의 삭제 권한이 없습니다.' });
       }
-      const updateResult =
-        await this.lectureService.softDeleteLecture(lectureId);
-      if (updateResult.affected === 0) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '강의 삭제 실패' });
-      }
+
+      await this.lectureService.softDeleteLecture(lectureId);
+
       return res.status(HttpStatus.OK).json({ message: '강의 삭제 성공' });
     } catch (e) {
       return res
@@ -299,7 +287,7 @@ export class LectureController {
     }
   }
 
-  // 강의 생성
+  /* 강의 생성 */
   @Post()
   @ApiOperation({
     summary: '강의 생성',
@@ -339,7 +327,7 @@ export class LectureController {
     }
   }
 
-  // 강의 QR코드 생성
+  /* 강의 QR코드 생성 */
   @Post(':lectureId/qr-code')
   async createQRCode(
     @Param('lectureId', ParseIntPipe) lectureId: number,

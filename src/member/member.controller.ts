@@ -7,7 +7,6 @@ import {
   Res,
   Req,
   HttpStatus,
-  Param,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,

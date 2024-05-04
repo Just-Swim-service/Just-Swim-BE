@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Feedback } from './entity/feedback.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
 
@@ -62,7 +62,7 @@ export class FeedbackRepository {
   async updateFeedback(
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
-  ): Promise<UpdateResult> {
+  ): Promise<void> {
     const {
       feedbackType,
       feedbackContent,
@@ -71,7 +71,7 @@ export class FeedbackRepository {
       feedbackLink,
     } = editFeedbackDto;
 
-    const result = await this.feedbackRepository.query(
+    await this.feedbackRepository.query(
       'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
       [
         feedbackId,
@@ -82,13 +82,11 @@ export class FeedbackRepository {
         feedbackLink,
       ],
     );
-
-    return result[0][0];
   }
 
   /* feedback 삭제(softDelete) */
-  async softDeleteFeedback(feedbackId: number): Promise<UpdateResult> {
-    return await this.feedbackRepository.query('CALL SOFT_DELETE_FEEDBACK(?)', [
+  async softDeleteFeedback(feedbackId: number): Promise<void> {
+    await this.feedbackRepository.query('CALL SOFT_DELETE_FEEDBACK(?)', [
       feedbackId,
     ]);
   }

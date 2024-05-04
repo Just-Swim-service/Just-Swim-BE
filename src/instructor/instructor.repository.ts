@@ -11,10 +11,11 @@ export class InstructorRepository {
   ) {}
 
   async createInstructor(userId: number): Promise<Instructor> {
-    const instructor = new Instructor();
-    instructor.userId = userId;
-    await this.instructorRepository.save(instructor);
-    return instructor;
+    const result = await this.instructorRepository.query(
+      `CALL CREATE_INSTRUCTOR(?)`,
+      [userId],
+    );
+    return result;
   }
 
   async findInstructor(userId: number): Promise<Instructor> {

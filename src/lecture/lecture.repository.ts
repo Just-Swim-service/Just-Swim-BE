@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Lecture } from './entity/lecture.entity';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
@@ -54,7 +54,7 @@ export class LectureRepository {
   async updateLecture(
     lectureId: number,
     editLectureDto: EditLectureDto,
-  ): Promise<UpdateResult> {
+  ): Promise<void> {
     const {
       lectureTitle,
       lectureContent,
@@ -66,7 +66,7 @@ export class LectureRepository {
       lectureEndDate,
     } = editLectureDto;
 
-    const result = await this.lectureRepository.query(
+    await this.lectureRepository.query(
       'CALL UPDATE_LECTURE(?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         lectureId,
@@ -80,17 +80,13 @@ export class LectureRepository {
         lectureEndDate,
       ],
     );
-    return result[0][0];
   }
 
   // 강의 삭제(소프트 삭제)
-  async softDeleteLecture(lectureId: number): Promise<UpdateResult> {
-    const result = await this.lectureRepository.query(
-      'CALL SOFT_DELETE_LECTURE(?)',
-      [lectureId],
-    );
-
-    return result[0][0];
+  async softDeleteLecture(lectureId: number): Promise<void> {
+    await this.lectureRepository.query('CALL SOFT_DELETE_LECTURE(?)', [
+      lectureId,
+    ]);
   }
 
   // 강의 생성

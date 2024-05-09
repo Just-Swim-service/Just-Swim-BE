@@ -69,10 +69,11 @@ export class FeedbackRepository {
       feedbackDate,
       feedbackFile,
       feedbackLink,
+      feedbackTarget,
     } = editFeedbackDto;
 
     await this.feedbackRepository.query(
-      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
+      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
       [
         feedbackId,
         feedbackType,
@@ -80,6 +81,7 @@ export class FeedbackRepository {
         feedbackDate,
         feedbackFile,
         feedbackLink,
+        feedbackTarget,
       ],
     );
   }

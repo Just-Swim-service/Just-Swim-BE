@@ -34,7 +34,7 @@ export class AuthService {
     try {
       return await this.usersService.createUser(userData);
     } catch (error) {
-      throw new Error('사용자 생성 중에 오류가 발생했습니다.');
+      throw new Error('사용자 생성 중에 오류가 발생했습니다.(auth)');
     }
   }
 }

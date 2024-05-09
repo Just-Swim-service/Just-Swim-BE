@@ -22,6 +22,7 @@ export class FeedbackService {
 
       return feedbacks;
     } catch (error) {
+      console.log(error);
       throw new Error(
         '강사가 작성한 전체 feedback 조회 중 오류가 발생했습니다.',
       );
@@ -35,6 +36,7 @@ export class FeedbackService {
         await this.feedbackRepository.getFeedbackById(feedbackId);
       return feedback;
     } catch (error) {
+      console.log(error);
       throw new Error('feedback 상세 조회 중 오류가 발생했습니다.');
     }
   }
@@ -52,35 +54,37 @@ export class FeedbackService {
   }
 
   /* feedbackTarget 생성 */
-  // async createFeedbackTarget(
-  //   feedbackId: number,
-  //   feedbackTarget: string,
-  // ): Promise<FeedbackTarget> {
-  //   try {
-  //     return await this.feedbackTargetRepository.createFeedbackTarget(
-  //       feedbackId,
-  //       feedbackTarget,
-  //     );
-  //   } catch (error) {
-  //     throw new Error('feedbackTarget 생성 중 오류가 발생했습니다.');
-  //   }
-  // }
-  async createFeedbackTarget(feedbackId: number, feedbackTarget: string): Promise<void> {
-    const userIds = feedbackTarget.split(',').map(id => parseInt(id.trim()));
+  async createFeedbackTarget(
+    feedbackId: number,
+    feedbackTarget: string,
+  ): Promise<void> {
+    try {
+      if (feedbackTarget.includes(',')) {
+        const userIds = feedbackTarget
+          .split(',')
+          .map((id) => parseInt(id.trim()));
 
-    console.log('userIds:', userIds);
-    
-    
-    // for 루프를 사용하여 각 사용자 ID에 대해 데이터베이스에 피드백 대상을 추가
-    for (let i = 0; i < userIds.length; i++) {
-      const userId = userIds[i];  // 배열의 인덱스를 사용하여 현재 userId를 얻음
-      console.log('userId:', userId);
-      
-      if (!isNaN(userId)) { // 유효한 숫자인지 확인
+        // for 루프를 사용하여 각 사용자 ID에 대해 데이터베이스에 피드백 대상을 추가
+        for (let i = 0; i < userIds.length; i++) {
+          const userId = userIds[i]; // 배열의 인덱스를 사용하여 현재 userId를 얻음
+
+          if (!isNaN(userId)) {
+            // 유효한 숫자인지 확인
+            await this.feedbackTargetRepository.createFeedbackTarget(
+              feedbackId,
+              userId,
+            );
+          }
+        }
+      } else {
+        const userId = parseInt(feedbackTarget);
         await this.feedbackTargetRepository.createFeedbackTarget(
-          feedbackId, userId
+          feedbackId,
+          userId,
         );
       }
+    } catch (error) {
+      throw new Error('feedbackTarget 생성 중 오류가 발생했습니다.');
     }
   }
 
@@ -102,10 +106,29 @@ export class FeedbackService {
     feedbackTarget: string,
   ): Promise<void> {
     try {
-      await this.feedbackTargetRepository.updateFeedbackTarget(
-        feedbackId,
-        feedbackTarget,
-      );
+      if (feedbackTarget.includes(',')) {
+        await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
+        const userIds = feedbackTarget
+          .split(',')
+          .map((id) => parseInt(id.trim()));
+
+        for (let i = 0; i < userIds.length; i++) {
+          const userId = userIds[i];
+
+          if (!isNaN(userId)) {
+            await this.feedbackTargetRepository.updateFeedbackTarget(
+              feedbackId,
+              userId,
+            );
+          }
+        }
+      } else {
+        const userId = parseInt(feedbackTarget);
+        await this.feedbackTargetRepository.updateFeedbackTarget(
+          feedbackId,
+          userId,
+        );
+      }
     } catch (error) {
       throw new Error('feedbackTarget 수정 중 오류가 발생했습니다.');
     }

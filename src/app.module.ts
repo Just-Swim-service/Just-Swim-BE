@@ -35,8 +35,8 @@ import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-      // synchronize: false,
+      // synchronize: true,
+      synchronize: false,
     }),
     UsersModule,
     AuthModule,
@@ -62,6 +62,7 @@ export class AppModule implements NestModule {
       { path: 'user/edit', method: RequestMethod.PATCH },
       { path: 'user/myProfile', method: RequestMethod.GET },
       // Lecture
+      { path: 'lecture', method: RequestMethod.POST },
       { path: 'lecture/schedule', method: RequestMethod.GET },
       { path: 'lecture/myLectures', method: RequestMethod.GET },
       { path: 'lecture/:lectureId', method: RequestMethod.GET },

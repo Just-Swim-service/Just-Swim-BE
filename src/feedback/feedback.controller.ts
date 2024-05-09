@@ -60,7 +60,7 @@ export class FeedbackController {
                 feedbackType: 'personal',
                 feedbackContent:
                   '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
-                feedbackTarget: { '오후 1반': ['박윤수'] },
+                feedbackTarget: { '오후 1반': [3] },
               },
             ],
           },

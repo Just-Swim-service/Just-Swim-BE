@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
 
@@ -32,11 +32,11 @@ export class UsersRepository {
       `CALL CREATE_USER(?, ?, ?, ?, ?, ?)`,
       [
         userData.email,
-        userData.name,
         userData.profileImage,
+        userData.name,
         userData.provider,
-        userData.phoneNumber,
         userData.birth,
+        userData.phoneNumber,
       ],
     );
 
@@ -50,10 +50,7 @@ export class UsersRepository {
     return result[0][0];
   }
 
-  async selectUserType(
-    userId: number,
-    userType: string,
-  ): Promise<UpdateResult> {
+  async selectUserType(userId: number, userType: string): Promise<void> {
     const result = await this.usersRepository.query(
       `CALL SELECT_USER_TYPE(?, ?)`,
       [userId, userType],
@@ -64,12 +61,14 @@ export class UsersRepository {
   async editUserProfile(
     userId: number,
     editUserDto: EditUserDto,
-  ): Promise<UpdateResult> {
+  ): Promise<void> {
     const { name, profileImage, birth, phoneNumber } = editUserDto;
-    const result = await this.usersRepository.query(
-      `CALL EDIT_USER_PROFILE(?, ?, ?, ?, ?)`,
-      [userId, name, profileImage, birth, phoneNumber],
-    );
-    return result;
+    await this.usersRepository.query(`CALL EDIT_USER_PROFILE(?, ?, ?, ?, ?)`, [
+      userId,
+      name,
+      profileImage,
+      birth,
+      phoneNumber,
+    ]);
   }
 }

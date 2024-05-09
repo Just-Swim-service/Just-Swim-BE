@@ -16,7 +16,7 @@ export class FeedbackTargetRepository {
     userId: number,
   ): Promise<FeedbackTarget> {
     return await this.feedbackTargetRepository.query(
-      'CALL CREATE_FEEDBACK_TARGET_1(?, ?)',
+      'CALL CREATE_FEEDBACK_TARGET(?, ?)',
       [feedbackId, userId],
     );
   }
@@ -24,11 +24,11 @@ export class FeedbackTargetRepository {
   /* feedbackTarget 수정 */
   async updateFeedbackTarget(
     feedbackId: number,
-    feedbackTarget: string,
+    userId: number,
   ): Promise<void> {
     await this.feedbackTargetRepository.query(
       'CALL UPDATE_FEEDBACK_TARGET(?, ?)',
-      [feedbackId, feedbackTarget],
+      [feedbackId, userId],
     );
   }
 

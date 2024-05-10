@@ -121,40 +121,20 @@ describe('LectureService', () => {
         lectureQRCode: 'QR 코드',
         lectureEndDate: '2024.05.31',
       };
-      const updateResult: UpdateResult = {
-        raw: {},
-        affected: 1,
-        generatedMaps: [],
-      };
-      (repository.updateLecture as jest.Mock).mockResolvedValue(updateResult);
-
-      const result = await service.updateLecture(lectureId, editLectureDto);
-
+      await service.updateLecture(lectureId, editLectureDto);
       expect(repository.updateLecture).toHaveBeenCalledWith(
         lectureId,
         editLectureDto,
       );
-      expect(result).toEqual(updateResult);
     });
   });
 
   describe('softDeleteLecture', () => {
     it('lectureId에 해당하는 lecture를 softDelete하고 updateResult를 return', async () => {
       const lectureId = 1;
-      const updateResult: UpdateResult = {
-        raw: {},
-        affected: 1,
-        generatedMaps: [],
-      };
 
-      (repository.softDeleteLecture as jest.Mock).mockResolvedValue(
-        updateResult,
-      );
-
-      const result = await service.softDeleteLecture(lectureId);
-
+      await service.softDeleteLecture(lectureId);
       expect(repository.softDeleteLecture).toHaveBeenCalledWith(lectureId);
-      expect(result).toEqual(updateResult);
     });
   });
 

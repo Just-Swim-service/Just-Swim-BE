@@ -326,7 +326,7 @@ describe('UsersController', () => {
   });
 
   describe('editUserProfile', () => {
-    it('프로필 수정이 정상적으로 진행되지 않을 경우 bad request return', async () => {
+    it('user 프로필 수정을 진행', async () => {
       const req: Partial<Request> = { body: { ediUserDto: EditUserDto } };
 
       const res: Partial<Response> = {
@@ -339,30 +339,7 @@ describe('UsersController', () => {
         json: jest.fn(),
       };
 
-      usersService.editUserProfile.mockResolvedValue({ affected: 0 });
-
-      await controller.editUserProfile(req.body, res as Response);
-
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({
-        message: '프로필을 수정할 수 없습니다.',
-      });
-    });
-
-    it('프로필 수정이 정상적으로 진행 된 경우 success return', async () => {
-      const req: Partial<Request> = { body: { ediUserDto: EditUserDto } };
-
-      const res: Partial<Response> = {
-        locals: {
-          user: {
-            userId: 1,
-          },
-        },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      usersService.editUserProfile.mockResolvedValue({ affected: 1 });
+      usersService.editUserProfile.mockResolvedValue(true);
 
       await controller.editUserProfile(req.body, res as Response);
 

@@ -219,7 +219,7 @@ export class FeedbackController {
 
       try {
         if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
-          await Promise.all([
+          const a = await Promise.all([
             this.feedbackService.updateFeedback(feedbackId, editFeedbackDto),
             this.feedbackService.updateFeedbackTarget(
               feedbackId,
@@ -245,6 +245,7 @@ export class FeedbackController {
 
       return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });
     } catch (e) {
+      console.log(e);
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json({ message: e.message || '서버 오류' });

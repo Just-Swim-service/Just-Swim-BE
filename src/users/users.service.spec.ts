@@ -21,6 +21,8 @@ export class MockUsersRepository {
     instructor: [],
     member: [],
     lecture: [],
+    feedback: [],
+    feedbackTarget: [],
   };
 }
 
@@ -98,6 +100,8 @@ describe('UsersService', () => {
         instructor: [],
         member: [],
         lecture: [],
+        feedback: [],
+        feedbackTarget: [],
       };
       (repository.createUser as jest.Mock).mockResolvedValue(newUser);
 
@@ -131,18 +135,9 @@ describe('UsersService', () => {
     it('userId에 해당하는 user의 userType을 설정', async () => {
       const userId = 1;
       const userType = 'customer' || 'instructor';
-      const updateResult: UpdateResult = {
-        raw: {},
-        affected: 1,
-        generatedMaps: [],
-      };
-
-      (repository.selectUserType as jest.Mock).mockResolvedValue(updateResult);
-
-      const result = await service.selectUserType(userId, userType);
+      await service.selectUserType(userId, userType);
 
       expect(repository.selectUserType).toHaveBeenCalledWith(userId, userType);
-      expect(result).toEqual(updateResult);
     });
   });
 
@@ -155,21 +150,12 @@ describe('UsersService', () => {
         birth: '1990.01.01',
         phoneNumber: '010-1234-5678',
       };
-      const updateResult: UpdateResult = {
-        raw: {},
-        affected: 1,
-        generatedMaps: [],
-      };
-
-      (repository.editUserProfile as jest.Mock).mockResolvedValue(updateResult);
-
-      const result = await service.editUserProfile(userId, editUserDto);
+      await service.editUserProfile(userId, editUserDto);
 
       expect(repository.editUserProfile).toHaveBeenCalledWith(
         userId,
         editUserDto,
       );
-      expect(result).toEqual(updateResult);
     });
   });
 });

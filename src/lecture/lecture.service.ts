@@ -17,7 +17,7 @@ export class LectureService {
     }
   }
 
-  /* 스케줄 - 강사용 강의 조회 */
+  /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
   async getLecturesByInstructor(userId: number): Promise<Lecture[]> {
     try {
       return await this.lectureRepository.getLecturesByInstructor(userId);
@@ -46,9 +46,9 @@ export class LectureService {
   // }
 
   /* 강의 상세 조회 */
-  async getLectureById(lectureId: number) {
+  async getLectureByPk(lectureId: number) {
     try {
-      const lecture = await this.lectureRepository.getLectureById(lectureId);
+      const lecture = await this.lectureRepository.getLectureByPk(lectureId);
       if (!lecture) {
         return null;
       }
@@ -70,7 +70,7 @@ export class LectureService {
     }
   }
 
-  // 강의 삭제(소프트 삭제)
+  // 강의 삭제(softDelete)
   async softDeleteLecture(lectureId: number): Promise<void> {
     try {
       await this.lectureRepository.softDeleteLecture(lectureId);

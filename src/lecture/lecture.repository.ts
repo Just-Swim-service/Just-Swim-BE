@@ -18,7 +18,7 @@ export class LectureRepository {
     return result[0];
   }
 
-  /* 스케줄 - 강사용 강의 조회 */
+  /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
   async getLecturesByInstructor(userId: number): Promise<Lecture[]> {
     const result = await this.lectureRepository.query(
       'CALL GET_LECTURE_INSTRUCTOR(?)',
@@ -42,9 +42,9 @@ export class LectureRepository {
   // }
 
   // 강의 상세 조회
-  async getLectureById(lectureId: number): Promise<Lecture> {
+  async getLectureByPk(lectureId: number): Promise<Lecture> {
     const result = await this.lectureRepository.query(
-      'CALL GET_LECTURE_ID(?)',
+      'CALL GET_LECTURE_PK(?)',
       [lectureId],
     );
     return result[0][0];
@@ -82,7 +82,7 @@ export class LectureRepository {
     );
   }
 
-  // 강의 삭제(소프트 삭제)
+  // 강의 삭제(softDelete)
   async softDeleteLecture(lectureId: number): Promise<void> {
     await this.lectureRepository.query('CALL SOFT_DELETE_LECTURE(?)', [
       lectureId,

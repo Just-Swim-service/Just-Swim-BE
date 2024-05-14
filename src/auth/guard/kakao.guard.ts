@@ -4,7 +4,7 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 @Injectable()
 export class KakaoAuthGuard extends AuthGuard('kakao') {
   constructor() {
-    super(); // Guard의 super를 통해 kakao 소셜로그인으로 접근
+    super(); // Guard의 super를 통해 AuthGuard('kakao') 클래스 생성자를 실행 ==> KakaoStrategy 클래스
   }
   handleRequest<TUser = any>(
     err: any,

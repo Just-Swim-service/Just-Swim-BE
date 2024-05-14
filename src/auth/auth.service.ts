@@ -8,6 +8,7 @@ import { UsersDto } from 'src/users/dto/users.dto';
 export class AuthService {
   constructor(private readonly usersService: UsersService) {}
 
+  /* 사용자 검증 */
   async validateUser(email: string, provider: string): Promise<Users | null> {
     try {
       const exUser = await this.usersService.findUserByEmail(email, provider);
@@ -16,10 +17,11 @@ export class AuthService {
       }
       return exUser;
     } catch (error) {
-      throw new Error('사용자 유효성을 확인하는 중에 오류가 발생했습니다.');
+      throw new Error('사용자 검증을 확인하는 중에 오류가 발생했습니다.');
     }
   }
 
+  /* token */
   async getToken(userId: number): Promise<string> {
     try {
       const tokenExpiry: number = 3600;
@@ -30,6 +32,7 @@ export class AuthService {
     }
   }
 
+  /* user 생성 */
   async createUser(userData: UsersDto): Promise<Users> {
     try {
       return await this.usersService.createUser(userData);

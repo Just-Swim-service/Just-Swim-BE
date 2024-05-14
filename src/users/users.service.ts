@@ -8,6 +8,7 @@ import { EditUserDto } from './dto/editUser.dto';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  /* email, provider를 이용해서 user 조회 */
   async findUserByEmail(
     email: string,
     provider: string,
@@ -19,6 +20,7 @@ export class UsersService {
     }
   }
 
+  /* user 생성 */
   async createUser(userData: UsersDto): Promise<Users> {
     try {
       return await this.usersRepository.createUser(userData);
@@ -27,6 +29,7 @@ export class UsersService {
     }
   }
 
+  /* userId를 이용해 user 조회 */
   async findUserByPk(userId: number): Promise<Users> {
     try {
       return await this.usersRepository.findUserByPk(userId);
@@ -35,6 +38,7 @@ export class UsersService {
     }
   }
 
+  /* user의 userType 지정 */
   async selectUserType(userId: number, userType: string): Promise<void> {
     try {
       await this.usersRepository.selectUserType(userId, userType);
@@ -43,6 +47,7 @@ export class UsersService {
     }
   }
 
+  /* user 프로필 수정 */
   async editUserProfile(
     userId: number,
     editUserDto: EditUserDto,

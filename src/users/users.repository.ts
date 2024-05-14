@@ -11,6 +11,7 @@ export class UsersRepository {
     @InjectRepository(Users) private usersRepository: Repository<Users>,
   ) {}
 
+  /* email, provider를 이용해 user 조회 */
   async findUserByEmail(
     email: string,
     provider: string,
@@ -27,6 +28,7 @@ export class UsersRepository {
     }
   }
 
+  /* user 생성 */
   async createUser(userData: UsersDto): Promise<Users> {
     const result = await this.usersRepository.query(
       `CALL CREATE_USER(?, ?, ?, ?, ?, ?)`,
@@ -40,9 +42,11 @@ export class UsersRepository {
       ],
     );
 
-    return result;
+    // userId를 반환
+    return result[0][0];
   }
 
+  /* userId를 이용해서 user 조회 */
   async findUserByPk(userId: number): Promise<Users> {
     const result = await this.usersRepository.query(`CALL FIND_USER_BY_PK(?)`, [
       userId,
@@ -50,6 +54,7 @@ export class UsersRepository {
     return result[0][0];
   }
 
+  /* userType을 지정 */
   async selectUserType(userId: number, userType: string): Promise<void> {
     const result = await this.usersRepository.query(
       `CALL SELECT_USER_TYPE(?, ?)`,
@@ -58,6 +63,7 @@ export class UsersRepository {
     return result;
   }
 
+  /* user 프로필 수정 */
   async editUserProfile(
     userId: number,
     editUserDto: EditUserDto,

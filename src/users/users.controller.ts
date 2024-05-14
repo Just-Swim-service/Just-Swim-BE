@@ -39,6 +39,7 @@ export class UsersController {
     private readonly instructorService: InstructorService,
   ) {}
 
+  /* kakao 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao')
   @ApiOperation({ summary: 'Kakao login' })
@@ -68,18 +69,22 @@ export class UsersController {
     let phoneNumber: string = `010-${cleanedNumber.substring(4, 8)}-${cleanedNumber.substring(8, 13)}`;
 
     const exUser = await this.authService.validateUser(email, provider);
+    // user가 존재할 경우 로그인 시도
     if (exUser) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       }
+      // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
         res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
+    // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
         email,
@@ -90,13 +95,14 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
+      let userId: number = newUser.userId;
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
     }
   }
 
+  /* naver 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver')
   @ApiOperation({ summary: 'Naver login' })
@@ -124,17 +130,21 @@ export class UsersController {
     let phoneNumber: string = profile.mobile;
 
     const exUser = await this.authService.validateUser(email, provider);
+    // user가 존재할 경우 로그인 시도
     if (exUser) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
 
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
       }
+      // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
         res.redirect(process.env.HOME_REDIRECT_URI);
       }
     }
+    // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
         email,
@@ -145,13 +155,14 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
+      let userId: number = newUser.userId;
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
     }
   }
 
+  /* google 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google')
   @ApiOperation({ summary: 'Google login' })
@@ -173,17 +184,21 @@ export class UsersController {
     let profileImage: string = profile._json.picture;
 
     const exUser = await this.authService.validateUser(email, provider);
+    // user가 존재할 경우 로그인 시도
     if (exUser) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
 
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
       }
+      // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
         res.redirect(process.env.HOME_REDIRECT_URI);
       }
     }
+    // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
         email,
@@ -192,7 +207,7 @@ export class UsersController {
         provider,
       };
       const newUser = await this.authService.createUser(newUserData);
-      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
+      let userId: number = newUser.userId;
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
@@ -249,6 +264,7 @@ export class UsersController {
     }
   }
 
+  /* 로그인 이후에 userType을 지정 */
   @Post('user/:userType')
   @ApiOperation({ summary: 'userType 선택' })
   @ApiParam({ name: 'userType', description: 'userType', type: 'string' })
@@ -280,6 +296,7 @@ export class UsersController {
           .json({ message: '계정에 타입이 이미 지정되어 있습니다.' });
       }
 
+      // userType을 지정하면 둘 중에 하나의 테이블에 정보 생성
       if (userType === 'customer') {
         await this.customerService.createCustomer(userId);
       }
@@ -296,6 +313,7 @@ export class UsersController {
     }
   }
 
+  /* 나의 프로필 조회 */
   @Get('user/myProfile')
   @ApiOperation({ summary: '프로필 조회' })
   @ApiResponse({
@@ -333,6 +351,7 @@ export class UsersController {
     }
   }
 
+  /* 프로필 수정 */
   @Patch('user/edit')
   @ApiOperation({ summary: '유저 프로필 수정' })
   @ApiBody({ type: EditUserDto })

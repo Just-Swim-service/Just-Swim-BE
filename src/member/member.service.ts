@@ -15,15 +15,6 @@ export class MemberService {
     }
   }
 
-  /* 회원 가입 여부 확인 */
-  async checkCustomer(userId: number): Promise<boolean> {
-    try {
-      return await this.memberRepository.checkCustomer(userId);
-    } catch (error) {
-      throw new Error('회원 가입 여부를 확인하는 중에 오류가 발생했습니다.');
-    }
-  }
-
   /* 강사가 개설한 강의에 해당하는 수강생 */
   async getAllMemberByInstructor(lectureId: number): Promise<Member[]> {
     try {

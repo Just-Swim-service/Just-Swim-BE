@@ -23,6 +23,7 @@ import { LoggerModule } from './common/logger/logger.module';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -50,7 +51,6 @@ import { LoggerModule } from './common/logger/logger.module';
   providers: [
     AppService,
     JwtService,
-    LoggerModule,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })

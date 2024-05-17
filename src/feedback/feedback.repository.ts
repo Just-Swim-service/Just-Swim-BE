@@ -12,7 +12,7 @@ export class FeedbackRepository {
     private readonly feedbackRepository: Repository<Feedback>,
   ) {}
 
-  /* 강사용 전체 feedback 조회 */
+  /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
   async getAllFeedbackByInstructor(userId: number): Promise<Feedback[]> {
     const result = await this.feedbackRepository.query(
       'CALL GET_ALL_FEEDBACK_INSTRUCTOR(?)',
@@ -22,9 +22,9 @@ export class FeedbackRepository {
   }
 
   /* feedback 상세 조회 */
-  async getFeedbackById(feedbackId: number): Promise<Feedback> {
+  async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
     const result = await this.feedbackRepository.query(
-      'CALL GET_FEEDBACK_ID(?)',
+      'CALL GET_FEEDBACK_BY_PK(?)',
       [feedbackId],
     );
     return result[0][0];

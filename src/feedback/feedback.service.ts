@@ -14,7 +14,7 @@ export class FeedbackService {
     private readonly feedbackTargetRepository: FeedbackTargetRepository,
   ) {}
 
-  /* 강사용 전체 feedback 조회 */
+  /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
   async getAllFeedbackByInstructor(userId: number): Promise<Feedback[]> {
     try {
       const feedbacks =
@@ -30,10 +30,10 @@ export class FeedbackService {
   }
 
   /* feedback 상세 조회 */
-  async getFeedbackById(feedbackId: number): Promise<Feedback> {
+  async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
     try {
       const feedback =
-        await this.feedbackRepository.getFeedbackById(feedbackId);
+        await this.feedbackRepository.getFeedbackByPk(feedbackId);
       return feedback;
     } catch (error) {
       console.log(error);

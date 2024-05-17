@@ -4,7 +4,7 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
   constructor() {
-    super();
+    super(); // Guard의 super를 통해 AuthGuard('google') 클래스 생성자를 실행 ==> GoogleStrategy 클래스
   }
   handleRequest<TUser = any>(
     err: any,

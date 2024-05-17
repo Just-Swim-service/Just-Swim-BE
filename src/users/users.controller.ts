@@ -25,8 +25,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
-import { CustomerService } from 'src/customer/customer.service';
-import { InstructorService } from 'src/instructor/instructor.service';
 import { EditUserDto } from './dto/editUser.dto';
 
 @ApiTags('Users')
@@ -35,10 +33,9 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
-    private readonly customerService: CustomerService,
-    private readonly instructorService: InstructorService,
   ) {}
 
+  /* kakao 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao')
   @ApiOperation({ summary: 'Kakao login' })
@@ -68,18 +65,22 @@ export class UsersController {
     let phoneNumber: string = `010-${cleanedNumber.substring(4, 8)}-${cleanedNumber.substring(8, 13)}`;
 
     const exUser = await this.authService.validateUser(email, provider);
+    // user가 존재할 경우 로그인 시도
     if (exUser) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       }
+      // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
         res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
+    // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
         email,
@@ -90,13 +91,14 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
+      let userId: number = newUser.userId;
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
     }
   }
 
+  /* naver 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver')
   @ApiOperation({ summary: 'Naver login' })
@@ -124,17 +126,21 @@ export class UsersController {
     let phoneNumber: string = profile.mobile;
 
     const exUser = await this.authService.validateUser(email, provider);
+    // user가 존재할 경우 로그인 시도
     if (exUser) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
 
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
       }
+      // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
         res.redirect(process.env.HOME_REDIRECT_URI);
       }
     }
+    // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
         email,
@@ -145,13 +151,14 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
+      let userId: number = newUser.userId;
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
     }
   }
 
+  /* google 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google')
   @ApiOperation({ summary: 'Google login' })
@@ -173,17 +180,21 @@ export class UsersController {
     let profileImage: string = profile._json.picture;
 
     const exUser = await this.authService.validateUser(email, provider);
+    // user가 존재할 경우 로그인 시도
     if (exUser) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
 
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
       }
+      // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         // const accessToken = await this.authService.getToken(exUser.userId);
         res.redirect(process.env.HOME_REDIRECT_URI);
       }
     }
+    // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
         email,
@@ -192,7 +203,7 @@ export class UsersController {
         provider,
       };
       const newUser = await this.authService.createUser(newUserData);
-      // let userId: number = newUser.userId; // 로그인시 userId 를 알수 없다고 에러가 뜸
+      let userId: number = newUser.userId;
 
       // const accessToken = await this.authService.getToken(newUser.userId);
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
@@ -221,8 +232,6 @@ export class UsersController {
     },
   })
   @ApiResponse({ status: 200, description: '로그인 성공' })
-  @ApiResponse({ status: 400, description: '올바른 요청 형식이 아닙니다.' })
-  @ApiResponse({ status: 401, description: '사용자를 찾을 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   async login(
     @Body('email') email: string,
@@ -231,11 +240,6 @@ export class UsersController {
   ) {
     try {
       const user = await this.usersService.findUserByEmail(email, provider);
-      if (!user) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '사용자를 찾을 수 없습니다.' });
-      }
 
       let userId: number = user.userId;
       let token: string = await this.authService.getToken(userId);
@@ -249,6 +253,7 @@ export class UsersController {
     }
   }
 
+  /* 로그인 이후에 userType을 지정 */
   @Post('user/:userType')
   @ApiOperation({ summary: 'userType 선택' })
   @ApiParam({ name: 'userType', description: 'userType', type: 'string' })
@@ -261,30 +266,20 @@ export class UsersController {
     @Res() res: Response,
   ) {
     try {
-      if (userType !== 'customer' && userType !== 'instructor') {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: 'userType을 지정해주세요.' });
-      }
-
       const { userId } = res.locals.user;
       const user = await this.usersService.findUserByPk(userId);
-      if (!user) {
+
+      // userType을 지정하면 둘 중에 하나의 테이블에 정보 생성
+      if (!['customer', 'instructor'].includes(userType)) {
         return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '유저 정보를 확인해주세요' });
+          .status(HttpStatus.BAD_REQUEST)
+          .json({ message: '올바른 userType을 지정해주세요.' });
       }
+
       if (user.userType !== null) {
         return res
           .status(HttpStatus.NOT_ACCEPTABLE)
           .json({ message: '계정에 타입이 이미 지정되어 있습니다.' });
-      }
-
-      if (userType === 'customer') {
-        await this.customerService.createCustomer(userId);
-      }
-      if (userType === 'instructor') {
-        await this.instructorService.createInstructor(userId);
       }
 
       await this.usersService.selectUserType(userId, userType);
@@ -296,6 +291,7 @@ export class UsersController {
     }
   }
 
+  /* 나의 프로필 조회 */
   @Get('user/myProfile')
   @ApiOperation({ summary: '프로필 조회' })
   @ApiResponse({
@@ -313,17 +309,13 @@ export class UsersController {
       },
     },
   })
+  @ApiResponse({ status: 404, description: '프로필 정보를 찾을 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async findUserProfile(@Res() res: Response) {
     try {
       const { userId } = res.locals.user;
       const userProfile = await this.usersService.findUserByPk(userId);
-      if (!userProfile) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: 'user 정보를 찾을 수 없습니다.' });
-      }
 
       return res.status(HttpStatus.OK).json(userProfile);
     } catch (e) {
@@ -333,6 +325,7 @@ export class UsersController {
     }
   }
 
+  /* 프로필 수정 */
   @Patch('user/edit')
   @ApiOperation({ summary: '유저 프로필 수정' })
   @ApiBody({ type: EditUserDto })

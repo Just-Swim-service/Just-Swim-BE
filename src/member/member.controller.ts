@@ -5,7 +5,6 @@ import {
   Query,
   ParseIntPipe,
   Res,
-  Req,
   HttpStatus,
 } from '@nestjs/common';
 import {
@@ -15,13 +14,17 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { UsersService } from 'src/users/users.service';
 
 @ApiTags('Member')
 @Controller('member')
 export class MemberController {
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    private readonly memberService: MemberService,
+    private readonly usersService: UsersService,
+  ) {}
 
-  // QR코드를 통한 회원 등록
+  /* QR코드를 통한 회원 등록 */
   @Get('/qr-code')
   @ApiOperation({
     summary: '강의 QR코드를 통한 회원 등록',
@@ -34,18 +37,31 @@ export class MemberController {
   async insertMemberFromQR(
     @Query('lectureId', ParseIntPipe) lectureId: number,
     @Res() res: Response,
-    @Req() req: Request,
   ) {
     try {
       const user = res.locals.user;
 
-      const isExist = await this.memberService.checkCustomer(
+      const isExist = await this.usersService.findUserByPk(
         parseInt(user.userId),
       );
 
+      // user 정보가 없을 경우 가입 경로로 redirect
       if (!isExist) {
-        return res.redirect('/signup');
-      } else {
+        res.redirect('/signup');
+      }
+
+      // userType이 null 일 경우 userType 지정으로 redirect
+      if (isExist.userType === null) {
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+      }
+
+      if (isExist.userType !== 'customer') {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+        });
+      }
+
+      if (isExist.userType === 'customer') {
         await this.memberService.insertMemberFromQR(
           parseInt(user.userId),
           lectureId,
@@ -53,7 +69,6 @@ export class MemberController {
         res.redirect(`/api/lecture/${lectureId}`);
       }
     } catch (error) {
-      console.log('서버 에러', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
     }
   }

@@ -32,7 +32,7 @@ export class LectureController {
     private readonly memberService: MemberService,
   ) {}
 
-  /* 스케줄 - 강의 전체 조회(종료된 강의는 제외) */
+  /* 스케줄 - 강의 전체 조회(삭제된 강의는 제외) */
   @Get('schedule')
   @ApiOperation({
     summary: '스케줄 - 강의 전체 조회',
@@ -84,6 +84,7 @@ export class LectureController {
 
       if (userType === 'instructor') {
         const userId = user.userId;
+
         const lectures =
           await this.lectureService.getLecturesByInstructor(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -99,7 +100,7 @@ export class LectureController {
     }
   }
 
-  /* 강의 전체 조회(종료된 강의 포함) */
+  /* 강의 전체 조회(삭제된 강의 모두 조회) */
   @Get('myLectures')
   @ApiOperation({
     summary: '나의 강의 전체 조회',
@@ -153,6 +154,7 @@ export class LectureController {
 
       if (userType === 'instructor') {
         const userId = user.userId;
+
         const lectures =
           await this.lectureService.getAllLecturesByInstructor(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -202,12 +204,8 @@ export class LectureController {
     @Param('lectureId', ParseIntPipe) lectureId: number,
   ) {
     try {
-      const lecture = await this.lectureService.getLectureById(lectureId);
-      if (lecture === null) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '존재하지 않는 강좌입니다.' });
-      }
+      const lecture = await this.lectureService.getLectureByPk(lectureId);
+
       return res.status(HttpStatus.OK).json(lecture);
     } catch (e) {
       return res
@@ -235,7 +233,8 @@ export class LectureController {
     try {
       const { userId } = res.locals.user;
 
-      const lecture = await this.lectureService.getLectureById(lectureId);
+      const lecture = await this.lectureService.getLectureByPk(lectureId);
+
       if (lecture.userId !== userId) {
         return res
           .status(HttpStatus.UNAUTHORIZED)
@@ -270,7 +269,8 @@ export class LectureController {
     try {
       const { userId } = res.locals.user;
 
-      const lecture = await this.lectureService.getLectureById(lectureId);
+      const lecture = await this.lectureService.getLectureByPk(lectureId);
+
       if (lecture.userId !== userId) {
         return res
           .status(HttpStatus.UNAUTHORIZED)
@@ -298,9 +298,7 @@ export class LectureController {
   @ApiBearerAuth('accessToken')
   async createLecture(@Res() res: Response, @Body() lectureDto: LectureDto) {
     try {
-      const user = res.locals.user;
-      const userId = user.userId;
-      const userType = user.userType;
+      const { userId, userType } = res.locals.user;
 
       if (userType !== 'instructor') {
         return res
@@ -330,10 +328,17 @@ export class LectureController {
   /* 강의 QR코드 생성 */
   @Post(':lectureId/qr-code')
   async createQRCode(
+    @Res() res: Response,
     @Param('lectureId', ParseIntPipe) lectureId: number,
     @Body('lectureQRCode') lectureQRCode: string,
-  ): Promise<void> {
-    await this.lectureService.saveQRCode(lectureId, lectureQRCode);
+  ) {
+    try {
+      await this.lectureService.saveQRCode(lectureId, lectureQRCode);
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
   }
 
   /* 강의에 해당하는 수강생 목록 */

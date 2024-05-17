@@ -5,9 +5,10 @@ import { LectureRepository } from './lecture.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Lecture } from './entity/lecture.entity';
 import { MemberModule } from 'src/member/member.module';
+import { LoggerModule } from 'src/common/logger/logger.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Lecture]), MemberModule],
+  imports: [TypeOrmModule.forFeature([Lecture]), MemberModule, LoggerModule],
   controllers: [LectureController],
   providers: [LectureService, LectureRepository],
   exports: [LectureService, LectureRepository],

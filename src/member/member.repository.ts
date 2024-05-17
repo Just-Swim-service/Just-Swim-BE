@@ -35,16 +35,6 @@ export class MemberRepository {
     );
   }
 
-  /* 회원 가입 여부 확인 */
-  async checkCustomer(userId: number): Promise<boolean> {
-    const result = await this.memberRepository.query(
-      'CALL CHECK_CUSTOMER_ID(?)',
-      [userId],
-    );
-
-    return parseInt(result[0][0].result) === 1;
-  }
-
   /* 강사가 개설한 모든 강의에 해당하는 수강생 */
   async getAllMemberByInstructor(lectureId: number): Promise<Member[]> {
     const result = await this.memberRepository.query(

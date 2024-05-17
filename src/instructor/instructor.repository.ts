@@ -10,6 +10,7 @@ export class InstructorRepository {
     private instructorRepository: Repository<Instructor>,
   ) {}
 
+  /* userType을 instructor로 지정할 경우 instructor 정보 생성 */
   async createInstructor(userId: number): Promise<Instructor> {
     const result = await this.instructorRepository.query(
       `CALL CREATE_INSTRUCTOR(?)`,
@@ -18,22 +19,11 @@ export class InstructorRepository {
     return result;
   }
 
-  async findInstructor(userId: number): Promise<Instructor> {
-    return await this.instructorRepository
-      .createQueryBuilder('instructor')
-      .select([
-        'instructorId',
-        'userId',
-        'workingLocation',
-        'career',
-        'history',
-        'introduction',
-        'curriculum',
-        'youtubeLink',
-        'instagramLink',
-        'facebookLink',
-      ])
-      .where('instructor.userId = :userId', { userId })
-      .getRawOne();
+  /* instructor의 정보 조회 */
+  async findInstructorByUserId(userId: number): Promise<Instructor> {
+    return await this.instructorRepository.query(
+      `CALL FIND_INSTRUCTOR_BY_USERID(?)`,
+      [userId],
+    );
   }
 }

@@ -31,6 +31,7 @@ export class FeedbackController {
     private readonly dataSource: DataSource,
   ) {}
 
+  /* feedback 전체 조회 */
   @Get()
   @ApiOperation({
     summary: '전체 feedback 조회',
@@ -87,6 +88,7 @@ export class FeedbackController {
     }
   }
 
+  /* feedback 상세 조회 */
   @Get(':feedbackId')
   @ApiOperation({
     summary: 'feedback 상세 조회',
@@ -125,7 +127,7 @@ export class FeedbackController {
       const userType = user.userType;
 
       if (userType === 'instructor') {
-        const feedback = await this.feedbackService.getFeedbackById(feedbackId);
+        const feedback = await this.feedbackService.getFeedbackByPk(feedbackId);
         if (feedback.userId !== user.userId) {
           return res
             .status(HttpStatus.UNAUTHORIZED)
@@ -140,6 +142,7 @@ export class FeedbackController {
     }
   }
 
+  /* feedback 생성 */
   @Post()
   @ApiOperation({
     summary: 'feedback을 생성 한다',
@@ -174,6 +177,7 @@ export class FeedbackController {
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: 'feedback 생성 실패' });
       }
+      // feedback 생성 후에 feedbackTargetList에 맞게 feedbackTarget 생성
       if (feedback) {
         await this.feedbackService.createFeedbackTarget(
           feedback.feedbackId,
@@ -188,6 +192,7 @@ export class FeedbackController {
     }
   }
 
+  /* feedback 수정 */
   @Patch(':feedbackId')
   @ApiOperation({
     summary: '작성했던 feedback을 수정한다.',
@@ -204,20 +209,22 @@ export class FeedbackController {
     @Body() editFeedbackDto: EditFeedbackDto,
   ) {
     try {
-      const { userId, userType } = res.locals.user;
-      const feedback = await this.feedbackService.getFeedbackById(feedbackId);
+      const { userId } = res.locals.user;
+      const feedback = await this.feedbackService.getFeedbackByPk(feedbackId);
 
-      if (userType !== 'instructor' || feedback.userId !== userId) {
+      if (feedback.userId !== userId) {
         return res
           .status(HttpStatus.UNAUTHORIZED)
           .json({ message: 'feedback 수정 권한이 없습니다.' });
       }
 
+      // DB 트랜잭션 시작
       const queryRunner = this.dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       try {
+        // feedback 내용과 feedbackTargetList 동시에 업데이트
         if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
           const a = await Promise.all([
             this.feedbackService.updateFeedback(feedbackId, editFeedbackDto),
@@ -227,19 +234,23 @@ export class FeedbackController {
             ),
           ]);
         } else {
+          // feedbackTargetList 변경 내용이 없으면 feedback만 수정
           await this.feedbackService.updateFeedback(
             feedbackId,
             editFeedbackDto,
           );
         }
+        // 정상적으로 끝났을 경우 commit
         await queryRunner.commitTransaction();
       } catch (error) {
+        // error 발생 시 트랜잭션 rollback
         await queryRunner.rollbackTransaction();
         throw new HttpException(
           'feedback 수정 실패',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       } finally {
+        // 끝났을 경우 queryRunner 해제
         await queryRunner.release();
       }
 
@@ -252,6 +263,7 @@ export class FeedbackController {
     }
   }
 
+  /* feedback 삭제(softDelete) */
   @Delete(':feedbackId')
   @ApiOperation({
     summary: 'feedback을 soft delete 한다.',
@@ -267,30 +279,38 @@ export class FeedbackController {
     @Param('feedbackId') feedbackId: number,
   ) {
     try {
-      const { userId, userType } = res.locals.user;
-      const feedback = await this.feedbackService.getFeedbackById(feedbackId);
+      const { userId } = res.locals.user;
+      const feedback = await this.feedbackService.getFeedbackByPk(feedbackId);
 
-      if (userType !== 'instructor' || feedback.userId !== userId) {
+      if (feedback.userId !== userId) {
         return res
           .status(HttpStatus.UNAUTHORIZED)
           .json({ message: 'feedback 삭제 권한이 없습니다.' });
       }
 
+      // DB 트랜잭션 시작
       const queryRunner = this.dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       try {
+        // feedback 내용과 feedbackTargetList 동시에 삭제
         await Promise.all([
           this.feedbackService.softDeleteFeedback(feedbackId),
           this.feedbackService.deleteFeedbackTarget(feedbackId),
         ]);
+
+        // 정상적으로 끝났을 경우 commit
+        await queryRunner.commitTransaction();
       } catch (error) {
+        // error 발생 시 트랜잭션 rollback
+        await queryRunner.rollbackTransaction();
         throw new HttpException(
           'feedback 삭제 실패',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       } finally {
+        // 끝났을 경우 queryRunner 해제
         await queryRunner.release();
       }
 

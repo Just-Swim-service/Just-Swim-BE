@@ -1,5 +1,4 @@
 import {
-  Logger,
   MiddlewareConsumer,
   Module,
   NestModule,
@@ -20,9 +19,11 @@ import { MemberModule } from './member/member.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
+import { LoggerModule } from './common/logger/logger.module';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -50,7 +51,6 @@ import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
   providers: [
     AppService,
     JwtService,
-    Logger,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })

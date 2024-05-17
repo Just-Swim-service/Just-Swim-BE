@@ -4,7 +4,7 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 @Injectable()
 export class NaverAuthGuard extends AuthGuard('naver') {
   constructor() {
-    super();
+    super(); // Guard의 super를 통해 AuthGuard('naver') 클래스 생성자를 실행 ==> NaverStrategy 클래스
   }
   handleRequest<TUser = any>(
     err: any,

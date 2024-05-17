@@ -56,11 +56,9 @@ export class MemberController {
       }
 
       if (isExist.userType !== 'customer') {
-        return res
-          .status(HttpStatus.UNAUTHORIZED)
-          .json({
-            message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
-          });
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+        });
       }
 
       if (isExist.userType === 'customer') {
@@ -71,7 +69,6 @@ export class MemberController {
         res.redirect(`/api/lecture/${lectureId}`);
       }
     } catch (error) {
-      console.log('서버 에러', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
     }
   }

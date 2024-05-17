@@ -1,17 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { MemberRepository } from './member.repository';
 import { Member } from './entity/member.entity';
+import { MyLogger } from 'src/common/logger/logger.service';
 
 @Injectable()
 export class MemberService {
-  constructor(private readonly memberRepository: MemberRepository) {}
+  constructor(
+    private readonly memberRepository: MemberRepository,
+    private readonly logger: MyLogger,
+  ) {}
 
   /* QR코드를 통한 회원 등록 */
   async insertMemberFromQR(userId: number, lectureId: number): Promise<Member> {
     try {
       return await this.memberRepository.insertMemberFromQR(userId, lectureId);
     } catch (error) {
-      throw new Error('QR코드를 통한 회원 등록 중에 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'QR코드를 통한 회원 등록 중에 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -20,7 +27,8 @@ export class MemberService {
     try {
       return await this.memberRepository.getAllMemberByInstructor(lectureId);
     } catch (error) {
-      throw new Error(
+      this.logger.error(error);
+      throw new InternalServerErrorException(
         '강의에 해당하는 수강생을 조회하는 중에 오류가 발생했습니다.',
       );
     }

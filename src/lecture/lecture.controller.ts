@@ -84,7 +84,7 @@ export class LectureController {
 
       if (userType === 'instructor') {
         const userId = user.userId;
-        // 삭제 처리 된 lecture는 제외해서 조회
+
         const lectures =
           await this.lectureService.getLecturesByInstructor(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -154,7 +154,7 @@ export class LectureController {
 
       if (userType === 'instructor') {
         const userId = user.userId;
-        // 삭제 된 강의 포함 lecture 조회
+
         const lectures =
           await this.lectureService.getAllLecturesByInstructor(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -205,11 +205,7 @@ export class LectureController {
   ) {
     try {
       const lecture = await this.lectureService.getLectureByPk(lectureId);
-      if (lecture === null) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '존재하지 않는 강좌입니다.' });
-      }
+
       return res.status(HttpStatus.OK).json(lecture);
     } catch (e) {
       return res
@@ -238,11 +234,6 @@ export class LectureController {
       const { userId } = res.locals.user;
 
       const lecture = await this.lectureService.getLectureByPk(lectureId);
-      if (lecture === null) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '존재하지 않는 강좌입니다.' });
-      }
 
       if (lecture.userId !== userId) {
         return res
@@ -279,11 +270,6 @@ export class LectureController {
       const { userId } = res.locals.user;
 
       const lecture = await this.lectureService.getLectureByPk(lectureId);
-      if (lecture === null) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: '존재하지 않는 강좌입니다.' });
-      }
 
       if (lecture.userId !== userId) {
         return res

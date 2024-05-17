@@ -48,7 +48,9 @@ export class UsersService {
       return await this.usersRepository.createUser(userData);
     } catch (error) {
       this.logger.error(error);
-      throw new Error('사용자 생성 중에 오류가 발생했습니다.');
+      throw new InternalServerErrorException(
+        '사용자 생성 중에 오류가 발생했습니다.',
+      );
     }
   }
 

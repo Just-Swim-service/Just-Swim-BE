@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { FeedbackRepository } from './feedback.repository';
 import { Feedback } from './entity/feedback.entity';
 import { FeedbackDto } from './dto/feedback.dto';
@@ -6,12 +6,14 @@ import { EditFeedbackDto } from './dto/editFeedback.dto';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { FeedbackTarget } from './entity/feedbackTarget.entity';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
+import { MyLogger } from 'src/common/logger/logger.service';
 
 @Injectable()
 export class FeedbackService {
   constructor(
     private readonly feedbackRepository: FeedbackRepository,
     private readonly feedbackTargetRepository: FeedbackTargetRepository,
+    private readonly logger: MyLogger,
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
@@ -22,8 +24,8 @@ export class FeedbackService {
 
       return feedbacks;
     } catch (error) {
-      console.log(error);
-      throw new Error(
+      this.logger.error(error);
+      throw new InternalServerErrorException(
         '강사가 작성한 전체 feedback 조회 중 오류가 발생했습니다.',
       );
     }
@@ -36,8 +38,10 @@ export class FeedbackService {
         await this.feedbackRepository.getFeedbackByPk(feedbackId);
       return feedback;
     } catch (error) {
-      console.log(error);
-      throw new Error('feedback 상세 조회 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedback 상세 조회 중 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -49,7 +53,10 @@ export class FeedbackService {
     try {
       return await this.feedbackRepository.createFeedback(userId, feedbackDto);
     } catch (error) {
-      throw new Error('feedback 생성 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedback 생성 중 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -84,7 +91,10 @@ export class FeedbackService {
         );
       }
     } catch (error) {
-      throw new Error('feedbackTarget 생성 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedbackTarget 생성 중 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -96,7 +106,10 @@ export class FeedbackService {
     try {
       await this.feedbackRepository.updateFeedback(feedbackId, editFeedbackDto);
     } catch (error) {
-      throw new Error('feedback 수정 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedback 수정 중 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -130,7 +143,10 @@ export class FeedbackService {
         );
       }
     } catch (error) {
-      throw new Error('feedbackTarget 수정 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedbackTarget 수정 중 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -139,7 +155,10 @@ export class FeedbackService {
     try {
       await this.feedbackRepository.softDeleteFeedback(feedbackId);
     } catch (error) {
-      throw new Error('feedback 삭제 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedback 삭제 중 오류가 발생했습니다.',
+      );
     }
   }
 
@@ -148,7 +167,10 @@ export class FeedbackService {
     try {
       await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
     } catch (error) {
-      throw new Error('feedbackTarget 삭제 중 오류가 발생했습니다.');
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        'feedbackTarget 삭제 중 오류가 발생했습니다.',
+      );
     }
   }
 }

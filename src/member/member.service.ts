@@ -22,10 +22,10 @@ export class MemberService {
     }
   }
 
-  /* 강사가 개설한 강의에 해당하는 수강생 */
-  async getAllMemberByInstructor(lectureId: number): Promise<Member[]> {
+  /* 강의에 해당하는 수강생 */
+  async getAllMemberByLectureId(lectureId: number): Promise<Member[]> {
     try {
-      return await this.memberRepository.getAllMemberByInstructor(lectureId);
+      return await this.memberRepository.getAllMemberByLectureId(lectureId);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(

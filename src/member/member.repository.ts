@@ -10,23 +10,6 @@ export class MemberRepository {
     private readonly memberRepository: Repository<Member>,
   ) {}
 
-  /* 자신이 소속된 lecture 확인 */
-  // async getMyLectureList(customerId: number): Promise<Member[]> {
-  //   return await this.memberRepository
-  //     .createQueryBuilder('member')
-  //     .leftJoin('lecture', 'lecture', 'member.lectureId = lecture.lectureId')
-  //     .select([
-  //       'lecture.lectureTitle AS lectureTitle',
-  //       'lecture.lectureContent AS lectureContent',
-  //       'lecture.lectureTime AS lectureTime',
-  //       'lecture.lectureDays AS lectureDays',
-  //       'lecture.lectureLocation AS lectureLocation',
-  //       'lecture.lectureColor AS lectureColor',
-  //     ])
-  //     .where('member.customerId = : customerId', { customerId })
-  //     .getRawMany();
-  // }
-
   /* QR코드를 통한 회원 등록 */
   async insertMemberFromQR(userId: number, lectureId: number): Promise<Member> {
     return await this.memberRepository.query(
@@ -35,10 +18,10 @@ export class MemberRepository {
     );
   }
 
-  /* 강사가 개설한 모든 강의에 해당하는 수강생 */
-  async getAllMemberByInstructor(lectureId: number): Promise<Member[]> {
+  /* 강의에 해당하는 member 조회 */
+  async getAllMemberByLectureId(lectureId: number): Promise<Member[]> {
     const result = await this.memberRepository.query(
-      'CALL GET_ALL_MEMBER_INSTRUCTOR(?)',
+      'CALL GET_ALL_MEMBER_LECTUREID(?)',
       [lectureId],
     );
     return result[0];

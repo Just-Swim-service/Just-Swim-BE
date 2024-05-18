@@ -23,6 +23,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { MemberService } from 'src/member/member.service';
+import {
+  lectureDetailByCustomer,
+  lectureDetailByInstructor,
+  lecturesByCustomer,
+  lecturesByInstructor,
+} from './example/lecture-example';
 
 @ApiTags('Lecture')
 @Controller('lecture')
@@ -43,35 +49,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          lectures: {
-            value: [
-              {
-                lectureId: '1',
-                lectureTitle: '아침 5반',
-                lectureContent:
-                  '초보반으로 발차기 및 자유형 위주로 수업합니다.',
-                lectureTime: '11:00 ~ 12:00',
-                lectureDays: '화목',
-                lectureLocation: '강동구 실내 수영장',
-                lectureColor: '#F1554C',
-                lectureQRCode: 'QR 코드',
-                lectureEndDate: '2024.10.31',
-                lectureMembers: [],
-              },
-              {
-                lectureId: '30',
-                lectureTitle: '생존 수영반',
-                lectureContent: '생존 수영 위주로 수업합니다.',
-                lectureTime: '09:00 ~ 10:00',
-                lectureDays: '월수금',
-                lectureLocation: '고양체육관',
-                lectureColor: '#F1547C',
-                lectureQRCode: 'QR 코드',
-                lectureEndDate: '2024.10.31',
-                lectureMembers: [],
-              },
-            ],
-          },
+          lecturesByInstructor: lecturesByInstructor,
+          lecturesByCustomer: lecturesByCustomer,
         },
       },
     },
@@ -82,6 +61,7 @@ export class LectureController {
       const user = res.locals.user;
       const userType = user.userType;
 
+      // instructor 페이지
       if (userType === 'instructor') {
         const userId = user.userId;
 
@@ -90,9 +70,14 @@ export class LectureController {
         return res.status(HttpStatus.OK).json(lectures);
       }
 
-      // if (userType === 'customer') {
-      //   const customerId = user.customerInfo.customerId;
-      // }
+      // customer 페이지
+      if (userType === 'customer') {
+        const userId = user.userId;
+
+        const lectures =
+          await this.lectureService.getLecturesByCustomer(userId);
+        return res.status(HttpStatus.OK).json(lectures);
+      }
     } catch (e) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -111,37 +96,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          lectures: {
-            value: [
-              {
-                lectureId: '1',
-                lectureTitle: '아침 5반',
-                lectureContent:
-                  '초보반으로 발차기 및 자유형 위주로 수업합니다.',
-                lectureTime: '11:00 ~ 12:00',
-                lectureDays: '화목',
-                lectureLocation: '강동구 실내 수영장',
-                lectureColor: '#F1554C',
-                lectureQRCode: 'QR 코드',
-                lectureEndDate: '2024.10.31',
-                lectureDeletedAt: null,
-                lectureMembers: [],
-              },
-              {
-                lectureId: '5',
-                lectureTitle: '생존 수영반',
-                lectureContent: '생존 수영 위주로 수업합니다.',
-                lectureTime: '09:00 ~ 10:00',
-                lectureDays: '월수금',
-                lectureLocation: '고양체육관',
-                lectureColor: '#F1547C',
-                lectureQRCode: 'QR 코드',
-                lectureEndDate: '2024.04.10',
-                lectureDeletedAt: '2024.04.10',
-                lectureMembers: [],
-              },
-            ],
-          },
+          AllLectureByInstructor: lecturesByInstructor,
+          AllLectureByCustomer: lecturesByCustomer,
         },
       },
     },
@@ -152,6 +108,7 @@ export class LectureController {
       const user = res.locals.user;
       const userType = user.userType;
 
+      // instructor
       if (userType === 'instructor') {
         const userId = user.userId;
 
@@ -160,10 +117,14 @@ export class LectureController {
         return res.status(HttpStatus.OK).json(lectures);
       }
 
-      // 수강생 디자인에 맞춰 작업
-      // if (userType === 'customer') {
-      //   const customerId = user.customerInfo.customerId;
-      // }
+      // customer
+      if (userType === 'customer') {
+        const userId = user.userId;
+
+        const lectures =
+          await this.lectureService.getAllLecturesByCustomer(userId);
+        return res.status(HttpStatus.OK).json(lectures);
+      }
     } catch (e) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -184,17 +145,12 @@ export class LectureController {
   })
   @ApiResponse({
     status: 200,
-    schema: {
-      example: {
-        lectureTitle: '생존 수영반',
-        lectureContent: '생존 수영 위주로 수업합니다.',
-        lectureTime: '09:00 ~ 10:00',
-        lectureDays: '월수금',
-        lectureLocation: '고양체육관',
-        lectureColor: '#F1547C',
-        lectureQRCode: 'QR 코드',
-        lectureEndDate: '2024.05.31',
-        lectureMembers: [],
+    content: {
+      'application/json': {
+        examples: {
+          lectureDetailByInstructor: lectureDetailByInstructor,
+          lectureDetailByCustomer: lectureDetailByCustomer,
+        },
       },
     },
   })
@@ -204,9 +160,13 @@ export class LectureController {
     @Param('lectureId', ParseIntPipe) lectureId: number,
   ) {
     try {
-      const lecture = await this.lectureService.getLectureByPk(lectureId);
+      const { userId } = res.locals.user;
+      const result = await this.lectureService.getLectureByPk(
+        userId,
+        lectureId,
+      );
 
-      return res.status(HttpStatus.OK).json(lecture);
+      return res.status(HttpStatus.OK).json(result);
     } catch (e) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -233,15 +193,11 @@ export class LectureController {
     try {
       const { userId } = res.locals.user;
 
-      const lecture = await this.lectureService.getLectureByPk(lectureId);
-
-      if (lecture.userId !== userId) {
-        return res
-          .status(HttpStatus.UNAUTHORIZED)
-          .json({ message: '강의 수정 권한이 없습니다.' });
-      }
-
-      await this.lectureService.updateLecture(lectureId, editLectureDto);
+      await this.lectureService.updateLecture(
+        userId,
+        lectureId,
+        editLectureDto,
+      );
 
       return res.status(HttpStatus.OK).json({ message: '강의 수정 성공' });
     } catch (e) {
@@ -269,15 +225,7 @@ export class LectureController {
     try {
       const { userId } = res.locals.user;
 
-      const lecture = await this.lectureService.getLectureByPk(lectureId);
-
-      if (lecture.userId !== userId) {
-        return res
-          .status(HttpStatus.UNAUTHORIZED)
-          .json({ message: '강의 삭제 권한이 없습니다.' });
-      }
-
-      await this.lectureService.softDeleteLecture(lectureId);
+      await this.lectureService.softDeleteLecture(userId, lectureId);
 
       return res.status(HttpStatus.OK).json({ message: '강의 삭제 성공' });
     } catch (e) {
@@ -392,7 +340,7 @@ export class LectureController {
           .json({ message: '접근 권한이 없습니다.' });
       }
       const memberList =
-        await this.memberService.getAllMemberByInstructor(lectureId);
+        await this.memberService.getAllMemberByLectureId(lectureId);
       return res.status(HttpStatus.OK).json(memberList);
     } catch (e) {
       return res

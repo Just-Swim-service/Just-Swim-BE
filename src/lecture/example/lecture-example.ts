@@ -87,6 +87,8 @@ export const lectureDetailByInstructor = {
       lectureColor: '#F1554C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
+      instructorName: '홍길동',
+      instructorProfileImage: 'image1',
     },
     lectureMembers: [
       {

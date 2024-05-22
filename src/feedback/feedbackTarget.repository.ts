@@ -13,11 +13,12 @@ export class FeedbackTargetRepository {
   /* feedbackTarget 생성 */
   async createFeedbackTarget(
     feedbackId: number,
+    lectureId: number,
     userId: number,
   ): Promise<FeedbackTarget> {
     return await this.feedbackTargetRepository.query(
-      'CALL CREATE_FEEDBACK_TARGET(?, ?)',
-      [feedbackId, userId],
+      'CALL CREATE_FEEDBACK_TARGET(?, ?, ?)',
+      [feedbackId, lectureId, userId],
     );
   }
 
@@ -38,5 +39,17 @@ export class FeedbackTargetRepository {
       'CALL DELETE_FEEDBACK_TARGET(?)',
       [feedbackId],
     );
+  }
+
+  /* feedbackId를 통해 target 확인 */
+  async getFeedbackTargetByFeedbackId(
+    feedbackId: number,
+  ): Promise<FeedbackTarget[]> {
+    const result = await this.feedbackTargetRepository.query(
+      'CALL GET_FEEDBACK_TARGET_BY_FEEDBACKID(?)',
+      [feedbackId],
+    );
+
+    return result[0];
   }
 }

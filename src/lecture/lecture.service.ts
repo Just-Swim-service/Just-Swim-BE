@@ -89,10 +89,11 @@ export class LectureService {
       const lectureMembers =
         await this.memberRepository.getAllMemberByLectureId(lectureId);
 
-      // 강의 작성자
+      // instructor
       if (lecture.userId === userId) {
         return { lecture, lectureMembers };
       }
+      // member
       if (lectureMembers.some((member) => member.userId === userId)) {
         return lecture;
       }

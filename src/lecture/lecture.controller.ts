@@ -49,8 +49,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          lecturesByInstructor: lecturesByInstructor,
-          lecturesByCustomer: lecturesByCustomer,
+          lecturesByInstructor,
+          lecturesByCustomer,
         },
       },
     },
@@ -58,13 +58,10 @@ export class LectureController {
   @ApiBearerAuth('accessToken')
   async getLecturesForSchedule(@Res() res: Response) {
     try {
-      const user = res.locals.user;
-      const userType = user.userType;
+      const { userType, userId } = res.locals.user;
 
       // instructor 페이지
       if (userType === 'instructor') {
-        const userId = user.userId;
-
         const lectures =
           await this.lectureService.getLecturesByInstructor(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -72,8 +69,6 @@ export class LectureController {
 
       // customer 페이지
       if (userType === 'customer') {
-        const userId = user.userId;
-
         const lectures =
           await this.lectureService.getLecturesByCustomer(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -105,13 +100,10 @@ export class LectureController {
   @ApiBearerAuth('accessToken')
   async getAllLectures(@Res() res: Response) {
     try {
-      const user = res.locals.user;
-      const userType = user.userType;
+      const { userType, userId } = res.locals.user;
 
       // instructor
       if (userType === 'instructor') {
-        const userId = user.userId;
-
         const lectures =
           await this.lectureService.getAllLecturesByInstructor(userId);
         return res.status(HttpStatus.OK).json(lectures);
@@ -119,8 +111,6 @@ export class LectureController {
 
       // customer
       if (userType === 'customer') {
-        const userId = user.userId;
-
         const lectures =
           await this.lectureService.getAllLecturesByCustomer(userId);
         return res.status(HttpStatus.OK).json(lectures);

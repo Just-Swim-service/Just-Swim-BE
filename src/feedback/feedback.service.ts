@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { FeedbackRepository } from './feedback.repository';
 import { Feedback } from './entity/feedback.entity';
 import { FeedbackDto } from './dto/feedback.dto';
@@ -31,12 +35,41 @@ export class FeedbackService {
     }
   }
 
+  /* customer 개인 feedback 전체 조회 */
+  async getAllFeedbackByCustomer(userId: number): Promise<Feedback[]> {
+    try {
+      const feedbacks =
+        await this.feedbackRepository.getAllFeedbackByCustomer(userId);
+
+      return feedbacks;
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        '개인 feedback 전체 조회 중 오류가 발생했습니다.',
+      );
+    }
+  }
+
   /* feedback 상세 조회 */
-  async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
+  async getFeedbackByPk(userId: number, feedbackId: number) {
     try {
       const feedback =
         await this.feedbackRepository.getFeedbackByPk(feedbackId);
-      return feedback;
+      if (!feedback) {
+        throw new NotFoundException('존재하지 않는 피드백입니다.');
+      }
+      const feedbackTargetList =
+        await this.feedbackTargetRepository.getFeedbackTargetByFeedbackId(
+          feedbackId,
+        );
+      // instructor
+      if (feedback.userId === userId) {
+        return { feedback, feedbackTargetList };
+      }
+      // member
+      if (feedbackTargetList.some((feedbackTarget) => feedbackTarget.userId)) {
+        return feedback;
+      }
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(
@@ -66,29 +99,54 @@ export class FeedbackService {
     feedbackTarget: string,
   ): Promise<void> {
     try {
-      if (feedbackTarget.includes(',')) {
-        const userIds = feedbackTarget
-          .split(',')
-          .map((id) => parseInt(id.trim()));
+      if (feedbackTarget.includes('/')) {
+        const targets = feedbackTarget.split('/');
 
-        // for 루프를 사용하여 각 사용자 ID에 대해 데이터베이스에 피드백 대상을 추가
-        for (let i = 0; i < userIds.length; i++) {
-          const userId = userIds[i]; // 배열의 인덱스를 사용하여 현재 userId를 얻음
+        for (let i = 0; i < targets.length; i++) {
+          const [lectureIdStr, userIdsStr] = targets[i].split(':');
+          const lectureId = parseInt(lectureIdStr.trim());
 
-          if (!isNaN(userId)) {
-            // 유효한 숫자인지 확인
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              userId,
-            );
+          // userIds 문자열을 배열로 변환하고 정수로 파싱
+          const userIds = userIdsStr
+            .split(',')
+            .map((id) => parseInt(id.trim()));
+
+          // 각 lectureId와 userIds에 대해 피드백 대상 생성
+          for (let j = 0; j < userIds.length; j++) {
+            const userId = userIds[j];
+            if (!isNaN(userId)) {
+              await this.feedbackTargetRepository.createFeedbackTarget(
+                feedbackId,
+                lectureId,
+                userId,
+              );
+            }
           }
         }
       } else {
-        const userId = parseInt(feedbackTarget);
-        await this.feedbackTargetRepository.createFeedbackTarget(
-          feedbackId,
-          userId,
-        );
+        const [lectureId, userIdStr] = feedbackTarget.split(':');
+        if (userIdStr.includes(',')) {
+          // userIds 문자열을 배열로 변환하고 정수로 파싱
+          const userIds = userIdStr.split(',').map((id) => parseInt(id.trim()));
+
+          for (let i = 0; i < userIds.length; i++) {
+            const userId = userIds[i];
+            if (!isNaN(userId)) {
+              await this.feedbackTargetRepository.createFeedbackTarget(
+                feedbackId,
+                parseInt(lectureId),
+                userId,
+              );
+            }
+          }
+        } else {
+          const userId = parseInt(userIdStr);
+          await this.feedbackTargetRepository.createFeedbackTarget(
+            feedbackId,
+            parseInt(lectureId),
+            userId,
+          );
+        }
       }
     } catch (error) {
       this.logger.error(error);

@@ -1,3 +1,4 @@
+import { FeedbackTarget } from 'src/feedback/entity/feedbackTarget.entity';
 import { Member } from 'src/member/entity/member.entity';
 import { Users } from 'src/users/entity/users.entity';
 import {
@@ -23,6 +24,9 @@ export class Lecture {
 
   @OneToMany(() => Member, (member) => member.lectureId)
   member: Member[];
+
+  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.lectureId)
+  feedbackTarget: FeedbackTarget[];
 
   @Column({ type: 'varchar' })
   lectureTitle: string;

@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -21,7 +20,6 @@ import {
 import { Response } from 'express';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
-import { DataSource } from 'typeorm';
 import {
   feedbackDetailByCustomer,
   feedbackDetailByInstructor,
@@ -32,10 +30,7 @@ import {
 @ApiTags('Feedback')
 @Controller('feedback')
 export class FeedbackController {
-  constructor(
-    private readonly feedbackService: FeedbackService,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly feedbackService: FeedbackService) {}
 
   /* feedback 전체 조회 */
   @Get()
@@ -171,138 +166,64 @@ export class FeedbackController {
   }
 
   /* feedback 수정 */
-  //   @Patch(':feedbackId')
-  //   @ApiOperation({
-  //     summary: '작성했던 feedback을 수정한다.',
-  //     description: 'instructor가 본인이 작성한 feedback을 수정한다.',
-  //   })
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'feedback 수정 성공',
-  //   })
-  //   @ApiBearerAuth('accessToken')
-  //   async updateFeedback(
-  //     @Res() res: Response,
-  //     @Param('feedbackId') feedbackId: number,
-  //     @Body() editFeedbackDto: EditFeedbackDto,
-  //   ) {
-  //     try {
-  //       const { userId } = res.locals.user;
-  //       const feedback = await this.feedbackService.getFeedbackByPk(
-  //         userId,
-  //         feedbackId,
-  //       );
+  @Patch(':feedbackId')
+  @ApiOperation({
+    summary: '작성했던 feedback을 수정한다.',
+    description: 'instructor가 본인이 작성한 feedback을 수정한다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'feedback 수정 성공',
+  })
+  @ApiBearerAuth('accessToken')
+  async updateFeedback(
+    @Res() res: Response,
+    @Param('feedbackId') feedbackId: number,
+    @Body() editFeedbackDto: EditFeedbackDto,
+  ) {
+    try {
+      const { userId } = res.locals.user;
 
-  //       if (feedback.userId !== userId) {
-  //         return res
-  //           .status(HttpStatus.UNAUTHORIZED)
-  //           .json({ message: 'feedback 수정 권한이 없습니다.' });
-  //       }
+      await this.feedbackService.updateFeedback(
+        userId,
+        feedbackId,
+        editFeedbackDto,
+      );
 
-  //       // DB 트랜잭션 시작
-  //       const queryRunner = this.dataSource.createQueryRunner();
-  //       await queryRunner.connect();
-  //       await queryRunner.startTransaction();
+      return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });
+    } catch (e) {
+      console.log(e);
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
+  }
 
-  //       try {
-  //         // feedback 내용과 feedbackTargetList 동시에 업데이트
-  //         if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
-  //           const a = await Promise.all([
-  //             this.feedbackService.updateFeedback(feedbackId, editFeedbackDto),
-  //             this.feedbackService.updateFeedbackTarget(
-  //               feedbackId,
-  //               editFeedbackDto.feedbackTarget,
-  //             ),
-  //           ]);
-  //         } else {
-  //           // feedbackTargetList 변경 내용이 없으면 feedback만 수정
-  //           await this.feedbackService.updateFeedback(
-  //             feedbackId,
-  //             editFeedbackDto,
-  //           );
-  //         }
-  //         // 정상적으로 끝났을 경우 commit
-  //         await queryRunner.commitTransaction();
-  //       } catch (error) {
-  //         // error 발생 시 트랜잭션 rollback
-  //         await queryRunner.rollbackTransaction();
-  //         throw new HttpException(
-  //           'feedback 수정 실패',
-  //           HttpStatus.INTERNAL_SERVER_ERROR,
-  //         );
-  //       } finally {
-  //         // 끝났을 경우 queryRunner 해제
-  //         await queryRunner.release();
-  //       }
+  /* feedback 삭제(softDelete) */
+  @Delete(':feedbackId')
+  @ApiOperation({
+    summary: 'feedback을 soft delete 한다.',
+    description: 'feedbackId를 이용하여 해당 feedback을 soft delete한다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'feedback 삭제 성공',
+  })
+  @ApiBearerAuth('accessToken')
+  async softDeleteFeedback(
+    @Res() res: Response,
+    @Param('feedbackId') feedbackId: number,
+  ) {
+    try {
+      const { userId } = res.locals.user;
 
-  //       return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });
-  //     } catch (e) {
-  //       console.log(e);
-  //       return res
-  //         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-  //         .json({ message: e.message || '서버 오류' });
-  //     }
-  //   }
+      await this.feedbackService.softDeleteFeedback(userId, feedbackId);
 
-  //   /* feedback 삭제(softDelete) */
-  //   @Delete(':feedbackId')
-  //   @ApiOperation({
-  //     summary: 'feedback을 soft delete 한다.',
-  //     description: 'feedbackId를 이용하여 해당 feedback을 soft delete한다.',
-  //   })
-  //   @ApiResponse({
-  //     status: 200,
-  //     description: 'feedback 삭제 성공',
-  //   })
-  //   @ApiBearerAuth('accessToken')
-  //   async softDeleteFeedback(
-  //     @Res() res: Response,
-  //     @Param('feedbackId') feedbackId: number,
-  //   ) {
-  //     try {
-  //       const { userId } = res.locals.user;
-  //       const feedback = await this.feedbackService.getFeedbackByPk(
-  //         userId,
-  //         feedbackId,
-  //       );
-
-  //       if (feedback.userId !== userId) {
-  //         return res
-  //           .status(HttpStatus.UNAUTHORIZED)
-  //           .json({ message: 'feedback 삭제 권한이 없습니다.' });
-  //       }
-
-  //       // DB 트랜잭션 시작
-  //       const queryRunner = this.dataSource.createQueryRunner();
-  //       await queryRunner.connect();
-  //       await queryRunner.startTransaction();
-
-  //       try {
-  //         // feedback 내용과 feedbackTargetList 동시에 삭제
-  //         await Promise.all([
-  //           this.feedbackService.softDeleteFeedback(feedbackId),
-  //           this.feedbackService.deleteFeedbackTarget(feedbackId),
-  //         ]);
-
-  //         // 정상적으로 끝났을 경우 commit
-  //         await queryRunner.commitTransaction();
-  //       } catch (error) {
-  //         // error 발생 시 트랜잭션 rollback
-  //         await queryRunner.rollbackTransaction();
-  //         throw new HttpException(
-  //           'feedback 삭제 실패',
-  //           HttpStatus.INTERNAL_SERVER_ERROR,
-  //         );
-  //       } finally {
-  //         // 끝났을 경우 queryRunner 해제
-  //         await queryRunner.release();
-  //       }
-
-  //       return res.status(HttpStatus.OK).json({ message: 'feedback 삭제 성공' });
-  //     } catch (e) {
-  //       return res
-  //         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-  //         .json({ message: e.message || '서버 오류' });
-  //     }
-  //   }
+      return res.status(HttpStatus.OK).json({ message: 'feedback 삭제 성공' });
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
+    }
+  }
 }

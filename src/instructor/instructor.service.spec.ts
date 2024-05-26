@@ -37,6 +37,7 @@ describe('InstructorService', () => {
           provide: InstructorRepository,
           useValue: {
             createInstructor: jest.fn(),
+            findInstructorByUserId: jest.fn(),
           },
         },
         {
@@ -86,6 +87,19 @@ describe('InstructorService', () => {
       const result = await service.createInstructor(instructorData.userId);
 
       expect(result).toEqual(newInstructor);
+    });
+  });
+
+  describe('findInstructorByUserId', () => {
+    it('userId를 통해 instructor 정보를 조회', async () => {
+      const userId = 1;
+      (repository.findInstructorByUserId as jest.Mock).mockResolvedValue(
+        mockInstructor,
+      );
+
+      const result = await service.findInstructorByUserId(userId);
+
+      expect(result).toEqual(mockInstructor);
     });
   });
 });

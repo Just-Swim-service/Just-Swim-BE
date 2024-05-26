@@ -28,7 +28,10 @@ describe('CustomerService', () => {
         CustomerService,
         {
           provide: CustomerRepository,
-          useValue: { createCustomer: jest.fn() },
+          useValue: {
+            createCustomer: jest.fn(),
+            findCustomerByUserId: jest.fn(),
+          },
         },
         {
           provide: MyLogger,
@@ -68,6 +71,19 @@ describe('CustomerService', () => {
       const result = await service.createCustomer(customerData.userId);
 
       expect(result).toEqual(newCustomer);
+    });
+  });
+
+  describe('findCustomerByUserId', () => {
+    it('userId를 통해 customer 정보를 조회', async () => {
+      const userId = 1;
+      (repository.findCustomerByUserId as jest.Mock).mockResolvedValue(
+        mockCustomer,
+      );
+
+      const result = await service.findCustomerByUserId(userId);
+
+      expect(result).toEqual(mockCustomer);
     });
   });
 });

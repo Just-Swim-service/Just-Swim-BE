@@ -6,17 +6,6 @@ import { Request, Response } from 'express';
 import { HttpStatus } from '@nestjs/common';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
-import { DataSource, QueryRunner } from 'typeorm';
-
-class MockDataSource {
-  createQueryRunner = jest.fn(() => ({
-    connect: jest.fn(),
-    startTransaction: jest.fn(),
-    commitTransaction: jest.fn(),
-    rollbackTransaction: jest.fn(),
-    release: jest.fn(),
-  }));
-}
 
 class MockFeedbackService {
   getAllFeedbackByInstructor = jest.fn();
@@ -34,22 +23,17 @@ const mockFeedback = new MockFeedbackRepository().mockFeedback;
 describe('FeedbackController', () => {
   let controller: FeedbackController;
   let feedbackService: MockFeedbackService;
-  let dataSource: DataSource;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FeedbackController],
-      providers: [
-        { provide: FeedbackService, useClass: MockFeedbackService },
-        { provide: DataSource, useClass: MockDataSource },
-      ],
+      providers: [{ provide: FeedbackService, useClass: MockFeedbackService }],
     }).compile();
 
     controller = module.get<FeedbackController>(FeedbackController);
     feedbackService = module.get<FeedbackService, MockFeedbackService>(
       FeedbackService,
     );
-    dataSource = module.get<DataSource>(DataSource);
   });
 
   it('should be defined', () => {

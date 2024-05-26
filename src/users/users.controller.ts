@@ -267,19 +267,12 @@ export class UsersController {
   ) {
     try {
       const { userId } = res.locals.user;
-      const user = await this.usersService.findUserByPk(userId);
 
-      // userType을 지정하면 둘 중에 하나의 테이블에 정보 생성
+      // userType 기본 검사
       if (!['customer', 'instructor'].includes(userType)) {
         return res
           .status(HttpStatus.BAD_REQUEST)
           .json({ message: '올바른 userType을 지정해주세요.' });
-      }
-
-      if (user.userType !== null) {
-        return res
-          .status(HttpStatus.NOT_ACCEPTABLE)
-          .json({ message: '계정에 타입이 이미 지정되어 있습니다.' });
       }
 
       await this.usersService.selectUserType(userId, userType);
@@ -309,7 +302,6 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 404, description: '프로필 정보를 찾을 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async findUserProfile(@Res() res: Response) {

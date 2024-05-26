@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
 import { Users } from './entity/users.entity';
-import { UpdateResult } from 'typeorm';
+import { CustomerRepository } from 'src/customer/customer.repository';
+import { InstructorRepository } from 'src/instructor/instructor.repository';
+import { MyLogger } from 'src/common/logger/logger.service';
+import { MockCustomerRepository } from 'src/customer/customer.service.spec';
+import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
+import { NotFoundException } from '@nestjs/common';
 
 export class MockUsersRepository {
   readonly mockUser: Users = {
@@ -28,9 +33,14 @@ export class MockUsersRepository {
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repository: UsersRepository;
+  let usersRepository: UsersRepository;
+  let customerRepository: CustomerRepository;
+  let instructorRepository: InstructorRepository;
+  let logger: MyLogger;
 
   const mockUser = new MockUsersRepository().mockUser;
+  const mockCustomer = new MockCustomerRepository().mockCustomer;
+  const mockInstructor = new MockInstructorRepository().mockInstructor;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,11 +56,39 @@ describe('UsersService', () => {
             editUserProfile: jest.fn().mockResolvedValue(mockUser),
           },
         },
+        {
+          provide: CustomerRepository,
+          useValue: {
+            createCustomer: jest.fn().mockResolvedValue(mockCustomer),
+            findCustomerByUserId: jest.fn().mockResolvedValue(mockCustomer),
+          },
+        },
+        {
+          provide: InstructorRepository,
+          useValue: {
+            createInstructor: jest.fn().mockResolvedValue(mockInstructor),
+            findInstructorByUserId: jest.fn().mockResolvedValue(mockInstructor),
+          },
+        },
+        {
+          provide: MyLogger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            verbose: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repository = module.get<UsersRepository>(UsersRepository);
+    usersRepository = module.get<UsersRepository>(UsersRepository);
+    customerRepository = module.get<CustomerRepository>(CustomerRepository);
+    instructorRepository =
+      module.get<InstructorRepository>(InstructorRepository);
+    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {
@@ -61,21 +99,25 @@ describe('UsersService', () => {
     it('email, provider가 맞는 user가 있으면 return', async () => {
       const email = 'test@example.com';
       const provider = 'test_provider';
-      (repository.findUserByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (usersRepository.findUserByEmail as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
 
       const result = await service.findUserByEmail(email, provider);
 
       expect(result).toEqual(mockUser);
     });
 
-    it('email, provider와 맞는 user가 없으면 undefined return', async () => {
+    it('email, provider와 맞는 user가 없으면 NotFoundException throw', async () => {
       const email = 'nonexistent@example.com';
       const provider = 'nonexistent_provider';
-      (repository.findUserByEmail as jest.Mock).mockResolvedValue(undefined);
+      (usersRepository.findUserByEmail as jest.Mock).mockResolvedValue(
+        undefined,
+      );
 
-      const result = await service.findUserByEmail(email, provider);
-
-      expect(result).toBeUndefined();
+      await expect(service.findUserByEmail(email, provider)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -103,7 +145,7 @@ describe('UsersService', () => {
         feedback: [],
         feedbackTarget: [],
       };
-      (repository.createUser as jest.Mock).mockResolvedValue(newUser);
+      (usersRepository.createUser as jest.Mock).mockResolvedValue(newUser);
 
       const result = await service.createUser(userData);
 
@@ -114,7 +156,7 @@ describe('UsersService', () => {
   describe('findUserByPk', () => {
     it('userId에 맞는 user return', async () => {
       const userId = 1;
-      (repository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
       const result = await service.findUserByPk(userId);
 
@@ -123,11 +165,11 @@ describe('UsersService', () => {
 
     it('userId에 맞는 user가 없으면 undefined return', async () => {
       const userId = 10;
-      (repository.findUserByPk as jest.Mock).mockResolvedValue(undefined);
+      (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(undefined);
 
-      const result = await service.findUserByPk(userId);
-
-      expect(result).toBeUndefined();
+      await expect(service.findUserByPk(userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -135,9 +177,14 @@ describe('UsersService', () => {
     it('userId에 해당하는 user의 userType을 설정', async () => {
       const userId = 1;
       const userType = 'customer' || 'instructor';
+      mockUser.userType = null;
       await service.selectUserType(userId, userType);
 
-      expect(repository.selectUserType).toHaveBeenCalledWith(userId, userType);
+      expect(usersRepository.selectUserType).toHaveBeenCalledWith(
+        userId,
+        userType,
+      );
+      expect(customerRepository.createCustomer).toHaveBeenCalledWith(userId);
     });
   });
 
@@ -152,7 +199,7 @@ describe('UsersService', () => {
       };
       await service.editUserProfile(userId, editUserDto);
 
-      expect(repository.editUserProfile).toHaveBeenCalledWith(
+      expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
         userId,
         editUserDto,
       );

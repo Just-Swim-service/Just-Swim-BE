@@ -3,6 +3,9 @@ import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
 import { UpdateResult } from 'typeorm';
+import { MyLogger } from 'src/common/logger/logger.service';
+import { MemberRepository } from 'src/member/member.repository';
+import { MockMemberRepository } from 'src/member/member.service.spec';
 
 export class MockLectureRepository {
   readonly mockLecture: Lecture = {
@@ -20,14 +23,18 @@ export class MockLectureRepository {
     lectureUpdatedAt: new Date(),
     lectureDeletedAt: null,
     member: [],
+    feedbackTarget: [],
   };
 }
 
 describe('LectureService', () => {
   let service: LectureService;
-  let repository: LectureRepository;
+  let lectureRepository: LectureRepository;
+  let memberRepository: MemberRepository;
+  let logger: MyLogger;
 
   const mockLecture = new MockLectureRepository().mockLecture;
+  const mockMember = new MockMemberRepository().mockMember;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,17 +48,36 @@ describe('LectureService', () => {
             getAllLecturesByInstructor: jest
               .fn()
               .mockResolvedValue(mockLecture),
-            getLectureById: jest.fn().mockResolvedValue(mockLecture),
+            getLectureByPk: jest.fn().mockResolvedValue(mockLecture),
             updateLecture: jest.fn().mockResolvedValue(mockLecture),
             softDeleteLecture: jest.fn().mockResolvedValue(mockLecture),
             createLecture: jest.fn().mockResolvedValue(mockLecture),
+          },
+        },
+        {
+          provide: MemberRepository,
+          useValue: {
+            insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
+            getAllMemberByLectureId: jest.fn().mockResolvedValue(mockMember),
+          },
+        },
+        {
+          provide: MyLogger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            verbose: jest.fn(),
           },
         },
       ],
     }).compile();
 
     service = module.get<LectureService>(LectureService);
-    repository = module.get<LectureRepository>(LectureRepository);
+    lectureRepository = module.get<LectureRepository>(LectureRepository);
+    memberRepository = module.get<MemberRepository>(MemberRepository);
+    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {
@@ -60,7 +86,7 @@ describe('LectureService', () => {
 
   describe('getLectures', () => {
     it('모든 lecture를 return', async () => {
-      (repository.getLectures as jest.Mock).mockResolvedValue([
+      (lectureRepository.getLectures as jest.Mock).mockResolvedValue([
         { mockLecture },
       ]);
 
@@ -73,9 +99,9 @@ describe('LectureService', () => {
   describe('getLecturesByInstructor', () => {
     it('userId에 해당하는 삭제 또는 지난 lecture를 제외하고 lecture를 조회하여 return', async () => {
       const userId = 1;
-      (repository.getLecturesByInstructor as jest.Mock).mockResolvedValue(
-        mockLecture,
-      );
+      (
+        lectureRepository.getLecturesByInstructor as jest.Mock
+      ).mockResolvedValue(mockLecture);
 
       const result = await service.getLecturesByInstructor(userId);
 
@@ -86,9 +112,9 @@ describe('LectureService', () => {
   describe('getAllLecturesByInstructor', () => {
     it('userId에 해당하는 모든 lecture를 조회하여 return', async () => {
       const userId = 1;
-      (repository.getAllLecturesByInstructor as jest.Mock).mockResolvedValue(
-        mockLecture,
-      );
+      (
+        lectureRepository.getAllLecturesByInstructor as jest.Mock
+      ).mockResolvedValue(mockLecture);
 
       const result = await service.getAllLecturesByInstructor(userId);
 
@@ -96,20 +122,30 @@ describe('LectureService', () => {
     });
   });
 
-  describe('getLectureById', () => {
+  describe('getLectureByPk', () => {
     it('lectureId에 해당하는 lecture의 상세한 정보를 return', async () => {
+      const userId = 1;
       const lectureId = 1;
 
-      (repository.getLectureById as jest.Mock).mockResolvedValue(mockLecture);
+      (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue(
+        mockLecture,
+      );
+      (memberRepository.getAllMemberByLectureId as jest.Mock).mockResolvedValue(
+        mockMember,
+      );
 
-      const result = await service.getLectureById(lectureId);
+      const result = await service.getLectureByPk(userId, lectureId);
 
-      expect(result).toEqual(mockLecture);
+      expect(result).toEqual({
+        lecture: mockLecture,
+        lectureMembers: mockMember,
+      });
     });
   });
 
   describe('updateLecture', () => {
     it('lectureId에 해당하는 lecture를 수정하고 updateResult를 return', async () => {
+      const userId = 1;
       const lectureId = 1;
       const editLectureDto = {
         lectureTitle: '아침 3반',
@@ -121,8 +157,8 @@ describe('LectureService', () => {
         lectureQRCode: 'QR 코드',
         lectureEndDate: '2024.05.31',
       };
-      await service.updateLecture(lectureId, editLectureDto);
-      expect(repository.updateLecture).toHaveBeenCalledWith(
+      await service.updateLecture(userId, lectureId, editLectureDto);
+      expect(lectureRepository.updateLecture).toHaveBeenCalledWith(
         lectureId,
         editLectureDto,
       );
@@ -131,10 +167,13 @@ describe('LectureService', () => {
 
   describe('softDeleteLecture', () => {
     it('lectureId에 해당하는 lecture를 softDelete하고 updateResult를 return', async () => {
+      const userId = 1;
       const lectureId = 1;
 
-      await service.softDeleteLecture(lectureId);
-      expect(repository.softDeleteLecture).toHaveBeenCalledWith(lectureId);
+      await service.softDeleteLecture(userId, lectureId);
+      expect(lectureRepository.softDeleteLecture).toHaveBeenCalledWith(
+        lectureId,
+      );
     });
   });
 
@@ -159,8 +198,11 @@ describe('LectureService', () => {
         lectureUpdatedAt: new Date(),
         lectureDeletedAt: null,
         member: [],
+        feedbackTarget: [],
       };
-      (repository.createLecture as jest.Mock).mockResolvedValue(newLecture);
+      (lectureRepository.createLecture as jest.Mock).mockResolvedValue(
+        newLecture,
+      );
 
       const result = await service.createLecture(userId, lectureDto);
 

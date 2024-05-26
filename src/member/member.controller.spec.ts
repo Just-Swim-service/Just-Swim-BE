@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MemberController } from './member.controller';
 import { MockMemberRepository } from './member.service.spec';
 import { MemberService } from './member.service';
+import { UsersService } from 'src/users/users.service';
 
 class MockMemberService {
   insertMemberFromQR = jest.fn();
@@ -9,16 +10,28 @@ class MockMemberService {
   getAllMemberByInstructor = jest.fn();
 }
 
+class MockUsersService {
+  findUserByEmail = jest.fn();
+  createUser = jest.fn();
+  findUserByPk = jest.fn();
+  selectUserType = jest.fn();
+  editUserProfile = jest.fn();
+}
+
 const mockMember = new MockMemberRepository().mockMember;
 
 describe('MemberController', () => {
   let controller: MemberController;
   let memberService: MockMemberService;
+  let usersService: MockUsersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MemberController],
-      providers: [{ provide: MemberService, useClass: MockMemberService }],
+      providers: [
+        { provide: MemberService, useClass: MockMemberService },
+        { provide: UsersService, useClass: MockUsersService },
+      ],
     }).compile();
 
     controller = module.get<MemberController>(MemberController);

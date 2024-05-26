@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MemberService } from './member.service';
 import { MemberRepository } from './member.repository';
 import { Member } from './entity/member.entity';
+import { MyLogger } from 'src/common/logger/logger.service';
 
 export class MockMemberRepository {
   readonly mockMember: Member = {
@@ -18,6 +19,7 @@ export class MockMemberRepository {
 describe('MemberService', () => {
   let service: MemberService;
   let repository: MemberRepository;
+  let logger: MyLogger;
 
   const mockMember = new MockMemberRepository().mockMember;
 
@@ -30,7 +32,17 @@ describe('MemberService', () => {
           useValue: {
             insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
             checkCustomer: jest.fn().mockResolvedValue(mockMember),
-            getAllMemberByInstructor: jest.fn().mockResolvedValue(mockMember),
+            getAllMemberByLectureId: jest.fn().mockResolvedValue(mockMember),
+          },
+        },
+        {
+          provide: MyLogger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            verbose: jest.fn(),
           },
         },
       ],
@@ -38,6 +50,7 @@ describe('MemberService', () => {
 
     service = module.get<MemberService>(MemberService);
     repository = module.get<MemberRepository>(MemberRepository);
+    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {
@@ -58,24 +71,13 @@ describe('MemberService', () => {
     });
   });
 
-  describe('checkCustomer', () => {
-    it('회원의 가입여부를 확인', async () => {
-      const userId = 1;
-      (repository.checkCustomer as jest.Mock).mockResolvedValue(mockMember);
-
-      const result = await service.checkCustomer(userId);
-
-      expect(result).toEqual(mockMember);
-    });
-  });
-
   describe('getAllMemberByInstructor', () => {
     it('강사가 개설한 모든 강의에 해당하는 수강생 조회', async () => {
       const lectureId = 1;
-      (repository.getAllMemberByInstructor as jest.Mock).mockResolvedValue(
+      (repository.getAllMemberByLectureId as jest.Mock).mockResolvedValue(
         mockMember,
       );
-      const result = await service.getAllMemberByInstructor(lectureId);
+      const result = await service.getAllMemberByLectureId(lectureId);
 
       expect(result).toEqual(mockMember);
     });

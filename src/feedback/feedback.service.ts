@@ -63,12 +63,17 @@ export class FeedbackService {
         await this.feedbackTargetRepository.getFeedbackTargetByFeedbackId(
           feedbackId,
         );
+
       // instructor
       if (feedback.userId === userId) {
         return { feedback, feedbackTargetList };
       }
       // member
-      if (feedbackTargetList.some((feedbackTarget) => feedbackTarget.userId)) {
+      if (
+        feedbackTargetList.some(
+          (feedbackTarget) => feedbackTarget.userId === userId,
+        )
+      ) {
         return feedback;
       }
     } catch (error) {

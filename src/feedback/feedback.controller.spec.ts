@@ -9,7 +9,7 @@ import { EditFeedbackDto } from './dto/editFeedback.dto';
 
 class MockFeedbackService {
   getAllFeedbackByInstructor = jest.fn();
-  getFeedbackById = jest.fn();
+  getFeedbackByPk = jest.fn();
   createFeedback = jest.fn();
   createFeedbackTarget = jest.fn();
   updateFeedback = jest.fn();
@@ -79,7 +79,7 @@ describe('FeedbackController', () => {
 
       const feedbackId = 1;
 
-      feedbackService.getFeedbackById.mockResolvedValue(mockFeedback);
+      feedbackService.getFeedbackByPk.mockResolvedValue(mockFeedback);
 
       await controller.getFeedbackDetail(res as Response, feedbackId);
 

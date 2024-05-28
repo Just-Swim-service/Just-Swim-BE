@@ -148,18 +148,19 @@ describe('FeedbackService', () => {
     it('feedbackId에 해당하는 feedback을 상세 조회해서 return', async () => {
       const feedbackId = 1;
       const userId = 1;
-      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
-        mockFeedback,
-      );
-      (
-        feedbackTargetRepository.getFeedbackTargetByFeedbackId as jest.Mock
-      ).mockRejectedValue(mockFeedbackTarget);
+
+      jest
+        .spyOn(feedbackRepository, 'getFeedbackByPk')
+        .mockResolvedValue(mockFeedback);
+      jest
+        .spyOn(feedbackTargetRepository, 'getFeedbackTargetByFeedbackId')
+        .mockResolvedValue([mockFeedbackTarget]);
 
       const result = await service.getFeedbackByPk(userId, feedbackId);
 
       expect(result).toEqual({
         feedback: mockFeedback,
-        feedbackTargetList: mockFeedbackTarget,
+        feedbackTargetList: [mockFeedbackTarget],
       });
     });
   });
@@ -206,27 +207,32 @@ describe('FeedbackService', () => {
 
       // feedbackType이 personal
       const feedbackTargetPersonal = '1:2';
-      (
-        feedbackTargetRepository.createFeedbackTarget as jest.Mock
-      ).mockResolvedValueOnce(mockFeedbackTarget);
+      jest
+        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
+        .mockResolvedValue(mockFeedbackTarget);
 
       await service.createFeedbackTarget(feedbackId, feedbackTargetPersonal);
       expect(
         feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId, 1);
+      ).toHaveBeenCalledWith(feedbackId, 1, 2);
 
       // feedbackType이 group
       const feedbackTargetGroup = '2,3,4';
-      const expectedUserIds = [1, 2, 3];
-      (
-        feedbackTargetRepository.createFeedbackTarget as jest.Mock
-      ).mockResolvedValueOnce(mockFeedbackTarget);
-      await service.createFeedbackTarget(feedbackId, feedbackTargetGroup);
+      const lectureId = 1;
+      const expectedUserIds = [2, 3, 4];
+      jest
+        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
+        .mockResolvedValue(mockFeedbackTarget);
+
+      await service.createFeedbackTarget(
+        feedbackId,
+        `1:${feedbackTargetGroup}`,
+      );
 
       expectedUserIds.forEach((userId) => {
         expect(
           feedbackTargetRepository.createFeedbackTarget,
-        ).toHaveBeenCalledWith(feedbackId, userId);
+        ).toHaveBeenCalledWith(feedbackId, lectureId, userId);
       });
     });
   });
@@ -239,12 +245,23 @@ describe('FeedbackService', () => {
         feedbackId: '1',
         feedbackType: 'group',
         feedbackDate: '2024.04.22',
-        feedbackTarget: '3,4,5',
+        feedbackTarget: '2:3,4,5',
         feedbackFile: 'file1',
         feedbackLink: 'URL',
         feedbackContent:
           '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
       };
+
+      jest
+        .spyOn(feedbackRepository, 'getFeedbackByPk')
+        .mockResolvedValue(mockFeedback);
+      jest.spyOn(feedbackRepository, 'updateFeedback').mockResolvedValue(null);
+      jest
+        .spyOn(feedbackTargetRepository, 'deleteFeedbackTarget')
+        .mockResolvedValue(null);
+      jest
+        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
+        .mockResolvedValue(null);
 
       await service.updateFeedback(userId, feedbackId, editFeedbackDto);
 
@@ -258,8 +275,15 @@ describe('FeedbackService', () => {
   describe('updateFeedbackTarget', () => {
     it('feedbackId에 해당하는 feedbackTarget 수정', async () => {
       const feedbackId = 1;
-      const feedbackTargetGroup = '2,3,4';
+      const feedbackTargetGroup = '1:2,3,4';
       const expectedUserIds = [2, 3, 4];
+
+      jest
+        .spyOn(feedbackTargetRepository, 'deleteFeedbackTarget')
+        .mockResolvedValue(null);
+      jest
+        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
+        .mockResolvedValue(null);
 
       await service.updateFeedbackTarget(feedbackId, feedbackTargetGroup);
 
@@ -269,8 +293,8 @@ describe('FeedbackService', () => {
 
       expectedUserIds.forEach((userId) => {
         expect(
-          feedbackTargetRepository.updateFeedbackTarget,
-        ).toHaveBeenCalledWith(feedbackId, userId);
+          feedbackTargetRepository.createFeedbackTarget,
+        ).toHaveBeenCalledWith(feedbackId, 1, userId);
       });
     });
   });

@@ -33,4 +33,16 @@ export class MemberService {
       );
     }
   }
+
+  /* instructor가 피드백 작성 시 강의를 듣고 있는 member 조회 */
+  async getAllMembersByFeedback(userId: number): Promise<Member[]> {
+    try {
+      return await this.memberRepository.getAllMembersByFeedback(userId);
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        '강사에 해당하는 수강생을 조회하는 중에 오류가 발생했습니다.',
+      );
+    }
+  }
 }

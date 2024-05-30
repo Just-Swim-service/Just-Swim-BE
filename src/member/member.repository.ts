@@ -26,4 +26,14 @@ export class MemberRepository {
     );
     return result[0];
   }
+
+  /* instructor가 피드백 작성 시 강의를 듣고 있는 member 조회 */
+  async getAllMembersByFeedback(userId: number): Promise<Member[]> {
+    const result = await this.memberRepository.query(
+      'CALL GET_ALL_MEMBERS_BY_FEEDBACK(?)',
+      [userId],
+    );
+
+    return result[0];
+  }
 }

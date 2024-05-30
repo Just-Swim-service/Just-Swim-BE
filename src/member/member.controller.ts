@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Res,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -15,6 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { UsersService } from 'src/users/users.service';
+import { allMembersByFeedback } from './example/member-example';
 
 @ApiTags('Member')
 @Controller('member')
@@ -70,6 +72,40 @@ export class MemberController {
       }
     } catch (error) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
+    }
+  }
+
+  /* instructor가 피드백 작성 시 강의를 듣고 있는 member 조회 */
+  @Get()
+  @ApiOperation({
+    summary: '피드백 작성 시 member 정보 조회',
+    description: '피드백 작성 시 강의에 참여한 member들의 정보를 조회',
+  })
+  @ApiResponse({
+    status: 200,
+    content: {
+      'application/json': {
+        example: allMembersByFeedback,
+      },
+    },
+  })
+  @ApiBearerAuth('accessToken')
+  async getAllMembersByFeedback(@Res() res: Response) {
+    try {
+      const { userId, userType } = res.locals.user;
+      if (userType !== 'instructor') {
+        throw new UnauthorizedException('member 조회 권한이 없습니다.');
+      }
+
+      const allMembers = await this.memberService.getAllMembersByFeedback(
+        parseInt(userId),
+      );
+
+      return res.status(HttpStatus.OK).json(allMembers);
+    } catch (e) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ message: e.message || '서버 오류' });
     }
   }
 }

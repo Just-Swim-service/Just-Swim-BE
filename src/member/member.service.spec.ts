@@ -32,7 +32,8 @@ describe('MemberService', () => {
           useValue: {
             insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
             checkCustomer: jest.fn().mockResolvedValue(mockMember),
-            getAllMemberByLectureId: jest.fn().mockResolvedValue(mockMember),
+            getAllMembersByLectureId: jest.fn().mockResolvedValue(mockMember),
+            getAllMembersByFeedback: jest.fn().mockResolvedValue(mockMember),
           },
         },
         {
@@ -71,13 +72,25 @@ describe('MemberService', () => {
     });
   });
 
-  describe('getAllMemberByInstructor', () => {
+  describe('getAllMembersByInstructor', () => {
     it('강사가 개설한 모든 강의에 해당하는 수강생 조회', async () => {
       const lectureId = 1;
-      (repository.getAllMemberByLectureId as jest.Mock).mockResolvedValue(
+      (repository.getAllMembersByLectureId as jest.Mock).mockResolvedValue(
         mockMember,
       );
-      const result = await service.getAllMemberByLectureId(lectureId);
+      const result = await service.getAllMembersByLectureId(lectureId);
+
+      expect(result).toEqual(mockMember);
+    });
+  });
+
+  describe('getAllMembersByFeedback', () => {
+    it('강사에 해당하는 모든 수강생을 조회', async () => {
+      const userId = 1;
+      (repository.getAllMembersByFeedback as jest.Mock).mockResolvedValue(
+        mockMember,
+      );
+      const result = await service.getAllMembersByFeedback(userId);
 
       expect(result).toEqual(mockMember);
     });

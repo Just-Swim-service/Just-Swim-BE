@@ -23,9 +23,9 @@ export class MemberService {
   }
 
   /* 강의에 해당하는 수강생 */
-  async getAllMemberByLectureId(lectureId: number): Promise<Member[]> {
+  async getAllMembersByLectureId(lectureId: number): Promise<Member[]> {
     try {
-      return await this.memberRepository.getAllMemberByLectureId(lectureId);
+      return await this.memberRepository.getAllMembersByLectureId(lectureId);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(

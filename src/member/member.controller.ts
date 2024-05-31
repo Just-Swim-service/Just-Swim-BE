@@ -41,20 +41,18 @@ export class MemberController {
     @Res() res: Response,
   ) {
     try {
-      const user = res.locals.user;
+      const { userId } = res.locals.user;
 
-      const isExist = await this.usersService.findUserByPk(
-        parseInt(user.userId),
-      );
+      const isExist = await this.usersService.findUserByPk(parseInt(userId));
 
       // user 정보가 없을 경우 가입 경로로 redirect
       if (!isExist) {
-        res.redirect('/signup');
+        return res.redirect('/signup');
       }
 
       // userType이 null 일 경우 userType 지정으로 redirect
       if (isExist.userType === null) {
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+        return res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
       }
 
       if (isExist.userType !== 'customer') {
@@ -65,13 +63,13 @@ export class MemberController {
 
       if (isExist.userType === 'customer') {
         await this.memberService.insertMemberFromQR(
-          parseInt(user.userId),
+          parseInt(userId),
           lectureId,
         );
-        res.redirect(`/api/lecture/${lectureId}`);
+        return res.redirect(`/api/lecture/${lectureId}`);
       }
     } catch (error) {
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
     }
   }
 

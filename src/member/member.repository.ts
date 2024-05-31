@@ -19,9 +19,9 @@ export class MemberRepository {
   }
 
   /* 강의에 해당하는 member 조회 */
-  async getAllMemberByLectureId(lectureId: number): Promise<Member[]> {
+  async getAllMembersByLectureId(lectureId: number): Promise<Member[]> {
     const result = await this.memberRepository.query(
-      'CALL GET_ALL_MEMBER_LECTUREID(?)',
+      'CALL GET_ALL_MEMBERS_LECTUREID(?)',
       [lectureId],
     );
     return result[0];

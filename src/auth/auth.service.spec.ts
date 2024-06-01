@@ -3,12 +3,14 @@ import { AuthService } from './auth.service';
 import * as jwt from 'jsonwebtoken';
 import { UsersService } from 'src/users/users.service';
 import { Users } from 'src/users/entity/users.entity';
+import { MyLogger } from 'src/common/logger/logger.service';
 
 jest.mock('jsonwebtoken');
 
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: UsersService;
+  let logger: MyLogger;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,11 +23,22 @@ describe('AuthService', () => {
             createUser: jest.fn(),
           },
         },
+        {
+          provide: MyLogger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            verbose: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
+    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {

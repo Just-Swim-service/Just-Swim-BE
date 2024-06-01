@@ -13,14 +13,14 @@ class MockLectureService {
   getLectures = jest.fn();
   getLecturesByInstructor = jest.fn();
   getAllLecturesByInstructor = jest.fn();
-  getLectureById = jest.fn();
+  getLectureByPk = jest.fn();
   updateLecture = jest.fn();
   softDeleteLecture = jest.fn();
   createLecture = jest.fn();
 }
 
 class MockMemberService {
-  getAllMemberByInstructor = jest.fn();
+  getAllMemberByLectureId = jest.fn();
 }
 
 const mockLecture = new MockLectureRepository().mockLecture;
@@ -109,7 +109,7 @@ describe('LectureController', () => {
       };
       const lectureId = 1;
 
-      lectureService.getLectureById.mockResolvedValue(mockLecture);
+      lectureService.getLectureByPk.mockResolvedValue(mockLecture);
 
       await controller.getLectureDetail(res as Response, lectureId);
 
@@ -209,7 +209,7 @@ describe('LectureController', () => {
 
       const lectureId = 1;
 
-      memberService.getAllMemberByInstructor.mockResolvedValue([mockMember]);
+      memberService.getAllMemberByLectureId.mockResolvedValue([mockMember]);
 
       await controller.getAllMemberByInstructor(res as Response, lectureId);
 

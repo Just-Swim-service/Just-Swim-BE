@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -21,15 +20,17 @@ import {
 import { Response } from 'express';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
-import { DataSource } from 'typeorm';
+import {
+  feedbackDetailByCustomer,
+  feedbackDetailByInstructor,
+  feedbacksByCustomer,
+  feedbacksByInstructor,
+} from './example/feedback-example';
 
 @ApiTags('Feedback')
 @Controller('feedback')
 export class FeedbackController {
-  constructor(
-    private readonly feedbackService: FeedbackService,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly feedbackService: FeedbackService) {}
 
   /* feedback 전체 조회 */
   @Get()
@@ -42,29 +43,8 @@ export class FeedbackController {
     content: {
       'application/json': {
         examples: {
-          feedbacks: {
-            value: [
-              {
-                feedbackId: '1',
-                feedbackDate: '2024.04.22',
-                feedbackType: 'group',
-                feedbackContent:
-                  '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
-                feedbackTarget: {
-                  '아침 6반': [1, 2],
-                  '아침 5반': [5],
-                },
-              },
-              {
-                feedbackId: '2',
-                feedbackDate: '2024.04.22',
-                feedbackType: 'personal',
-                feedbackContent:
-                  '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
-                feedbackTarget: { '오후 1반': [3] },
-              },
-            ],
-          },
+          feedbacksByInstructor,
+          feedbacksByCustomer,
         },
       },
     },
@@ -72,13 +52,19 @@ export class FeedbackController {
   @ApiBearerAuth('accessToken')
   async getAllFeedback(@Res() res: Response) {
     try {
-      const user = res.locals.user;
-      const userType = user.userType;
+      const { userType, userId } = res.locals.user;
 
+      // instructor
       if (userType === 'instructor') {
-        const userId = user.userId;
         const feedbacks =
           await this.feedbackService.getAllFeedbackByInstructor(userId);
+        return res.status(HttpStatus.OK).json(feedbacks);
+      }
+
+      // customer
+      if (userType === 'customer') {
+        const feedbacks =
+          await this.feedbackService.getAllFeedbackByCustomer(userId);
         return res.status(HttpStatus.OK).json(feedbacks);
       }
     } catch (e) {
@@ -101,19 +87,12 @@ export class FeedbackController {
   })
   @ApiResponse({
     status: 200,
-    schema: {
-      example: {
-        feedbackId: '1',
-        feedbackType: 'group',
-        feedbackDate: '2024.04.22',
-        feedbackTarget: {
-          '아침 6반': [1, 2],
-          '아침 5반': [5],
+    content: {
+      'application/json': {
+        examples: {
+          feedbackDetailByInstructor,
+          feedbackDetailByCustomer,
         },
-        feedbackFile: 'file1',
-        feedbackLink: 'URL',
-        feedbackContent:
-          '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
       },
     },
   })
@@ -123,18 +102,12 @@ export class FeedbackController {
     @Param('feedbackId') feedbackId: number,
   ) {
     try {
-      const user = res.locals.user;
-      const userType = user.userType;
-
-      if (userType === 'instructor') {
-        const feedback = await this.feedbackService.getFeedbackByPk(feedbackId);
-        if (feedback.userId !== user.userId) {
-          return res
-            .status(HttpStatus.UNAUTHORIZED)
-            .json({ message: '접근 권한이 없습니다.' });
-        }
-        return res.status(HttpStatus.OK).json(feedback);
-      }
+      const { userId } = res.locals.user;
+      const result = await this.feedbackService.getFeedbackByPk(
+        userId,
+        feedbackId,
+      );
+      return res.status(HttpStatus.OK).json(result);
     } catch (e) {
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -210,49 +183,12 @@ export class FeedbackController {
   ) {
     try {
       const { userId } = res.locals.user;
-      const feedback = await this.feedbackService.getFeedbackByPk(feedbackId);
 
-      if (feedback.userId !== userId) {
-        return res
-          .status(HttpStatus.UNAUTHORIZED)
-          .json({ message: 'feedback 수정 권한이 없습니다.' });
-      }
-
-      // DB 트랜잭션 시작
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      try {
-        // feedback 내용과 feedbackTargetList 동시에 업데이트
-        if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
-          const a = await Promise.all([
-            this.feedbackService.updateFeedback(feedbackId, editFeedbackDto),
-            this.feedbackService.updateFeedbackTarget(
-              feedbackId,
-              editFeedbackDto.feedbackTarget,
-            ),
-          ]);
-        } else {
-          // feedbackTargetList 변경 내용이 없으면 feedback만 수정
-          await this.feedbackService.updateFeedback(
-            feedbackId,
-            editFeedbackDto,
-          );
-        }
-        // 정상적으로 끝났을 경우 commit
-        await queryRunner.commitTransaction();
-      } catch (error) {
-        // error 발생 시 트랜잭션 rollback
-        await queryRunner.rollbackTransaction();
-        throw new HttpException(
-          'feedback 수정 실패',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } finally {
-        // 끝났을 경우 queryRunner 해제
-        await queryRunner.release();
-      }
+      await this.feedbackService.updateFeedback(
+        userId,
+        feedbackId,
+        editFeedbackDto,
+      );
 
       return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });
     } catch (e) {
@@ -280,39 +216,8 @@ export class FeedbackController {
   ) {
     try {
       const { userId } = res.locals.user;
-      const feedback = await this.feedbackService.getFeedbackByPk(feedbackId);
 
-      if (feedback.userId !== userId) {
-        return res
-          .status(HttpStatus.UNAUTHORIZED)
-          .json({ message: 'feedback 삭제 권한이 없습니다.' });
-      }
-
-      // DB 트랜잭션 시작
-      const queryRunner = this.dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      try {
-        // feedback 내용과 feedbackTargetList 동시에 삭제
-        await Promise.all([
-          this.feedbackService.softDeleteFeedback(feedbackId),
-          this.feedbackService.deleteFeedbackTarget(feedbackId),
-        ]);
-
-        // 정상적으로 끝났을 경우 commit
-        await queryRunner.commitTransaction();
-      } catch (error) {
-        // error 발생 시 트랜잭션 rollback
-        await queryRunner.rollbackTransaction();
-        throw new HttpException(
-          'feedback 삭제 실패',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      } finally {
-        // 끝났을 경우 queryRunner 해제
-        await queryRunner.release();
-      }
+      await this.feedbackService.softDeleteFeedback(userId, feedbackId);
 
       return res.status(HttpStatus.OK).json({ message: 'feedback 삭제 성공' });
     } catch (e) {

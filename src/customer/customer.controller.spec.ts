@@ -1,20 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomerController } from './customer.controller';
 import { CustomerService } from './customer.service';
-import { Customer } from './entity/customer.entity';
-import { CustomerRepository } from './customer.repository';
 
-export class MockCustomerRepository {
-  readonly customer: Customer[] = [
-    {
-      customerId: 1,
-      userId: 2,
-      customerNickname: null,
-      customerCreatedAt: new Date(),
-      customerUpdatedAt: new Date(),
-      customerDeletedAt: null,
-    },
-  ];
+class MockCustomerService {
+  createCustomer = jest.fn();
+  findCustomerByUserId = jest.fn();
 }
 
 describe('CustomerController', () => {
@@ -24,10 +14,7 @@ describe('CustomerController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CustomerController],
-      providers: [
-        CustomerService,
-        { provide: CustomerRepository, useClass: MockCustomerRepository },
-      ],
+      providers: [{ provide: CustomerService, useClass: MockCustomerService }],
     }).compile();
 
     controller = module.get<CustomerController>(CustomerController);

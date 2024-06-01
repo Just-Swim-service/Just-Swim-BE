@@ -21,6 +21,15 @@ export class FeedbackRepository {
     return result[0];
   }
 
+  /* customer 개인 feedback 전체 조회 */
+  async getAllFeedbackByCustomer(userId: number): Promise<Feedback[]> {
+    const result = await this.feedbackRepository.query(
+      'CALL GET_ALL_FEEDBACK_CUSTOMER(?)',
+      [userId],
+    );
+    return result[0];
+  }
+
   /* feedback 상세 조회 */
   async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
     const result = await this.feedbackRepository.query(

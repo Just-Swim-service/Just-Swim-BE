@@ -71,6 +71,7 @@ export class AppModule implements NestModule {
       { path: 'lecture/:lectureId/qr-code', method: RequestMethod.POST },
       // Member
       { path: 'member/qr-code', method: RequestMethod.GET },
+      { path: 'member', method: RequestMethod.GET },
       // feedback
       { path: 'feedback', method: RequestMethod.GET },
       { path: 'feedback/:feedbackId', method: RequestMethod.GET },

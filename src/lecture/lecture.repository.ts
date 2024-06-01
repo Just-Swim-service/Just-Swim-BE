@@ -36,21 +36,34 @@ export class LectureRepository {
     return result[0];
   }
 
-  // 회원용 강의 조회
-  // async getLecturesByCustomerId(customerId: number): Promise<Lecture[]> {
-  //   const result;
-  // }
+  /* 수강생 강의 조회 */
+  async getLecturesByCustomer(userId: number): Promise<Lecture[]> {
+    const result = await this.lectureRepository.query(
+      'CALL GET_LECTURE_CUSTOMER(?)',
+      [userId],
+    );
+    return result[0];
+  }
 
-  // 강의 상세 조회
+  /* 수강생 모든 강의 조회 */
+  async getAllLecturesByCustomer(userId: number): Promise<Lecture[]> {
+    const result = await this.lectureRepository.query(
+      'CALL GET_ALL_LECTURE_CUSTOMER(?)',
+      [userId],
+    );
+    return result[0];
+  }
+
+  /* 강의 상세 조회 */
   async getLectureByPk(lectureId: number): Promise<Lecture> {
     const result = await this.lectureRepository.query(
-      'CALL GET_LECTURE_PK(?)',
+      'CALL GET_LECTURE_BY_PK(?)',
       [lectureId],
     );
     return result[0][0];
   }
 
-  // 강의 수정
+  /* 강의 수정 */
   async updateLecture(
     lectureId: number,
     editLectureDto: EditLectureDto,
@@ -82,14 +95,14 @@ export class LectureRepository {
     );
   }
 
-  // 강의 삭제(softDelete)
+  /* 강의 삭제(softDelete) */
   async softDeleteLecture(lectureId: number): Promise<void> {
     await this.lectureRepository.query('CALL SOFT_DELETE_LECTURE(?)', [
       lectureId,
     ]);
   }
 
-  // 강의 생성
+  /* 강의 생성 */
   async createLecture(
     userId: number,
     lectureDto: LectureDto,
@@ -120,7 +133,7 @@ export class LectureRepository {
     );
   }
 
-  // 강의 QR 코드 생성
+  /* 강의 QR 코드 생성 */
   async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
     await this.lectureRepository.query('CALL SAVE_QR_CODE(?, ?)', [
       lectureId,

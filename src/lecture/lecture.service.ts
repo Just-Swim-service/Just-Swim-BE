@@ -2,17 +2,20 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { MyLogger } from 'src/common/logger/logger.service';
+import { MemberRepository } from 'src/member/member.repository';
 
 @Injectable()
 export class LectureService {
   constructor(
     private readonly lectureRepository: LectureRepository,
+    private readonly memberRepository: MemberRepository,
     private readonly logger: MyLogger,
   ) {}
 
@@ -52,24 +55,49 @@ export class LectureService {
     }
   }
 
-  // 회원용 강의 조회
-  /* 
-  1. customerId를 통해 member 테이블에 있는 등록 정보 추출
-  2. for문을 이용하여  추출한 정보에서 lectureId만 추출
-  3. lectureId를 이용하여 강의 정보 추출*/
-  // async getLecturesByCustomerId(customerId: number): Promise<Lecture[]> {
-  //   const lectureIdList =
-  //     await this.memberRepository.getMyLectureList(customerId);
-  // }
+  /* 스케줄 - 수강생 본인이 들어가 있는 강의 조회 */
+  async getLecturesByCustomer(userId: number): Promise<Lecture[]> {
+    try {
+      return await this.lectureRepository.getLecturesByCustomer(userId);
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        '수강생 스케줄 조회 중에 오류가 발생했습니다.',
+      );
+    }
+  }
+
+  /* 수강생 모든 강의 조회 */
+  async getAllLecturesByCustomer(userId: number): Promise<Lecture[]> {
+    try {
+      return await this.lectureRepository.getAllLecturesByCustomer(userId);
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        '수강생이 등록한 모든 강의 조회 중에 오류가 발생했습니다.',
+      );
+    }
+  }
 
   /* 강의 상세 조회 */
-  async getLectureByPk(lectureId: number) {
+  async getLectureByPk(userId: number, lectureId: number) {
     try {
       const lecture = await this.lectureRepository.getLectureByPk(lectureId);
       if (!lecture) {
         throw new NotFoundException('존재하지 않는 강좌입니다.');
       }
-      return lecture;
+      const lectureMembers =
+        await this.memberRepository.getAllMemberByLectureId(lectureId);
+
+      // instructor
+      if (lecture.userId === userId) {
+        return { lecture, lectureMembers };
+      }
+      // member
+      if (lectureMembers.some((member) => member.userId === userId)) {
+        return lecture;
+      }
+      throw new UnauthorizedException('강의 접근 권한이 없습니다.');
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(
@@ -80,10 +108,16 @@ export class LectureService {
 
   // 강의 수정
   async updateLecture(
+    userId: number,
     lectureId: number,
     editLectureDto: EditLectureDto,
   ): Promise<void> {
     try {
+      const lecture = await this.lectureRepository.getLectureByPk(lectureId);
+      if (lecture.userId !== userId) {
+        throw new UnauthorizedException('강의 수정 권한이 없습니다.');
+      }
+
       await this.lectureRepository.updateLecture(lectureId, editLectureDto);
     } catch (error) {
       this.logger.error(error);
@@ -94,8 +128,13 @@ export class LectureService {
   }
 
   // 강의 삭제(softDelete)
-  async softDeleteLecture(lectureId: number): Promise<void> {
+  async softDeleteLecture(userId: number, lectureId: number): Promise<void> {
     try {
+      const lecture = await this.lectureRepository.getLectureByPk(lectureId);
+      if (lecture.userId !== userId) {
+        throw new UnauthorizedException('강의 수정 권한이 없습니다.');
+      }
+
       await this.lectureRepository.softDeleteLecture(lectureId);
     } catch (error) {
       this.logger.error(error);

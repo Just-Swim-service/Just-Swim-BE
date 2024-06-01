@@ -201,53 +201,6 @@ describe('UsersController', () => {
   });
 
   describe('selectUserType', () => {
-    it('유효하지 않은 userType 지정했을 시 bad request return', async () => {
-      const req: Partial<Request> = {
-        params: {
-          userType: 'invalidType',
-        },
-      };
-
-      const res: Partial<Response> = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      await controller.selectUserType(req.params.userType, res as Response);
-
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({
-        message: 'userType을 지정해주세요.',
-      });
-    });
-
-    it('userType을 이미 지정 했을 경우 not acceptable return', async () => {
-      const req: Partial<Request> = {
-        params: {
-          userType: 'customer',
-        },
-      };
-
-      const res: Partial<Response> = {
-        locals: {
-          user: {
-            userId: 1,
-          },
-        },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      usersService.findUserByPk.mockResolvedValue({ userType: 'customer' });
-
-      await controller.selectUserType(req.params.userType, res as Response);
-
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.NOT_ACCEPTABLE);
-      expect(res.json).toHaveBeenCalledWith({
-        message: '계정에 타입이 이미 지정되어 있습니다.',
-      });
-    });
-
     it('userType이 지정 될 경우 success return', async () => {
       const req: Partial<Request> = {
         params: {
@@ -301,27 +254,6 @@ describe('UsersController', () => {
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith(mockUserProfile);
-    });
-
-    it('user 프로필 조회 실패 시 not found return', async () => {
-      const res: Partial<Response> = {
-        locals: {
-          user: {
-            userId: 1,
-          },
-        },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      usersService.findUserByPk.mockResolvedValue(null);
-
-      await controller.findUserProfile(res as Response);
-
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
-      expect(res.json).toHaveBeenCalledWith({
-        message: 'user 정보를 찾을 수 없습니다.',
-      });
     });
   });
 

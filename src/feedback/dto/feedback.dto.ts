@@ -49,8 +49,8 @@ export class FeedbackDto {
   readonly feedbackContent: string;
 
   @ApiProperty({
-    example: '1,2,3',
-    description: '피드백 대상 userId',
+    example: '1:1,2,3/2:4,5,13',
+    description: 'lectureId:[userIds]',
     required: true,
   })
   @IsNotEmpty()

@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
@@ -25,21 +26,11 @@ export class UsersService {
     email: string,
     provider: string,
   ): Promise<Users | undefined> {
-    try {
-      const result = await this.usersRepository.findUserByEmail(
-        email,
-        provider,
-      );
-      if (!result) {
-        throw new NotFoundException('사용자를 찾을 수 없습니다.');
-      }
-      return result;
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        '사용자를 찾는 중에 오류가 발생했습니다.',
-      );
+    const result = await this.usersRepository.findUserByEmail(email, provider);
+    if (!result) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
     }
+    return result;
   }
 
   /* user 생성 */
@@ -56,23 +47,22 @@ export class UsersService {
 
   /* userId를 이용해 user 조회 */
   async findUserByPk(userId: number): Promise<Users> {
-    try {
-      const result = await this.usersRepository.findUserByPk(userId);
-      if (!result) {
-        throw new NotFoundException('사용자를 찾을 수 없습니다.');
-      }
-      return result;
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        '사용자를 찾는 중에 오류가 발생했습니다.',
-      );
+    const result = await this.usersRepository.findUserByPk(userId);
+    if (!result) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
     }
+    return result;
   }
 
   /* user의 userType 지정 */
   async selectUserType(userId: number, userType: string): Promise<void> {
     try {
+      const user = await this.usersRepository.findUserByPk(userId);
+      if (user.userType !== null) {
+        throw new NotAcceptableException(
+          '계정에 타입이 이미 지정되어 있습니다.',
+        );
+      }
       await this.usersRepository.selectUserType(userId, userType);
       if (userType === 'customer') {
         await this.customerRepository.createCustomer(userId);

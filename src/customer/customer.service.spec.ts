@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CustomerService } from './customer.service';
 import { CustomerRepository } from './customer.repository';
 import { Customer } from './entity/customer.entity';
-import { MyLogger } from 'src/common/logger/logger.service';
 
 export class MockCustomerRepository {
   readonly mockCustomer: Customer = {
@@ -18,7 +17,6 @@ export class MockCustomerRepository {
 describe('CustomerService', () => {
   let service: CustomerService;
   let repository: CustomerRepository;
-  let logger: MyLogger;
 
   const mockCustomer = new MockCustomerRepository().mockCustomer;
 
@@ -33,22 +31,11 @@ describe('CustomerService', () => {
             findCustomerByUserId: jest.fn(),
           },
         },
-        {
-          provide: MyLogger,
-          useValue: {
-            log: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn(),
-            verbose: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     service = module.get<CustomerService>(CustomerService);
     repository = module.get<CustomerRepository>(CustomerRepository);
-    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {

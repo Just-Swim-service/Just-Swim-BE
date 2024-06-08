@@ -6,10 +6,9 @@ import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
 import { FeedbackTarget } from './entity/feedbackTarget.entity';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
-import { LoggerModule } from 'src/common/logger/logger.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Feedback, FeedbackTarget]), LoggerModule],
+  imports: [TypeOrmModule.forFeature([Feedback, FeedbackTarget])],
   controllers: [FeedbackController],
   providers: [FeedbackService, FeedbackRepository, FeedbackTargetRepository],
   exports: [FeedbackService, FeedbackRepository, FeedbackTargetRepository],

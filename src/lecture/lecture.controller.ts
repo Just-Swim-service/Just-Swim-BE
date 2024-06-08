@@ -330,7 +330,7 @@ export class LectureController {
           .json({ message: '접근 권한이 없습니다.' });
       }
       const memberList =
-        await this.memberService.getAllMemberByLectureId(lectureId);
+        await this.memberService.getAllMembersByLectureId(lectureId);
       return res.status(HttpStatus.OK).json(memberList);
     } catch (e) {
       return res

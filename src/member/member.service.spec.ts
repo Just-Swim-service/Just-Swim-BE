@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MemberService } from './member.service';
 import { MemberRepository } from './member.repository';
 import { Member } from './entity/member.entity';
-import { MyLogger } from 'src/common/logger/logger.service';
 
 export class MockMemberRepository {
   readonly mockMember: Member = {
@@ -19,7 +18,6 @@ export class MockMemberRepository {
 describe('MemberService', () => {
   let service: MemberService;
   let repository: MemberRepository;
-  let logger: MyLogger;
 
   const mockMember = new MockMemberRepository().mockMember;
 
@@ -36,22 +34,11 @@ describe('MemberService', () => {
             getAllMembersByFeedback: jest.fn().mockResolvedValue(mockMember),
           },
         },
-        {
-          provide: MyLogger,
-          useValue: {
-            log: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn(),
-            verbose: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     service = module.get<MemberService>(MemberService);
     repository = module.get<MemberRepository>(MemberRepository);
-    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {

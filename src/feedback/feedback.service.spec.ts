@@ -4,7 +4,6 @@ import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
 import { FeedbackTarget } from './entity/feedbackTarget.entity';
-import { MyLogger } from 'src/common/logger/logger.service';
 import { DataSource } from 'typeorm';
 
 export class MockFeedbackRepository {
@@ -50,7 +49,6 @@ describe('FeedbackService', () => {
   let service: FeedbackService;
   let feedbackRepository: FeedbackRepository;
   let feedbackTargetRepository: FeedbackTargetRepository;
-  let logger: MyLogger;
   let dataSource: DataSource;
 
   const mockFeedback = new MockFeedbackRepository().mockFeedback;
@@ -91,16 +89,6 @@ describe('FeedbackService', () => {
               .mockResolvedValue(mockFeedbackTarget),
           },
         },
-        {
-          provide: MyLogger,
-          useValue: {
-            log: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn(),
-            verbose: jest.fn(),
-          },
-        },
         { provide: DataSource, useClass: MockDataSource },
       ],
     }).compile();
@@ -110,7 +98,6 @@ describe('FeedbackService', () => {
     feedbackTargetRepository = module.get<FeedbackTargetRepository>(
       FeedbackTargetRepository,
     );
-    logger = module.get<MyLogger>(MyLogger);
     dataSource = module.get<DataSource>(DataSource);
   });
 

@@ -2,8 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
-import { UpdateResult } from 'typeorm';
-import { MyLogger } from 'src/common/logger/logger.service';
 import { MemberRepository } from 'src/member/member.repository';
 import { MockMemberRepository } from 'src/member/member.service.spec';
 
@@ -31,7 +29,6 @@ describe('LectureService', () => {
   let service: LectureService;
   let lectureRepository: LectureRepository;
   let memberRepository: MemberRepository;
-  let logger: MyLogger;
 
   const mockLecture = new MockLectureRepository().mockLecture;
   const mockMember = new MockMemberRepository().mockMember;
@@ -58,17 +55,7 @@ describe('LectureService', () => {
           provide: MemberRepository,
           useValue: {
             insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
-            getAllMemberByLectureId: jest.fn().mockResolvedValue(mockMember),
-          },
-        },
-        {
-          provide: MyLogger,
-          useValue: {
-            log: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn(),
-            verbose: jest.fn(),
+            getAllMembersByLectureId: jest.fn().mockResolvedValue(mockMember),
           },
         },
       ],
@@ -77,7 +64,6 @@ describe('LectureService', () => {
     service = module.get<LectureService>(LectureService);
     lectureRepository = module.get<LectureRepository>(LectureRepository);
     memberRepository = module.get<MemberRepository>(MemberRepository);
-    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {
@@ -130,9 +116,9 @@ describe('LectureService', () => {
       (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue(
         mockLecture,
       );
-      (memberRepository.getAllMemberByLectureId as jest.Mock).mockResolvedValue(
-        mockMember,
-      );
+      (
+        memberRepository.getAllMembersByLectureId as jest.Mock
+      ).mockResolvedValue(mockMember);
 
       const result = await service.getLectureByPk(userId, lectureId);
 

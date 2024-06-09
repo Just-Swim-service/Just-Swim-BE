@@ -4,7 +4,6 @@ import { UsersRepository } from './users.repository';
 import { Users } from './entity/users.entity';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
-import { MyLogger } from 'src/common/logger/logger.service';
 import { MockCustomerRepository } from 'src/customer/customer.service.spec';
 import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
 import { NotFoundException } from '@nestjs/common';
@@ -36,7 +35,6 @@ describe('UsersService', () => {
   let usersRepository: UsersRepository;
   let customerRepository: CustomerRepository;
   let instructorRepository: InstructorRepository;
-  let logger: MyLogger;
 
   const mockUser = new MockUsersRepository().mockUser;
   const mockCustomer = new MockCustomerRepository().mockCustomer;
@@ -70,16 +68,6 @@ describe('UsersService', () => {
             findInstructorByUserId: jest.fn().mockResolvedValue(mockInstructor),
           },
         },
-        {
-          provide: MyLogger,
-          useValue: {
-            log: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn(),
-            verbose: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
@@ -88,7 +76,6 @@ describe('UsersService', () => {
     customerRepository = module.get<CustomerRepository>(CustomerRepository);
     instructorRepository =
       module.get<InstructorRepository>(InstructorRepository);
-    logger = module.get<MyLogger>(MyLogger);
   });
 
   it('should be defined', () => {

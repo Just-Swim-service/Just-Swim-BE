@@ -14,9 +14,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
-import { allMembersByFeedback } from './example/member-example';
+import { allMembersByFeedback } from './example/memberExample';
 
 @ApiTags('Member')
 @Controller('member')
@@ -89,21 +89,15 @@ export class MemberController {
   })
   @ApiBearerAuth('accessToken')
   async getAllMembersByFeedback(@Res() res: Response) {
-    try {
-      const { userId, userType } = res.locals.user;
-      if (userType !== 'instructor') {
-        throw new UnauthorizedException('member 조회 권한이 없습니다.');
-      }
-
-      const allMembers = await this.memberService.getAllMembersByFeedback(
-        parseInt(userId),
-      );
-
-      return res.status(HttpStatus.OK).json(allMembers);
-    } catch (e) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: e.message || '서버 오류' });
+    const { userId, userType } = res.locals.user;
+    if (userType !== 'instructor') {
+      throw new UnauthorizedException('member 조회 권한이 없습니다.');
     }
+
+    const allMembers = await this.memberService.getAllMembersByFeedback(
+      parseInt(userId),
+    );
+
+    return res.status(HttpStatus.OK).json(allMembers);
   }
 }

@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InstructorController } from './instructor.controller';
 import { InstructorService } from './instructor.service';
-import { InstructorRepository } from './instructor.repository';
 
 class MockInstructorService {
   createInstructor = jest.fn();

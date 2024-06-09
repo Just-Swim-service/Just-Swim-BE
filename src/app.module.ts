@@ -20,6 +20,7 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
+import { MyLogger } from './common/logger/logger.service';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { LoggerModule } from './common/logger/logger.module';
     AppService,
     JwtService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    MyLogger,
   ],
 })
 export class AppModule implements NestModule {

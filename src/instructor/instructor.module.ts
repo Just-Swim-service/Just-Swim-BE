@@ -4,10 +4,9 @@ import { InstructorService } from './instructor.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Instructor } from './entity/instructor.entity';
 import { InstructorRepository } from './instructor.repository';
-import { LoggerModule } from 'src/common/logger/logger.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Instructor]), LoggerModule],
+  imports: [TypeOrmModule.forFeature([Instructor])],
   controllers: [InstructorController],
   providers: [InstructorService, InstructorRepository],
   exports: [InstructorService, InstructorRepository],

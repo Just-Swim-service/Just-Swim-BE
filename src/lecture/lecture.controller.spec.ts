@@ -20,7 +20,7 @@ class MockLectureService {
 }
 
 class MockMemberService {
-  getAllMemberByLectureId = jest.fn();
+  getAllMembersByLectureId = jest.fn();
 }
 
 const mockLecture = new MockLectureRepository().mockLecture;
@@ -209,7 +209,7 @@ describe('LectureController', () => {
 
       const lectureId = 1;
 
-      memberService.getAllMemberByLectureId.mockResolvedValue([mockMember]);
+      memberService.getAllMembersByLectureId.mockResolvedValue([mockMember]);
 
       await controller.getAllMemberByInstructor(res as Response, lectureId);
 

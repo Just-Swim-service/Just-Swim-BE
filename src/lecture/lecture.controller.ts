@@ -41,8 +41,8 @@ export class LectureController {
   /* 스케줄 - 강의 전체 조회(삭제된 강의는 제외) */
   @Get('schedule')
   @ApiOperation({
-    summary: '스케줄 - 강의 전체 조회',
-    description: '스케줄에 보여줄 강의를 전체 조회',
+    summary: '스케줄러 - 진행 중인 나의 강의 조회',
+    description: '스케줄러에 보여줄 진행 중인 나의 강의 조회',
   })
   @ApiResponse({
     status: 200,

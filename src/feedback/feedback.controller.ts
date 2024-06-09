@@ -25,7 +25,7 @@ import {
   feedbackDetailByInstructor,
   feedbacksByCustomer,
   feedbacksByInstructor,
-} from './example/feedback-example';
+} from './example/feedbackExample';
 
 @ApiTags('Feedback')
 @Controller('feedback')

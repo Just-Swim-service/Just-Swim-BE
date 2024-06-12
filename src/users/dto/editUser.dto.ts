@@ -18,7 +18,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  readonly profileImage: string;
+  profileImage: string;
 
   @ApiProperty({
     example: '1995.09.13',

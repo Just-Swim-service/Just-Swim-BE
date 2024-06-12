@@ -8,7 +8,9 @@ import {
   Post,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Request, Response } from 'express';
@@ -19,6 +21,7 @@ import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -26,6 +29,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Users')
 @Controller()
@@ -301,19 +305,22 @@ export class UsersController {
 
   /* 프로필 수정 */
   @Patch('user/edit')
+  @UseInterceptors(FileInterceptor('profileImage'))
   @ApiOperation({ summary: '유저 프로필 수정' })
+  @ApiConsumes('multipart/form-data')
   @ApiBody({ type: EditUserDto })
   @ApiResponse({ status: 200, description: '프로필 수정 완료' })
   @ApiResponse({ status: 400, description: '프로필을 수정할 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async editUserProfile(
+    @UploadedFile() file: Express.Multer.File,
     @Body() editUserDto: EditUserDto,
     @Res() res: Response,
   ) {
     const { userId } = res.locals.user;
 
-    await this.usersService.editUserProfile(userId, editUserDto);
+    await this.usersService.editUserProfile(userId, editUserDto, file);
 
     return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
   }

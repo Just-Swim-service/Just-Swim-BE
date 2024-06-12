@@ -21,6 +21,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
+import { AwsModule } from './common/aws/aws.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ImageModule } from './image/image.module';
     MemberModule,
     FeedbackModule,
     ImageModule,
+    AwsModule,
   ],
   controllers: [AppController],
   providers: [

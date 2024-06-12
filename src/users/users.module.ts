@@ -7,6 +7,7 @@ import { UsersRepository } from './users.repository';
 import { AuthModule } from 'src/auth/auth.module';
 import { CustomerModule } from 'src/customer/customer.module';
 import { InstructorModule } from 'src/instructor/instructor.module';
+import { AwsModule } from 'src/common/aws/aws.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { InstructorModule } from 'src/instructor/instructor.module';
     forwardRef(() => AuthModule),
     forwardRef(() => CustomerModule),
     forwardRef(() => InstructorModule),
+    AwsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],

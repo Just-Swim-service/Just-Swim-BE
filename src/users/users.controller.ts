@@ -308,7 +308,33 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('profileImage'))
   @ApiOperation({ summary: '유저 프로필 수정' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: EditUserDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        profileImage: {
+          type: 'string',
+          format: 'binary',
+          description: '수정할 사용자 프로필 이미지',
+        },
+        name: {
+          type: 'string',
+          example: '홍길동',
+          description: '수정할 사용자 이름',
+        },
+        birth: {
+          type: 'string',
+          example: '1995.09.13',
+          description: '수정할 사용자 생년월일',
+        },
+        phoneNumber: {
+          type: 'string',
+          example: '010-1234-1234',
+          description: '수정할 사용자 핸드폰 번호',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: '프로필 수정 완료' })
   @ApiResponse({ status: 400, description: '프로필을 수정할 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })

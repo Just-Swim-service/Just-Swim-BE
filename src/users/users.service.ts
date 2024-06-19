@@ -25,9 +25,6 @@ export class UsersService {
     provider: string,
   ): Promise<Users | undefined> {
     const result = await this.usersRepository.findUserByEmail(email, provider);
-    if (!result) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.');
-    }
     return result;
   }
 

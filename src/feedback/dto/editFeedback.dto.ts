@@ -21,15 +21,6 @@ export class EditFeedbackDto {
   readonly feedbackDate: string;
 
   @ApiProperty({
-    example: 'file1',
-    description: 'feedback에 남길 관련 영상 또는 이미지 수정',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  readonly feedbackFile: string;
-
-  @ApiProperty({
     example: 'URL',
     description: 'feedback에 남길 관련 수정 링크 ',
     required: false,

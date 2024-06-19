@@ -38,9 +38,6 @@ export class Feedback {
   feedbackDate: string;
 
   @Column({ type: 'mediumtext', nullable: true })
-  feedbackFile: string;
-
-  @Column({ type: 'mediumtext', nullable: true })
   feedbackLink: string;
 
   @Column({ type: 'mediumtext' })

@@ -31,12 +31,12 @@ export class FeedbackRepository {
   }
 
   /* feedback 상세 조회 */
-  async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
+  async getFeedbackByPk(feedbackId: number): Promise<Feedback[]> {
     const result = await this.feedbackRepository.query(
       'CALL GET_FEEDBACK_BY_PK(?)',
       [feedbackId],
     );
-    return result[0][0];
+    return result[0];
   }
 
   /* feedback 생성 */
@@ -48,18 +48,16 @@ export class FeedbackRepository {
       feedbackType,
       feedbackContent,
       feedbackDate,
-      feedbackFile,
       feedbackLink,
       feedbackTarget,
     } = feedbackDto;
     const result = await this.feedbackRepository.query(
-      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
+      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
       [
         userId,
         feedbackType,
         feedbackContent,
         feedbackDate,
-        feedbackFile,
         feedbackLink,
         feedbackTarget,
       ],
@@ -76,19 +74,17 @@ export class FeedbackRepository {
       feedbackType,
       feedbackContent,
       feedbackDate,
-      feedbackFile,
       feedbackLink,
       feedbackTarget,
     } = editFeedbackDto;
 
     await this.feedbackRepository.query(
-      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
+      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
       [
         feedbackId,
         feedbackType,
         feedbackContent,
         feedbackDate,
-        feedbackFile,
         feedbackLink,
         feedbackTarget,
       ],

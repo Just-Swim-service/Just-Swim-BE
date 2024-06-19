@@ -3,7 +3,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -50,5 +50,15 @@ export class AwsService {
     });
 
     await this.s3Client.send(command);
+  }
+
+  async uploadImagesToS3(
+    fileNames: string[],
+    files: Express.Multer.File[],
+    exts: string[],
+  ) {
+    if (files.length !== fileNames.length || files.length !== exts.length) {
+      throw new BadRequestException('');
+    }
   }
 }

@@ -77,4 +77,14 @@ export class UsersRepository {
       phoneNumber,
     ]);
   }
+
+  /* user(instructor) 탈퇴 */
+  async withdrawInstructor(userId: number): Promise<void> {
+    await this.usersRepository.query('CALL WITHDRAW_INSTRUCTOR(?)', [userId]);
+  }
+
+  /* user(customer) 탈퇴 */
+  async withdrawCustomer(userId: number): Promise<void> {
+    await this.usersRepository.query('CALL WITHDRAW_CUSTOMER(?)', [userId]);
+  }
 }

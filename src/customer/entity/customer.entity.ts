@@ -2,7 +2,6 @@ import { Users } from 'src/users/entity/users.entity';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -17,7 +16,7 @@ export class Customer {
 
   @ManyToOne(() => Users, (user) => user.customer)
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users;
 
   @Column({ type: 'varchar', nullable: true })
   customerNickname: string;
@@ -27,7 +26,4 @@ export class Customer {
 
   @UpdateDateColumn({ type: 'timestamp' })
   customerUpdatedAt: Date;
-
-  @DeleteDateColumn({ type: 'datetime', nullable: true })
-  customerDeletedAt: Date;
 }

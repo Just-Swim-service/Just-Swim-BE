@@ -17,14 +17,14 @@ export class Feedback {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   feedbackId: number;
 
-  @ManyToOne(() => Users, (user) => user.feedback)
+  @ManyToOne(() => Users, (user) => user.feedback, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users | null;
 
-  @OneToMany(
-    () => FeedbackTarget,
-    (feedbackTarget) => feedbackTarget.feedbackId,
-  )
+  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.feedback)
   feedbackTarget: FeedbackTarget[];
 
   @Column({ type: 'varchar' })

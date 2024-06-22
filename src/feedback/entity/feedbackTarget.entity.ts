@@ -17,15 +17,15 @@ export class FeedbackTarget {
 
   @ManyToOne(() => Feedback, (feedback) => feedback.feedbackTarget)
   @JoinColumn({ name: 'feedbackId' })
-  feedbackId: number;
+  feedback: Feedback;
 
   @ManyToOne(() => Users, (user) => user.feedbackTarget)
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users;
 
   @ManyToOne(() => Lecture, (lecture) => lecture.feedbackTarget)
   @JoinColumn({ name: 'lectureId' })
-  lectureId: number;
+  lecture: Lecture;
 
   @CreateDateColumn({ type: 'timestamp' })
   feedbackTargetCreatedAt: Date;

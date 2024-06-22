@@ -47,13 +47,14 @@ export class FeedbackService {
       );
 
     // instructor
-    if (feedback.userId === userId) {
+    if (feedback.user && feedback.user.userId === userId) {
       return { feedback, feedbackTargetList };
     }
     // member
     if (
       feedbackTargetList.some(
-        (feedbackTarget) => feedbackTarget.userId === userId,
+        (feedbackTarget) =>
+          feedbackTarget.user && feedbackTarget.user.userId === userId,
       )
     ) {
       return feedback;
@@ -129,7 +130,7 @@ export class FeedbackService {
     editFeedbackDto: EditFeedbackDto,
   ): Promise<void> {
     const feedback = await this.feedbackRepository.getFeedbackByPk(feedbackId);
-    if (feedback.userId !== userId) {
+    if (feedback.user && feedback.user.userId !== userId) {
       throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
     }
 
@@ -224,7 +225,7 @@ export class FeedbackService {
   /* feedback 삭제(softDelete) */
   async softDeleteFeedback(userId: number, feedbackId: number): Promise<void> {
     const feedback = await this.feedbackRepository.getFeedbackByPk(feedbackId);
-    if (feedback.userId !== userId) {
+    if (feedback.user && feedback.user.userId !== userId) {
       throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
     }
 

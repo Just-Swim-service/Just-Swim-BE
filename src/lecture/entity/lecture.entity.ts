@@ -18,14 +18,17 @@ export class Lecture {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   lectureId: number;
 
-  @ManyToOne(() => Users, (user) => user.lecture)
+  @ManyToOne(() => Users, (user) => user.lecture, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users | null;
 
-  @OneToMany(() => Member, (member) => member.lectureId)
+  @OneToMany(() => Member, (member) => member.lecture)
   member: Member[];
 
-  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.lectureId)
+  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.lecture)
   feedbackTarget: FeedbackTarget[];
 
   @Column({ type: 'varchar' })

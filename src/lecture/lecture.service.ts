@@ -52,11 +52,15 @@ export class LectureService {
       await this.memberRepository.getAllMembersByLectureId(lectureId);
 
     // instructor
-    if (lecture.userId === userId) {
+    if (lecture.user && lecture.user.userId === userId) {
       return { lecture, lectureMembers };
     }
     // member
-    if (lectureMembers.some((member) => member.userId === userId)) {
+    if (
+      lectureMembers.some(
+        (member) => member.user && member.user.userId === userId,
+      )
+    ) {
       return lecture;
     }
     throw new UnauthorizedException('강의 접근 권한이 없습니다.');
@@ -69,7 +73,7 @@ export class LectureService {
     editLectureDto: EditLectureDto,
   ): Promise<void> {
     const lecture = await this.lectureRepository.getLectureByPk(lectureId);
-    if (lecture.userId !== userId) {
+    if (lecture.user && lecture.user.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }
 
@@ -79,7 +83,7 @@ export class LectureService {
   // 강의 삭제(softDelete)
   async softDeleteLecture(userId: number, lectureId: number): Promise<void> {
     const lecture = await this.lectureRepository.getLectureByPk(lectureId);
-    if (lecture.userId !== userId) {
+    if (lecture.user && lecture.user.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }
 

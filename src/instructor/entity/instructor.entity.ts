@@ -17,7 +17,7 @@ export class Instructor {
 
   @ManyToOne(() => Users, (user) => user.instructor)
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users;
 
   @Column({ type: 'varchar', nullable: true })
   workingLocation: string;
@@ -48,7 +48,4 @@ export class Instructor {
 
   @UpdateDateColumn({ type: 'timestamp' })
   instructorUpdatedAt: Date;
-
-  @DeleteDateColumn({ type: 'datetime', nullable: true })
-  instructorDeletedAt: Date;
 }

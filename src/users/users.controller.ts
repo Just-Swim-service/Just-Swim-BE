@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UploadedFile,
@@ -349,5 +351,28 @@ export class UsersController {
     await this.usersService.editUserProfile(userId, editUserDto, file);
 
     return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
+  }
+
+  /* 로그아웃 */
+  @Post('logout')
+  @ApiOperation({ summary: '로그 아웃' })
+  @ApiResponse({ status: 200, description: '로그 아웃 완료' })
+  @ApiBearerAuth('accessToken')
+  async logout(@Res() res: Response) {
+    res.clearCookie('authorization');
+    return res.status(HttpStatus.OK).json({ message: '로그 아웃 완료' });
+  }
+
+  /* 회원 탈퇴 */
+  @Delete('user/withdraw')
+  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiResponse({ status: 200, description: '회원 탈퇴 완료' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async withdrawUser(@Res() res: Response) {
+    const { userId } = res.locals.user;
+    await this.usersService.withdrawUser(userId);
+    res.clearCookie('authorization');
+    return res.status(HttpStatus.OK).json({ message: '회원 탈퇴 완료' });
   }
 }

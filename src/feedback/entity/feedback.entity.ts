@@ -20,12 +20,9 @@ export class Feedback {
 
   @ManyToOne(() => Users, (user) => user.feedback)
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users;
 
-  @OneToMany(
-    () => FeedbackTarget,
-    (feedbackTarget) => feedbackTarget.feedbackId,
-  )
+  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.feedback)
   feedbackTarget: FeedbackTarget[];
 
   @OneToMany(() => Image, (image) => image.feedbackId)

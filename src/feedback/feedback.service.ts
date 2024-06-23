@@ -46,13 +46,14 @@ export class FeedbackService {
       );
 
     // instructor
-    if (feedback.some((feedback) => feedback.userId === userId)) {
+    if (feedback.user && feedback.user.userId === userId) {
       return { feedback, feedbackTargetList };
     }
     // member
     if (
       feedbackTargetList.some(
-        (feedbackTarget) => feedbackTarget.userId === userId,
+        (feedbackTarget) =>
+          feedbackTarget.user && feedbackTarget.user.userId === userId,
       )
     ) {
       return feedback;
@@ -173,7 +174,7 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    if (feedback.some((feedback) => feedback.userId === userId)) {
+    if (feedback.some((feedback) => feedback.user.userId === userId)) {
       throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
     }
 
@@ -332,7 +333,7 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    if (feedback.some((feedback) => feedback.userId !== userId)) {
+    if (feedback.some((feedback) => feedback.user.userId !== userId)) {
       throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
     }
 

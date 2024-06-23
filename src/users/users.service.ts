@@ -11,6 +11,9 @@ import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
 import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
+import { LectureRepository } from 'src/lecture/lecture.repository';
+import { MemberRepository } from 'src/member/member.repository';
+import { FeedbackRepository } from 'src/feedback/feedback.repository';
 
 @Injectable()
 export class UsersService {
@@ -27,9 +30,6 @@ export class UsersService {
     provider: string,
   ): Promise<Users | undefined> {
     const result = await this.usersRepository.findUserByEmail(email, provider);
-    if (!result) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.');
-    }
     return result;
   }
 
@@ -89,5 +89,10 @@ export class UsersService {
       editUserDto.profileImage = profileImageUrl;
     }
     await this.usersRepository.editUserProfile(userId, editUserDto);
+  }
+
+  /* user 탈퇴 */
+  async withdrawUser(userId: number): Promise<void> {
+    await this.usersRepository.withdrawUser(userId);
   }
 }

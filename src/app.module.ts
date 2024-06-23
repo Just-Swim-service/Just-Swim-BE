@@ -44,6 +44,7 @@ import { AwsModule } from './common/aws/aws.module';
         synchronize: false,
       }),
       inject: [ConfigService],
+
     }),
     UsersModule,
     AuthModule,
@@ -69,6 +70,8 @@ export class AppModule implements NestModule {
       { path: 'user/:userType', method: RequestMethod.POST },
       { path: 'user/edit', method: RequestMethod.PATCH },
       { path: 'user/myProfile', method: RequestMethod.GET },
+      { path: 'user/logout', method: RequestMethod.POST },
+      { path: 'user/withdraw', method: RequestMethod.DELETE },
       // Lecture
       { path: 'lecture', method: RequestMethod.POST },
       { path: 'lecture/schedule', method: RequestMethod.GET },

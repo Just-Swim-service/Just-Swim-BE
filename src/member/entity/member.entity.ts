@@ -20,11 +20,11 @@ export class Member {
 
   @ManyToOne(() => Users, (user) => user.member)
   @JoinColumn({ name: 'userId' })
-  userId: number;
+  user: Users;
 
   @ManyToOne(() => Lecture, (lecture) => lecture.member)
   @JoinColumn({ name: 'lectureId' })
-  lectureId: number;
+  lecture: Lecture;
 
   @Column({ type: 'varchar', nullable: true })
   memberNickname: string;

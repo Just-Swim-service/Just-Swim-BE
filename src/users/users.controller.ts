@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -238,19 +240,13 @@ export class UsersController {
     @Body('provider') provider: string,
     @Res() res: Response,
   ) {
-    try {
-      const user = await this.usersService.findUserByEmail(email, provider);
+    const user = await this.usersService.findUserByEmail(email, provider);
 
-      let userId: number = user.userId;
-      let token: string = await this.authService.getToken(userId);
+    let userId: number = user.userId;
+    let token: string = await this.authService.getToken(userId);
 
-      res.cookie('authorization', token);
-      return res.status(HttpStatus.OK).json({ message: '로그인 성공' });
-    } catch (e) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: e.message || '서버 오류' });
-    }
+    res.cookie('authorization', token);
+    return res.status(HttpStatus.OK).json({ message: '로그인 성공' });
   }
 
   /* 로그인 이후에 userType을 지정 */
@@ -265,23 +261,17 @@ export class UsersController {
     @Param('userType') userType: string,
     @Res() res: Response,
   ) {
-    try {
-      const { userId } = res.locals.user;
+    const { userId } = res.locals.user;
 
-      // userType 기본 검사
-      if (!['customer', 'instructor'].includes(userType)) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: '올바른 userType을 지정해주세요.' });
-      }
-
-      await this.usersService.selectUserType(userId, userType);
-      return res.status(HttpStatus.OK).json({ message: 'userType 지정 완료' });
-    } catch (e) {
+    // userType 기본 검사
+    if (!['customer', 'instructor'].includes(userType)) {
       return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: e.message || '서버 오류' });
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: '올바른 userType을 지정해주세요.' });
     }
+
+    await this.usersService.selectUserType(userId, userType);
+    return res.status(HttpStatus.OK).json({ message: 'userType 지정 완료' });
   }
 
   /* 나의 프로필 조회 */
@@ -305,16 +295,10 @@ export class UsersController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async findUserProfile(@Res() res: Response) {
-    try {
-      const { userId } = res.locals.user;
-      const userProfile = await this.usersService.findUserByPk(userId);
+    const { userId } = res.locals.user;
+    const userProfile = await this.usersService.findUserByPk(userId);
 
-      return res.status(HttpStatus.OK).json(userProfile);
-    } catch (e) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: e.message || '서버 오류' });
-    }
+    return res.status(HttpStatus.OK).json(userProfile);
   }
 
   /* 프로필 수정 */
@@ -329,16 +313,33 @@ export class UsersController {
     @Body() editUserDto: EditUserDto,
     @Res() res: Response,
   ) {
-    try {
-      const { userId } = res.locals.user;
+    const { userId } = res.locals.user;
 
-      await this.usersService.editUserProfile(userId, editUserDto);
+    await this.usersService.editUserProfile(userId, editUserDto);
 
-      return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
-    } catch (e) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json({ message: e.message || '서버 오류' });
-    }
+    return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
+  }
+
+  /* 로그아웃 */
+  @Post('logout')
+  @ApiOperation({ summary: '로그 아웃' })
+  @ApiResponse({ status: 200, description: '로그 아웃 완료' })
+  @ApiBearerAuth('accessToken')
+  async logout(@Res() res: Response) {
+    res.clearCookie('authorization');
+    return res.status(HttpStatus.OK).json({ message: '로그 아웃 완료' });
+  }
+
+  /* 회원 탈퇴 */
+  @Delete('user/withdraw')
+  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiResponse({ status: 200, description: '회원 탈퇴 완료' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async withdrawUser(@Res() res: Response) {
+    const { userId } = res.locals.user;
+    await this.usersService.withdrawUser(userId);
+    res.clearCookie('authorization');
+    return res.status(HttpStatus.OK).json({ message: '회원 탈퇴 완료' });
   }
 }

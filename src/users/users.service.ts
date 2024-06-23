@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InternalServerErrorException,
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +9,9 @@ import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
+import { LectureRepository } from 'src/lecture/lecture.repository';
+import { MemberRepository } from 'src/member/member.repository';
+import { FeedbackRepository } from 'src/feedback/feedback.repository';
 
 @Injectable()
 export class UsersService {
@@ -63,5 +65,10 @@ export class UsersService {
     editUserDto: EditUserDto,
   ): Promise<void> {
     await this.usersRepository.editUserProfile(userId, editUserDto);
+  }
+
+  /* user 탈퇴 */
+  async withdrawUser(userId: number): Promise<void> {
+    await this.usersRepository.withdrawUser(userId);
   }
 }

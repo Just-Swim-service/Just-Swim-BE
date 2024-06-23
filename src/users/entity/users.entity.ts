@@ -22,13 +22,13 @@ export class Users {
   @Column({ type: 'varchar', nullable: true })
   userType: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   provider: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   email: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
@@ -46,24 +46,24 @@ export class Users {
   @UpdateDateColumn({ type: 'timestamp' })
   userUpdatedAt: Date;
 
-  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
   userDeletedAt: Date;
 
-  @OneToMany(() => Customer, (customer) => customer.userId)
+  @OneToMany(() => Customer, (customer) => customer.user)
   customer: Customer[];
 
-  @OneToMany(() => Instructor, (instructor) => instructor.userId)
+  @OneToMany(() => Instructor, (instructor) => instructor.user)
   instructor: Instructor[];
 
-  @OneToMany(() => Member, (member) => member.userId)
+  @OneToMany(() => Member, (member) => member.user)
   member: Member[];
 
-  @OneToMany(() => Lecture, (lecture) => lecture.userId)
+  @OneToMany(() => Lecture, (lecture) => lecture.user)
   lecture: Lecture[];
 
-  @OneToMany(() => Feedback, (feedback) => feedback.userId)
+  @OneToMany(() => Feedback, (feedback) => feedback.user)
   feedback: Feedback[];
 
-  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.userId)
+  @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.user)
   feedbackTarget: FeedbackTarget[];
 }

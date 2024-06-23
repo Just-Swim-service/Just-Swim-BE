@@ -174,7 +174,7 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    if (feedback.some((feedback) => feedback.user.userId === userId)) {
+    if (feedback.user && feedback.user.userId !== userId) {
       throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
     }
 
@@ -192,12 +192,7 @@ export class FeedbackService {
       );
 
       // 피드백 타겟 업데이트
-      if (
-        feedback.some(
-          (feedback) =>
-            feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget,
-        )
-      ) {
+      if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
         await this.updateFeedbackTarget(
           feedbackId,
           editFeedbackDto.feedbackTarget,
@@ -333,7 +328,7 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    if (feedback.some((feedback) => feedback.user.userId !== userId)) {
+    if (feedback.user && feedback.user.userId !== userId) {
       throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
     }
 

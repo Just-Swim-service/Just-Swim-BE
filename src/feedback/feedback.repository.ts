@@ -31,7 +31,7 @@ export class FeedbackRepository {
   }
 
   /* feedback 상세 조회 */
-  async getFeedbackByPk(feedbackId: number): Promise<Feedback[]> {
+  async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
     const result = await this.feedbackRepository.query(
       'CALL GET_FEEDBACK_BY_PK(?)',
       [feedbackId],

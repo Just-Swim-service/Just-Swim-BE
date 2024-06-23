@@ -7,6 +7,7 @@ import { InstructorRepository } from 'src/instructor/instructor.repository';
 import { MockCustomerRepository } from 'src/customer/customer.service.spec';
 import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
 import { NotFoundException } from '@nestjs/common';
+import { AwsService } from 'src/common/aws/aws.service';
 
 export class MockUsersRepository {
   readonly mockUser: Users = {
@@ -15,7 +16,7 @@ export class MockUsersRepository {
     provider: 'kakao',
     name: '홍길동',
     birth: null,
-    profileImage: null,
+    profileImage: 'old_profile_image_url',
     phoneNumber: null,
     userType: 'customer',
     userCreatedAt: new Date(),
@@ -31,7 +32,8 @@ export class MockUsersRepository {
 }
 
 describe('UsersService', () => {
-  let service: UsersService;
+  let usersService: UsersService;
+  let awsService: AwsService;
   let usersRepository: UsersRepository;
   let customerRepository: CustomerRepository;
   let instructorRepository: InstructorRepository;
@@ -44,6 +46,13 @@ describe('UsersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
+        {
+          provide: AwsService,
+          useValue: {
+            uploadImageToS3: jest.fn(),
+            deleteImageFromS3: jest.fn(),
+          },
+        },
         {
           provide: UsersRepository,
           useValue: {
@@ -71,7 +80,8 @@ describe('UsersService', () => {
       ],
     }).compile();
 
-    service = module.get<UsersService>(UsersService);
+    usersService = module.get<UsersService>(UsersService);
+    awsService = module.get<AwsService>(AwsService);
     usersRepository = module.get<UsersRepository>(UsersRepository);
     customerRepository = module.get<CustomerRepository>(CustomerRepository);
     instructorRepository =
@@ -79,7 +89,7 @@ describe('UsersService', () => {
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(usersService).toBeDefined();
   });
 
   describe('findUserByEmail', () => {
@@ -90,7 +100,7 @@ describe('UsersService', () => {
         mockUser,
       );
 
-      const result = await service.findUserByEmail(email, provider);
+      const result = await usersService.findUserByEmail(email, provider);
 
       expect(result).toEqual(mockUser);
     });
@@ -102,9 +112,9 @@ describe('UsersService', () => {
         undefined,
       );
 
-      await expect(service.findUserByEmail(email, provider)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        usersService.findUserByEmail(email, provider),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -134,7 +144,7 @@ describe('UsersService', () => {
       };
       (usersRepository.createUser as jest.Mock).mockResolvedValue(newUser);
 
-      const result = await service.createUser(userData);
+      const result = await usersService.createUser(userData);
 
       expect(result).toEqual(newUser);
     });
@@ -145,7 +155,7 @@ describe('UsersService', () => {
       const userId = 1;
       (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
-      const result = await service.findUserByPk(userId);
+      const result = await usersService.findUserByPk(userId);
 
       expect(result).toEqual(mockUser);
     });
@@ -154,7 +164,7 @@ describe('UsersService', () => {
       const userId = 10;
       (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(undefined);
 
-      await expect(service.findUserByPk(userId)).rejects.toThrow(
+      await expect(usersService.findUserByPk(userId)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -165,7 +175,7 @@ describe('UsersService', () => {
       const userId = 1;
       const userType = 'customer' || 'instructor';
       mockUser.userType = null;
-      await service.selectUserType(userId, userType);
+      await usersService.selectUserType(userId, userType);
 
       expect(usersRepository.selectUserType).toHaveBeenCalledWith(
         userId,
@@ -184,8 +194,40 @@ describe('UsersService', () => {
         birth: '1990.01.01',
         phoneNumber: '010-1234-5678',
       };
-      await service.editUserProfile(userId, editUserDto);
 
+      const file: Express.Multer.File = {
+        fieldname: 'profileImage',
+        originalname: 'test.png',
+        encoding: '7bit',
+        mimetype: 'image/png',
+        buffer: Buffer.from(''),
+        size: 0,
+        stream: null,
+        destination: '',
+        filename: '',
+        path: '',
+      };
+
+      const ext = 'png';
+
+      jest.spyOn(usersRepository, 'findUserByPk').mockResolvedValue(mockUser);
+      jest.spyOn(usersRepository, 'editUserProfile').mockResolvedValue();
+      jest
+        .spyOn(awsService, 'uploadImageToS3')
+        .mockResolvedValue('new_profile_image_url');
+      jest.spyOn(awsService, 'deleteImageFromS3').mockResolvedValue();
+
+      await usersService.editUserProfile(userId, editUserDto, file);
+
+      expect(usersRepository.findUserByPk).toHaveBeenCalledWith(userId);
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'old_profile_image_url',
+      );
+      expect(awsService.uploadImageToS3).toHaveBeenCalledWith(
+        expect.any(String),
+        file,
+        ext,
+      );
       expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
         userId,
         editUserDto,

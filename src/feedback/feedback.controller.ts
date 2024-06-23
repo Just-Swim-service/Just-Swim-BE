@@ -8,6 +8,8 @@ import {
   Patch,
   Post,
   Res,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import {
@@ -26,6 +28,7 @@ import {
   feedbacksByCustomer,
   feedbacksByInstructor,
 } from './example/feedbackExample';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Feedback')
 @Controller('feedback')
@@ -105,6 +108,7 @@ export class FeedbackController {
 
   /* feedback 생성 */
   @Post()
+  @UseInterceptors(FilesInterceptor('files', 4))
   @ApiOperation({
     summary: 'feedback을 생성 한다',
     description: '수강생을 선택하여 feedback을 남긴다',
@@ -114,7 +118,11 @@ export class FeedbackController {
     description: 'feedback 생성 성공',
   })
   @ApiBearerAuth('accessToken')
-  async createFeedback(@Res() res: Response, @Body() feedbackDto: FeedbackDto) {
+  async createFeedback(
+    @Res() res: Response,
+    @Body() feedbackDto: FeedbackDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
@@ -131,6 +139,7 @@ export class FeedbackController {
     const feedback = await this.feedbackService.createFeedback(
       userId,
       feedbackDto,
+      files,
     );
     if (!feedback) {
       return res
@@ -149,6 +158,7 @@ export class FeedbackController {
 
   /* feedback 수정 */
   @Patch(':feedbackId')
+  @UseInterceptors(FilesInterceptor('files', 4))
   @ApiOperation({
     summary: '작성했던 feedback을 수정한다.',
     description: 'instructor가 본인이 작성한 feedback을 수정한다.',
@@ -162,6 +172,7 @@ export class FeedbackController {
     @Res() res: Response,
     @Param('feedbackId') feedbackId: number,
     @Body() editFeedbackDto: EditFeedbackDto,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
     const { userId } = res.locals.user;
 
@@ -169,6 +180,7 @@ export class FeedbackController {
       userId,
       feedbackId,
       editFeedbackDto,
+      files,
     );
 
     return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });

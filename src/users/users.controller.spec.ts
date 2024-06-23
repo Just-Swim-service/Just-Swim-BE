@@ -259,7 +259,19 @@ describe('UsersController', () => {
 
   describe('editUserProfile', () => {
     it('user 프로필 수정을 진행', async () => {
-      const req: Partial<Request> = { body: { ediUserDto: EditUserDto } };
+      const file: Express.Multer.File = {
+        fieldname: 'profileImage',
+        originalname: 'test.png',
+        encoding: '7bit',
+        mimetype: 'image/png',
+        buffer: Buffer.from(''),
+        stream: null,
+        destination: '',
+        filename: '',
+        path: '',
+        size: 0,
+      };
+      const req: Partial<Request> = { body: { ediUserDto: EditUserDto }, file };
 
       const res: Partial<Response> = {
         locals: {
@@ -273,7 +285,7 @@ describe('UsersController', () => {
 
       usersService.editUserProfile.mockResolvedValue(true);
 
-      await controller.editUserProfile(req.body, res as Response);
+      await controller.editUserProfile(file, req.body, res as Response);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: '프로필 수정 완료' });

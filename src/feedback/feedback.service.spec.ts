@@ -21,6 +21,7 @@ export class MockFeedbackRepository {
     feedbackUpdatedAt: new Date(),
     feedbackDeletedAt: null,
     feedbackTarget: [],
+    image: [],
   };
 }
 
@@ -177,6 +178,7 @@ describe('FeedbackService', () => {
         feedbackUpdatedAt: new Date(),
         feedbackDeletedAt: null,
         feedbackTarget: [],
+        image: [],
       };
       (feedbackRepository.createFeedback as jest.Mock).mockResolvedValue(
         feedback,

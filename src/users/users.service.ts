@@ -9,6 +9,8 @@ import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
+import { AwsService } from 'src/common/aws/aws.service';
+import * as path from 'path';
 import { LectureRepository } from 'src/lecture/lecture.repository';
 import { MemberRepository } from 'src/member/member.repository';
 import { FeedbackRepository } from 'src/feedback/feedback.repository';
@@ -16,6 +18,7 @@ import { FeedbackRepository } from 'src/feedback/feedback.repository';
 @Injectable()
 export class UsersService {
   constructor(
+    private readonly awsService: AwsService,
     private readonly usersRepository: UsersRepository,
     private readonly customerRepository: CustomerRepository,
     private readonly instructorRepository: InstructorRepository,
@@ -63,7 +66,28 @@ export class UsersService {
   async editUserProfile(
     userId: number,
     editUserDto: EditUserDto,
+    file?: Express.Multer.File,
   ): Promise<void> {
+    const user = await this.usersRepository.findUserByPk(userId);
+
+    // profileImage를 수정할 경우
+    if (file) {
+      // 기존 프로필 이미지가 있다면 삭제
+      if (user.profileImage) {
+        const fileName = user.profileImage.split('/').slice(-2).join('/');
+        await this.awsService.deleteImageFromS3(fileName);
+      }
+
+      // 새 이미지 업로드
+      const fileName = `profileImage/${Date.now().toString()}-${file.originalname}`;
+      const ext = path.extname(file.originalname).substring(1);
+      const profileImageUrl = await this.awsService.uploadImageToS3(
+        fileName,
+        file,
+        ext,
+      );
+      editUserDto.profileImage = profileImageUrl;
+    }
     await this.usersRepository.editUserProfile(userId, editUserDto);
   }
 

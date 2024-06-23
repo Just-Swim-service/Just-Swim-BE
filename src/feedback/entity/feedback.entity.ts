@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { FeedbackTarget } from './feedbackTarget.entity';
+import { Image } from 'src/image/entity/image.entity';
 
 @Entity('feedback')
 export class Feedback {
@@ -24,14 +25,14 @@ export class Feedback {
   @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.feedback)
   feedbackTarget: FeedbackTarget[];
 
+  @OneToMany(() => Image, (image) => image.feedbackId)
+  image: Image[];
+
   @Column({ type: 'varchar' })
   feedbackType: string;
 
   @Column({ type: 'varchar' })
   feedbackDate: string;
-
-  @Column({ type: 'mediumtext', nullable: true })
-  feedbackFile: string;
 
   @Column({ type: 'mediumtext', nullable: true })
   feedbackLink: string;

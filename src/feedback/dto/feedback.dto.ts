@@ -21,15 +21,6 @@ export class FeedbackDto {
   readonly feedbackDate: string;
 
   @ApiProperty({
-    example: 'file1',
-    description: 'feedback에 남길 관련 영상 또는 이미지',
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsString()
-  readonly feedbackFile: string;
-
-  @ApiProperty({
     example: 'URL',
     description: 'feedback에 남길 관련 링크',
     required: true,

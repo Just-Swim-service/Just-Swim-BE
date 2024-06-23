@@ -7,7 +7,7 @@ import {
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtService } from '@nestjs/jwt';
@@ -20,7 +20,8 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
-import { MyLogger } from './common/logger/logger.service';
+import { ImageModule } from './image/image.module';
+import { AwsModule } from './common/aws/aws.module';
 
 @Module({
   imports: [
@@ -29,16 +30,21 @@ import { MyLogger } from './common/logger/logger.service';
       isGlobal: true,
     }),
     // db 설정
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-      // synchronize: false,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        // synchronize: true,
+        synchronize: false,
+      }),
+      inject: [ConfigService],
+
     }),
     UsersModule,
     AuthModule,
@@ -47,13 +53,14 @@ import { MyLogger } from './common/logger/logger.service';
     LectureModule,
     MemberModule,
     FeedbackModule,
+    ImageModule,
+    AwsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     JwtService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
-    MyLogger,
   ],
 })
 export class AppModule implements NestModule {

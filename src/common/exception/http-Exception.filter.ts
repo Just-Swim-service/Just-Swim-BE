@@ -21,26 +21,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
       | string
       | { error: string; statusCode: number; message: string | string[] };
 
-    if (typeof error === 'string') {
-      res.status(status).json({
-        success: false,
-        timestamp: new Date().toISOString(),
-        statusCode: status,
-        path: req.url,
-        error,
-      });
-    }
-    if (typeof error !== 'string') {
-      res.status(status).json({
-        success: false,
-        timestamp: new Date().toISOString(),
-        ...error,
-      });
-    }
+    const errorResponse = {
+      success: false,
+      timestamp: new Date().toISOString(),
+      statusCode: status,
+      path: req.url,
+      method: req.method,
+      message: typeof error === 'string' ? error : error.message,
+      error: typeof error === 'string' ? null : error.error,
+    };
+
+    res.status(status).json(errorResponse);
 
     // logger
     this.logger.error(
-      `HTTP 요청에서 예외 발생: ${req.method} ${req.url}`,
+      `HTTP 요청에서 예외 발생: ${req.method} ${req.url} | ${errorResponse.error}(${errorResponse.statusCode}) ${errorResponse.message}`,
       exception.stack,
     );
   }

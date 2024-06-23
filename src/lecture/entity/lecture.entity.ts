@@ -18,12 +18,9 @@ export class Lecture {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   lectureId: number;
 
-  @ManyToOne(() => Users, (user) => user.lecture, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => Users, (user) => user.lecture)
   @JoinColumn({ name: 'userId' })
-  user: Users | null;
+  user: Users;
 
   @OneToMany(() => Member, (member) => member.lecture)
   member: Member[];

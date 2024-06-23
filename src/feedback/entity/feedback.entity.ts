@@ -17,12 +17,9 @@ export class Feedback {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   feedbackId: number;
 
-  @ManyToOne(() => Users, (user) => user.feedback, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => Users, (user) => user.feedback)
   @JoinColumn({ name: 'userId' })
-  user: Users | null;
+  user: Users;
 
   @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.feedback)
   feedbackTarget: FeedbackTarget[];

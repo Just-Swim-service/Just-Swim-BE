@@ -71,12 +71,7 @@ export class UsersService {
   }
 
   /* user 탈퇴 */
-  async withdrawUser(userId: number, userType: string): Promise<void> {
-    if (userType === 'instructor') {
-      await this.usersRepository.withdrawInstructor(userId);
-    }
-    if (userType === 'customer') {
-      await this.usersRepository.withdrawCustomer(userId);
-    }
+  async withdrawUser(userId: number): Promise<void> {
+    await this.usersRepository.withdrawUser(userId);
   }
 }

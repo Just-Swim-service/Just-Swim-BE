@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -336,8 +337,8 @@ export class UsersController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async withdrawUser(@Res() res: Response) {
-    const { userId, userType } = res.locals.user;
-    await this.usersService.withdrawUser(userId, userType);
+    const { userId } = res.locals.user;
+    await this.usersService.withdrawUser(userId);
     res.clearCookie('authorization');
     return res.status(HttpStatus.OK).json({ message: '회원 탈퇴 완료' });
   }

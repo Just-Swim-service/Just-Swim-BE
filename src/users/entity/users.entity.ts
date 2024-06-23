@@ -22,13 +22,13 @@ export class Users {
   @Column({ type: 'varchar', nullable: true })
   userType: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   provider: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   email: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
@@ -45,6 +45,9 @@ export class Users {
 
   @UpdateDateColumn({ type: 'timestamp' })
   userUpdatedAt: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  userDeletedAt: Date;
 
   @OneToMany(() => Customer, (customer) => customer.user)
   customer: Customer[];

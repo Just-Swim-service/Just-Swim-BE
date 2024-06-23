@@ -9,7 +9,7 @@ import { Feedback } from './entity/feedback.entity';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 
@@ -74,6 +74,7 @@ export class FeedbackService {
       const feedback = await this.feedbackRepository.createFeedback(
         userId,
         feedbackDto,
+        queryRunner,
       );
 
       if (files && files.length > 0) {
@@ -85,7 +86,11 @@ export class FeedbackService {
             file,
             ext,
           );
-          await this.imageService.createImage(feedback.feedbackId, fileUrl);
+          await this.imageService.createImage(
+            feedback.feedbackId,
+            fileUrl,
+            queryRunner,
+          );
         });
 
         await Promise.all(fileUploadPromises);
@@ -179,7 +184,11 @@ export class FeedbackService {
 
     try {
       // 피드백 업데이트
-      await this.feedbackRepository.updateFeedback(feedbackId, editFeedbackDto);
+      await this.feedbackRepository.updateFeedback(
+        feedbackId,
+        editFeedbackDto,
+        queryRunner,
+      );
 
       // 피드백 타겟 업데이트
       if (
@@ -202,8 +211,10 @@ export class FeedbackService {
           const fileName = image.imagePath.split('/').slice(-2).join('/');
           await this.awsService.deleteImageFromS3(fileName);
         });
-        const deleteImageDB =
-          this.imageService.deleteImagesByFeedbackId(feedbackId);
+        const deleteImageDB = this.imageService.deleteImagesByFeedbackId(
+          feedbackId,
+          queryRunner,
+        );
         await Promise.all([...deleteImageS3, deleteImageDB]);
       }
 
@@ -216,7 +227,7 @@ export class FeedbackService {
             file,
             ext,
           );
-          await this.imageService.createImage(feedbackId, fileUrl);
+          await this.imageService.createImage(feedbackId, fileUrl, queryRunner);
         });
 
         await Promise.all(fileUploadPromises);
@@ -239,55 +250,79 @@ export class FeedbackService {
     feedbackId: number,
     feedbackTarget: string,
   ): Promise<void> {
-    if (feedbackTarget.includes('/')) {
-      await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
-      const targets = feedbackTarget.split('/');
+    // DB 트랜잭션 시작
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      for (let i = 0; i < targets.length; i++) {
-        const [lectureIdStr, userIdsStr] = targets[i].split(':');
-        const lectureId = parseInt(lectureIdStr.trim());
+    try {
+      if (feedbackTarget.includes('/')) {
+        await this.feedbackTargetRepository.deleteFeedbackTarget(
+          feedbackId,
+          queryRunner,
+        );
+        const targets = feedbackTarget.split('/');
 
-        // userIds 문자열을 배열로 변환하고 정수로 파싱
-        const userIds = userIdsStr.split(',').map((id) => parseInt(id.trim()));
+        for (let i = 0; i < targets.length; i++) {
+          const [lectureIdStr, userIdsStr] = targets[i].split(':');
+          const lectureId = parseInt(lectureIdStr.trim());
 
-        // 각 lectureId와 userIds에 대해 피드백 대상 생성
-        for (let j = 0; j < userIds.length; j++) {
-          const userId = userIds[j];
-          if (!isNaN(userId)) {
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              lectureId,
-              userId,
-            );
-          }
-        }
-      }
-    } else {
-      await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
-      const [lectureId, userIdStr] = feedbackTarget.split(':');
+          // userIds 문자열을 배열로 변환하고 정수로 파싱
+          const userIds = userIdsStr
+            .split(',')
+            .map((id) => parseInt(id.trim()));
 
-      if (userIdStr.includes(',')) {
-        // userIds 문자열을 배열로 변환하고 정수로 파싱
-        const userIds = userIdStr.split(',').map((id) => parseInt(id.trim()));
-
-        for (let i = 0; i < userIds.length; i++) {
-          const userId = userIds[i];
-          if (!isNaN(userId)) {
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              parseInt(lectureId),
-              userId,
-            );
+          // 각 lectureId와 userIds에 대해 피드백 대상 생성
+          for (let j = 0; j < userIds.length; j++) {
+            const userId = userIds[j];
+            if (!isNaN(userId)) {
+              await this.feedbackTargetRepository.createFeedbackTarget(
+                feedbackId,
+                lectureId,
+                userId,
+              );
+            }
           }
         }
       } else {
-        const userId = parseInt(userIdStr);
-        await this.feedbackTargetRepository.createFeedbackTarget(
+        await this.feedbackTargetRepository.deleteFeedbackTarget(
           feedbackId,
-          parseInt(lectureId),
-          userId,
+          queryRunner,
         );
+        const [lectureId, userIdStr] = feedbackTarget.split(':');
+
+        if (userIdStr.includes(',')) {
+          // userIds 문자열을 배열로 변환하고 정수로 파싱
+          const userIds = userIdStr.split(',').map((id) => parseInt(id.trim()));
+
+          for (let i = 0; i < userIds.length; i++) {
+            const userId = userIds[i];
+            if (!isNaN(userId)) {
+              await this.feedbackTargetRepository.createFeedbackTarget(
+                feedbackId,
+                parseInt(lectureId),
+                userId,
+              );
+            }
+          }
+        } else {
+          const userId = parseInt(userIdStr);
+          await this.feedbackTargetRepository.createFeedbackTarget(
+            feedbackId,
+            parseInt(lectureId),
+            userId,
+          );
+        }
       }
+      // 정상적으로 끝났을 경우 commit
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      // error 발생 시 트랜잭션 rollback
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException('feedback 삭제 실패');
+    } finally {
+      // 끝났을 경우 queryRunner 해제
+      await queryRunner.release();
     }
   }
 
@@ -309,9 +344,9 @@ export class FeedbackService {
     try {
       // 피드백, 피드백 대상 및 이미지 삭제
       await Promise.all([
-        this.feedbackRepository.softDeleteFeedback(feedbackId),
-        this.deleteFeedbackTarget(feedbackId),
-        this.imageService.deleteImagesByFeedbackId(feedbackId),
+        this.feedbackRepository.softDeleteFeedback(feedbackId, queryRunner),
+        this.deleteFeedbackTarget(feedbackId, queryRunner),
+        this.imageService.deleteImagesByFeedbackId(feedbackId, queryRunner),
       ]);
 
       // S3에서 이미지 삭제
@@ -338,7 +373,13 @@ export class FeedbackService {
   }
 
   /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(feedbackId: number): Promise<void> {
-    await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
+  async deleteFeedbackTarget(
+    feedbackId: number,
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    await this.feedbackTargetRepository.deleteFeedbackTarget(
+      feedbackId,
+      queryRunner,
+    );
   }
 }

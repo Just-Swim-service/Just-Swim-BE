@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Feedback } from './entity/feedback.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
 
@@ -43,6 +43,7 @@ export class FeedbackRepository {
   async createFeedback(
     userId: number,
     feedbackDto: FeedbackDto,
+    queryRunner: QueryRunner,
   ): Promise<Feedback> {
     const {
       feedbackType,
@@ -51,7 +52,7 @@ export class FeedbackRepository {
       feedbackLink,
       feedbackTarget,
     } = feedbackDto;
-    const result = await this.feedbackRepository.query(
+    const result = await this.feedbackRepository.queryRunner.manager.query(
       'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
       [
         userId,
@@ -69,6 +70,7 @@ export class FeedbackRepository {
   async updateFeedback(
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
+    queryRunner: QueryRunner,
   ): Promise<void> {
     const {
       feedbackType,
@@ -78,7 +80,7 @@ export class FeedbackRepository {
       feedbackTarget,
     } = editFeedbackDto;
 
-    await this.feedbackRepository.query(
+    await this.feedbackRepository.queryRunner.manager.query(
       'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
       [
         feedbackId,
@@ -92,9 +94,13 @@ export class FeedbackRepository {
   }
 
   /* feedback 삭제(softDelete) */
-  async softDeleteFeedback(feedbackId: number): Promise<void> {
-    await this.feedbackRepository.query('CALL SOFT_DELETE_FEEDBACK(?)', [
-      feedbackId,
-    ]);
+  async softDeleteFeedback(
+    feedbackId: number,
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    await this.feedbackRepository.queryRunner.manager.query(
+      'CALL SOFT_DELETE_FEEDBACK(?)',
+      [feedbackId],
+    );
   }
 }

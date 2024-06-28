@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UserType } from '../enum/userType.enum';
 
 export class UsersDto {
   @ApiProperty({
@@ -10,6 +11,16 @@ export class UsersDto {
   @IsNotEmpty()
   @IsString()
   readonly provider: string;
+
+  @ApiProperty({
+    example: 'instructor',
+    description: '사용자 타입',
+    enum: UserType,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(UserType)
+  readonly userType?: UserType;
 
   @ApiProperty({
     example: 'test@example.com',

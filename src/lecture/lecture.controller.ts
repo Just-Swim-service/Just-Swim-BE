@@ -9,7 +9,6 @@ import {
   Res,
   HttpStatus,
   Patch,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LectureService } from './lecture.service';

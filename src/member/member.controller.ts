@@ -32,9 +32,9 @@ export class MemberController {
     summary: '강의 QR코드를 통한 회원 등록',
     description: 'QR 코드를 통해 고객들이 강의 member가 될 수 있습니다.',
   })
-  @ApiResponse({
-    status: 200,
-  })
+  @ApiResponse({ status: 200, description: '회원 등록 완료' })
+  @ApiResponse({ status: 401, description: '수강생이 아닌 경우 등록 불가' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async insertMemberFromQR(
     @Query('lectureId', ParseIntPipe) lectureId: number,
@@ -56,9 +56,9 @@ export class MemberController {
       }
 
       if (isExist.userType !== 'customer') {
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-          message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
-        });
+        throw new UnauthorizedException(
+          '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+        );
       }
 
       if (isExist.userType === 'customer') {
@@ -87,6 +87,8 @@ export class MemberController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '조회 권한 없음' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getAllMembersByFeedback(@Res() res: Response) {
     const { userId, userType } = res.locals.user;

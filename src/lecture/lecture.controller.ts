@@ -222,7 +222,9 @@ export class LectureController {
         .json({ message: '강의 생성 실패' });
     }
 
-    return res.status(HttpStatus.OK).json({ message: '강의 생성 성공' });
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: '강의 생성 성공', lectureId: newLecture.lectureId });
   }
 
   /* 강의 QR코드 생성 */

@@ -28,7 +28,7 @@ import {
   feedbacksByCustomer,
   feedbacksByInstructor,
 } from './example/feedbackExample';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Feedback')
 @Controller('feedback')
@@ -52,6 +52,8 @@ export class FeedbackController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getAllFeedback(@Res() res: Response) {
     const { userType, userId } = res.locals.user;
@@ -93,6 +95,8 @@ export class FeedbackController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getFeedbackDetail(
     @Res() res: Response,
@@ -113,10 +117,10 @@ export class FeedbackController {
     summary: 'feedback을 생성 한다',
     description: '수강생을 선택하여 feedback을 남긴다',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'feedback 생성 성공',
-  })
+  @ApiResponse({ status: 200, description: 'feedback 생성 성공' })
+  @ApiResponse({ status: 400, description: 'feedback 생성 실패' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async createFeedback(
     @Res() res: Response,
@@ -163,10 +167,9 @@ export class FeedbackController {
     summary: '작성했던 feedback을 수정한다.',
     description: 'instructor가 본인이 작성한 feedback을 수정한다.',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'feedback 수정 성공',
-  })
+  @ApiResponse({ status: 200, description: 'feedback 수정 성공' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async updateFeedback(
     @Res() res: Response,
@@ -192,10 +195,9 @@ export class FeedbackController {
     summary: 'feedback을 soft delete 한다.',
     description: 'feedbackId를 이용하여 해당 feedback을 soft delete한다.',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'feedback 삭제 성공',
-  })
+  @ApiResponse({ status: 200, description: 'feedback 삭제 성공' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async softDeleteFeedback(
     @Res() res: Response,

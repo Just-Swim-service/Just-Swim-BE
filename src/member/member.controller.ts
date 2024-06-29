@@ -56,9 +56,9 @@ export class MemberController {
       }
 
       if (isExist.userType !== 'customer') {
-        throw new UnauthorizedException(
-          '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
-        );
+        res.status(HttpStatus.UNAUTHORIZED).json({
+          message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+        });
       }
 
       if (isExist.userType === 'customer') {
@@ -93,7 +93,9 @@ export class MemberController {
   async getAllMembersByFeedback(@Res() res: Response) {
     const { userId, userType } = res.locals.user;
     if (userType !== 'instructor') {
-      throw new UnauthorizedException('member 조회 권한이 없습니다.');
+      res.status(HttpStatus.UNAUTHORIZED).json({
+        message: 'member 조회 권한이 없습니다.',
+      });
     }
 
     const allMembers = await this.memberService.getAllMembersByFeedback(

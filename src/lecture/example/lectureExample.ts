@@ -121,3 +121,20 @@ export const lectureDetailByCustomer = {
     instructorProfileImage: 'image1',
   },
 };
+
+export const lectureMemberList = {
+  value: [
+    {
+      memberId: '1',
+      userId: '1',
+      memberNickname: '홍길동',
+      profileImage: 'URL',
+    },
+    {
+      memberId: '2',
+      userId: '10',
+      memberNickname: '홍길순',
+      profileImage: 'URL',
+    },
+  ],
+};

@@ -321,7 +321,11 @@ export class UsersController {
   /* 프로필 수정 */
   @Patch('user/edit')
   @UseInterceptors(FileInterceptor('profileImage'))
-  @ApiOperation({ summary: '유저 프로필 수정' })
+  @ApiOperation({
+    summary: '유저 프로필 수정',
+    description:
+      'content type을 profileImage는 multipart/form-data로 넘겨주시고 나머지는 application/json으로 넘겨주시면 됩니다.',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -332,20 +336,25 @@ export class UsersController {
           format: 'binary',
           description: '수정할 사용자 프로필 이미지',
         },
-        name: {
-          type: 'string',
-          example: '홍길동',
-          description: '수정할 사용자 이름',
-        },
-        birth: {
-          type: 'string',
-          example: '1995.09.13',
-          description: '수정할 사용자 생년월일',
-        },
-        phoneNumber: {
-          type: 'string',
-          example: '010-1234-1234',
-          description: '수정할 사용자 핸드폰 번호',
+        editUserDto: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              example: '홍길동',
+              description: '수정할 사용자 이름',
+            },
+            birth: {
+              type: 'string',
+              example: '1995.09.13',
+              description: '수정할 사용자 생년월일',
+            },
+            phoneNumber: {
+              type: 'string',
+              example: '010-1234-1234',
+              description: '수정할 사용자 핸드폰 번호',
+            },
+          },
         },
       },
     },

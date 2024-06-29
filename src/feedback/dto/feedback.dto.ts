@@ -1,15 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { FeedbackType } from '../enum/feedbackType.enum';
+import { Type } from 'class-transformer';
+import { FeedbackTargetDto } from './feedbackTarget.dto';
 
 export class FeedbackDto {
   @ApiProperty({
-    example: 'group' || 'personal',
+    example: 'group',
     description: 'feedback 타입',
+    enum: FeedbackType,
     required: true,
   })
   @IsNotEmpty()
-  @IsString()
-  readonly feedbackType: string;
+  @IsEnum(FeedbackType)
+  readonly feedbackType: FeedbackType;
 
   @ApiProperty({
     example: '2024.04.22',
@@ -40,11 +50,16 @@ export class FeedbackDto {
   readonly feedbackContent: string;
 
   @ApiProperty({
-    example: '1:1,2,3/2:4,5,13',
-    description: 'lectureId:[userIds]',
+    example: [
+      { lectureId: 1, userIds: [2, 3] },
+      { lectureId: 2, userIds: [4, 5, 13] },
+    ],
+    description: 'lectureId와 userIds 쌍의 배열',
     required: true,
   })
   @IsNotEmpty()
-  @IsString()
-  readonly feedbackTarget: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FeedbackTargetDto)
+  readonly feedbackTarget: FeedbackTargetDto[];
 }

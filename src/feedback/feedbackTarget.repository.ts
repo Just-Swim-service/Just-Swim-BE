@@ -15,8 +15,9 @@ export class FeedbackTargetRepository {
     feedbackId: number,
     lectureId: number,
     userId: number,
+    queryRunner?: QueryRunner,
   ): Promise<FeedbackTarget> {
-    return await this.feedbackTargetRepository.query(
+    return await queryRunner.manager.query(
       'CALL CREATE_FEEDBACK_TARGET(?, ?, ?)',
       [feedbackId, lectureId, userId],
     );
@@ -38,10 +39,9 @@ export class FeedbackTargetRepository {
     feedbackId: number,
     queryRunner: QueryRunner,
   ): Promise<void> {
-    await this.feedbackTargetRepository.queryRunner.manager.query(
-      'CALL DELETE_FEEDBACK_TARGET(?)',
-      [feedbackId],
-    );
+    await queryRunner.manager.query('CALL DELETE_FEEDBACK_TARGET(?)', [
+      feedbackId,
+    ]);
   }
 
   /* feedbackId를 통해 target 확인 */

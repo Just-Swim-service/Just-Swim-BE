@@ -12,6 +12,7 @@ import { FeedbackTargetRepository } from './feedbackTarget.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
+import { FeedbackTargetDto } from './dto/feedbackTarget.dto';
 
 @Injectable()
 export class FeedbackService {
@@ -112,54 +113,38 @@ export class FeedbackService {
   /* feedbackTarget 생성 */
   async createFeedbackTarget(
     feedbackId: number,
-    feedbackTarget: string,
+    feedbackTarget: FeedbackTargetDto[],
   ): Promise<void> {
-    if (feedbackTarget.includes('/')) {
-      const targets = feedbackTarget.split('/');
+    // DB 트랜잭션 시작
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      for (let i = 0; i < targets.length; i++) {
-        const [lectureIdStr, userIdsStr] = targets[i].split(':');
-        const lectureId = parseInt(lectureIdStr.trim());
-
-        // userIds 문자열을 배열로 변환하고 정수로 파싱
-        const userIds = userIdsStr.split(',').map((id) => parseInt(id.trim()));
-
-        // 각 lectureId와 userIds에 대해 피드백 대상 생성
-        for (let j = 0; j < userIds.length; j++) {
-          const userId = userIds[j];
+    try {
+      for (const target of feedbackTarget) {
+        const lectureId = target.lectureId;
+        for (const userId of target.userIds) {
           if (!isNaN(userId)) {
+            // 여기서 추가적인 유효성 검사를 수행할 수 있음
             await this.feedbackTargetRepository.createFeedbackTarget(
               feedbackId,
               lectureId,
               userId,
+              queryRunner,
             );
           }
         }
       }
-    } else {
-      const [lectureId, userIdStr] = feedbackTarget.split(':');
-      if (userIdStr.includes(',')) {
-        // userIds 문자열을 배열로 변환하고 정수로 파싱
-        const userIds = userIdStr.split(',').map((id) => parseInt(id.trim()));
 
-        for (let i = 0; i < userIds.length; i++) {
-          const userId = userIds[i];
-          if (!isNaN(userId)) {
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              parseInt(lectureId),
-              userId,
-            );
-          }
-        }
-      } else {
-        const userId = parseInt(userIdStr);
-        await this.feedbackTargetRepository.createFeedbackTarget(
-          feedbackId,
-          parseInt(lectureId),
-          userId,
-        );
-      }
+      // 모든 작업이 성공적으로 완료되면 커밋
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      // 롤백
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException('피드백 타겟 생성 실패');
+    } finally {
+      // queryRunner 해제
+      await queryRunner.release();
     }
   }
 
@@ -192,7 +177,7 @@ export class FeedbackService {
       );
 
       // 피드백 타겟 업데이트
-      if (feedback.feedbackTargetList !== editFeedbackDto.feedbackTarget) {
+      if (editFeedbackDto.feedbackTarget.length > 0) {
         await this.updateFeedbackTarget(
           feedbackId,
           editFeedbackDto.feedbackTarget,
@@ -244,7 +229,7 @@ export class FeedbackService {
   /* feedbackTarget 수정 */
   async updateFeedbackTarget(
     feedbackId: number,
-    feedbackTarget: string,
+    feedbackTarget: FeedbackTargetDto[],
   ): Promise<void> {
     // DB 트랜잭션 시작
     const queryRunner = this.dataSource.createQueryRunner();
@@ -252,62 +237,18 @@ export class FeedbackService {
     await queryRunner.startTransaction();
 
     try {
-      if (feedbackTarget.includes('/')) {
-        await this.feedbackTargetRepository.deleteFeedbackTarget(
-          feedbackId,
-          queryRunner,
-        );
-        const targets = feedbackTarget.split('/');
-
-        for (let i = 0; i < targets.length; i++) {
-          const [lectureIdStr, userIdsStr] = targets[i].split(':');
-          const lectureId = parseInt(lectureIdStr.trim());
-
-          // userIds 문자열을 배열로 변환하고 정수로 파싱
-          const userIds = userIdsStr
-            .split(',')
-            .map((id) => parseInt(id.trim()));
-
-          // 각 lectureId와 userIds에 대해 피드백 대상 생성
-          for (let j = 0; j < userIds.length; j++) {
-            const userId = userIds[j];
-            if (!isNaN(userId)) {
-              await this.feedbackTargetRepository.createFeedbackTarget(
-                feedbackId,
-                lectureId,
-                userId,
-              );
-            }
+      // 새로운 피드백 대상 생성
+      for (const target of feedbackTarget) {
+        const lectureId = target.lectureId;
+        for (const userId of target.userIds) {
+          if (!isNaN(userId)) {
+            await this.feedbackTargetRepository.createFeedbackTarget(
+              feedbackId,
+              lectureId,
+              userId,
+              queryRunner,
+            );
           }
-        }
-      } else {
-        await this.feedbackTargetRepository.deleteFeedbackTarget(
-          feedbackId,
-          queryRunner,
-        );
-        const [lectureId, userIdStr] = feedbackTarget.split(':');
-
-        if (userIdStr.includes(',')) {
-          // userIds 문자열을 배열로 변환하고 정수로 파싱
-          const userIds = userIdStr.split(',').map((id) => parseInt(id.trim()));
-
-          for (let i = 0; i < userIds.length; i++) {
-            const userId = userIds[i];
-            if (!isNaN(userId)) {
-              await this.feedbackTargetRepository.createFeedbackTarget(
-                feedbackId,
-                parseInt(lectureId),
-                userId,
-              );
-            }
-          }
-        } else {
-          const userId = parseInt(userIdStr);
-          await this.feedbackTargetRepository.createFeedbackTarget(
-            feedbackId,
-            parseInt(lectureId),
-            userId,
-          );
         }
       }
       // 정상적으로 끝났을 경우 commit

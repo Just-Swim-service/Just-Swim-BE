@@ -38,6 +38,7 @@ async function bootstrap() {
       },
       'accessToken',
     )
+    .addServer('http://3.38.162.80', '서버 주소')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

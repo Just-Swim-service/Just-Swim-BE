@@ -13,14 +13,15 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserType } from '../enum/userType.enum';
 
 @Entity('users')
 export class Users {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'varchar', nullable: true })
-  userType: string;
+  @Column({ type: 'enum', enum: UserType, nullable: true })
+  userType: UserType;
 
   @Column({ type: 'varchar', nullable: true })
   provider: string;

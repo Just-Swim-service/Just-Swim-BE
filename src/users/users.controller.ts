@@ -24,6 +24,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -32,6 +33,7 @@ import {
 import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UserType } from './enum/userType.enum';
 
 @ApiTags('Users')
 @Controller()
@@ -44,14 +46,21 @@ export class UsersController {
   /* kakao 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao')
-  @ApiOperation({ summary: 'Kakao login' })
+  @ApiOperation({
+    summary: 'Kakao login',
+    description:
+      'kakao 소셜 로그인 - 서버 주소에 엔드포인트를 붙이시면 사용 가능합니다.',
+  })
   async kakaoLogin(): Promise<void> {
     return;
   }
 
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao/callback')
-  @ApiOperation({ summary: 'Kakao callback' })
+  @ApiOperation({
+    summary: 'Kakao callback',
+    description: 'redirect를 통해 프론트 주소로 이동',
+  })
   async kakaoCallback(
     @Req() req: Request,
     @Res() res: Response,
@@ -97,24 +106,30 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      let userId: number = newUser.userId;
-
-      // const accessToken = await this.authService.getToken(newUser.userId);
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+      const token = await this.authService.getToken(newUser.userId);
+      const query = '?token=' + token;
+      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
     }
   }
 
   /* naver 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver')
-  @ApiOperation({ summary: 'Naver login' })
+  @ApiOperation({
+    summary: 'Naver login',
+    description:
+      'naver 소셜 로그인 - 서버 주소에 엔드포인트를 붙이시면 사용 가능합니다.',
+  })
   async naverLogin(): Promise<void> {
     return;
   }
 
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver/callback')
-  @ApiOperation({ summary: 'Naver callback' })
+  @ApiOperation({
+    summary: 'Naver callback',
+    description: 'redirect를 통해 프론트 주소로 이동',
+  })
   async naverCallback(
     @Req() req: Request,
     @Res() res: Response,
@@ -136,14 +151,15 @@ export class UsersController {
     if (exUser) {
       // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-        res.redirect(process.env.HOME_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
@@ -157,24 +173,30 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      let userId: number = newUser.userId;
-
-      // const accessToken = await this.authService.getToken(newUser.userId);
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+      const token = await this.authService.getToken(newUser.userId);
+      const query = '?token=' + token;
+      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
     }
   }
 
   /* google 소셜 로그인 (Guard를 통해 접근) */
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google')
-  @ApiOperation({ summary: 'Google login' })
+  @ApiOperation({
+    summary: 'Google login',
+    description:
+      'google 소셜 로그인 - 서버 주소에 엔드포인트를 붙이시면 사용 가능합니다.',
+  })
   async googleLogin(): Promise<void> {
     return;
   }
 
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google/callback')
-  @ApiOperation({ summary: 'Google callback' })
+  @ApiOperation({
+    summary: 'Google callback',
+    description: 'redirect를 통해 프론트 주소로 이동',
+  })
   async googleCallback(
     @Req() req: Request,
     @Res() res: Response,
@@ -190,14 +212,15 @@ export class UsersController {
     if (exUser) {
       // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
-        // const accessToken = await this.authService.getToken(exUser.userId);
-        res.redirect(process.env.HOME_REDIRECT_URI);
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
@@ -209,10 +232,9 @@ export class UsersController {
         provider,
       };
       const newUser = await this.authService.createUser(newUserData);
-      let userId: number = newUser.userId;
-
-      // const accessToken = await this.authService.getToken(newUser.userId);
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+      const token = await this.authService.getToken(newUser.userId);
+      const query = '?token=' + token;
+      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
     }
   }
 
@@ -256,19 +278,24 @@ export class UsersController {
   /* 로그인 이후에 userType을 지정 */
   @Post('user/:userType')
   @ApiOperation({ summary: 'userType 선택' })
-  @ApiParam({ name: 'userType', description: 'userType', type: 'string' })
+  @ApiParam({
+    name: 'userType',
+    description: 'userType을 지정해주세요.',
+    enum: UserType,
+    enumName: 'UserType',
+  })
   @ApiResponse({ status: 200, description: 'userType 지정 완료' })
   @ApiResponse({ status: 400, description: 'userType을 지정해주세요' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async selectUserType(
-    @Param('userType') userType: string,
+    @Param('userType') userType: UserType,
     @Res() res: Response,
   ) {
     const { userId } = res.locals.user;
 
     // userType 기본 검사
-    if (!['customer', 'instructor'].includes(userType)) {
+    if (!Object.values(UserType).includes(userType)) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: '올바른 userType을 지정해주세요.' });
@@ -281,21 +308,7 @@ export class UsersController {
   /* 나의 프로필 조회 */
   @Get('user/myProfile')
   @ApiOperation({ summary: '프로필 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '프로필 조회',
-    schema: {
-      example: {
-        email: 'test@example.com',
-        userType: 'instructor',
-        name: '홍길동',
-        profileImage:
-          'http://k.kakaocdn.net/dn/bjZYua/btsGes2FtXY/FJRzFxTN7KX16kw5HzR3kk/img_640x640.jpg',
-        birth: '1995.09.13',
-        phoneNumber: '010-1234-1234',
-      },
-    },
-  })
+  @ApiOkResponse({ type: UsersDto, description: '프로필 조회 성공' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async findUserProfile(@Res() res: Response) {
@@ -356,7 +369,8 @@ export class UsersController {
   /* 로그아웃 */
   @Post('logout')
   @ApiOperation({ summary: '로그 아웃' })
-  @ApiResponse({ status: 200, description: '로그 아웃 완료' })
+  @ApiResponse({ status: 200, description: '로그아웃 완료' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async logout(@Res() res: Response) {
     res.clearCookie('authorization');

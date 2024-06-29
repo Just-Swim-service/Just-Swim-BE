@@ -9,7 +9,6 @@ import {
   Res,
   HttpStatus,
   Patch,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LectureService } from './lecture.service';
@@ -27,6 +26,7 @@ import { MemberService } from 'src/member/member.service';
 import {
   lectureDetailByCustomer,
   lectureDetailByInstructor,
+  lectureMemberList,
   lecturesByCustomer,
   lecturesByInstructor,
 } from './example/lectureExample';
@@ -56,6 +56,8 @@ export class LectureController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getLecturesForSchedule(@Res() res: Response) {
     const { userType, userId } = res.locals.user;
@@ -91,6 +93,8 @@ export class LectureController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getAllLectures(@Res() res: Response) {
     const { userType, userId } = res.locals.user;
@@ -132,6 +136,8 @@ export class LectureController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getLectureDetail(
     @Res() res: Response,
@@ -146,14 +152,10 @@ export class LectureController {
   /* 강의 수정 */
   @Patch(':lectureId')
   @ApiBody({ description: '강의 수정을 위한 정보', type: EditLectureDto })
-  @ApiOperation({
-    summary: '강의 수정',
-    description: '강의 내용을 수정',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '강의 수정 성공',
-  })
+  @ApiOperation({ summary: '강의 수정', description: '강의 내용을 수정' })
+  @ApiResponse({ status: 200, description: '강의 수정 성공' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async updateLecture(
     @Res() res: Response,
@@ -173,10 +175,9 @@ export class LectureController {
     summary: '강의 삭제',
     description: 'instructor가 강의를 삭제합니다.(soft Delete)',
   })
-  @ApiResponse({
-    status: 200,
-    description: '강의 삭제 성공',
-  })
+  @ApiResponse({ status: 200, description: '강의 삭제 성공' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async softDeleteLecture(
     @Res() res: Response,
@@ -197,6 +198,9 @@ export class LectureController {
   })
   @ApiBody({ description: '강의 생성을 위한 정보', type: LectureDto })
   @ApiResponse({ status: 200, description: '강의 생성 완료' })
+  @ApiResponse({ status: 400, description: '강의 생성 실패' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async createLecture(@Res() res: Response, @Body() lectureDto: LectureDto) {
     const { userId, userType } = res.locals.user;
@@ -248,22 +252,7 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          members: {
-            value: [
-              {
-                memberId: '1',
-                userId: '1',
-                memberNickname: '홍길동',
-                profileImage: 'URL',
-              },
-              {
-                memberId: '2',
-                userId: '10',
-                memberNickname: '홍길순',
-                profileImage: 'URL',
-              },
-            ],
-          },
+          members: lectureMemberList,
         },
       },
     },

@@ -14,6 +14,7 @@ import * as path from 'path';
 import { LectureRepository } from 'src/lecture/lecture.repository';
 import { MemberRepository } from 'src/member/member.repository';
 import { FeedbackRepository } from 'src/feedback/feedback.repository';
+import { UserType } from './enum/userType.enum';
 
 @Injectable()
 export class UsersService {
@@ -48,16 +49,16 @@ export class UsersService {
   }
 
   /* user의 userType 지정 */
-  async selectUserType(userId: number, userType: string): Promise<void> {
+  async selectUserType(userId: number, userType: UserType): Promise<void> {
     const user = await this.usersRepository.findUserByPk(userId);
     if (user.userType !== null) {
       throw new NotAcceptableException('계정에 타입이 이미 지정되어 있습니다.');
     }
     await this.usersRepository.selectUserType(userId, userType);
-    if (userType === 'customer') {
+    if (userType === UserType.Customer) {
       await this.customerRepository.createCustomer(userId);
     }
-    if (userType === 'instructor') {
+    if (userType === UserType.Instructor) {
       await this.instructorRepository.createInstructor(userId);
     }
   }

@@ -44,7 +44,6 @@ import { AwsModule } from './common/aws/aws.module';
         synchronize: false,
       }),
       inject: [ConfigService],
-
     }),
     UsersModule,
     AuthModule,

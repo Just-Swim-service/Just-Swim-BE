@@ -22,6 +22,7 @@ export class AwsService {
     });
   }
 
+  /* 이미지 저장 */
   async uploadImageToS3(
     fileName: string,
     file: Express.Multer.File,
@@ -40,9 +41,10 @@ export class AwsService {
     await this.s3Client.send(command);
 
     // 업로드된 이미지의 URL을 반환
-    return `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${process.env.AWS_S3_BUCKET_NAME}/${fileName}`;
+    return `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${fileName}`;
   }
 
+  /* 이미지 삭제 */
   async deleteImageFromS3(fileName: string) {
     const command = new DeleteObjectCommand({
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
@@ -52,13 +54,21 @@ export class AwsService {
     await this.s3Client.send(command);
   }
 
-  async uploadImagesToS3(
-    fileNames: string[],
-    files: Express.Multer.File[],
-    exts: string[],
-  ) {
-    if (files.length !== fileNames.length || files.length !== exts.length) {
-      throw new BadRequestException('');
-    }
+  /* qrcode 저장 */
+  async uploadQRCodeToS3(lectureId: number, qrCodeData: string) {
+    const buffer = Buffer.from(qrCodeData.split(',')[1], 'base64');
+    const fileName = `qrcodes/${lectureId}.png`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+      Key: fileName, // 업로드될 파일의 이름
+      Body: buffer, // 업로드할 파일
+      ACL: 'public-read', // 파일 접근 권한
+      ContentType: 'image/png', // 파일 타입/확장자
+    });
+
+    await this.s3Client.send(command);
+
+    return `https://${this.configService.get<string>('AWS_S3_BUCKET_NAME')}.s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${fileName}`;
   }
 }

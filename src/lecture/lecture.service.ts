@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,10 +8,13 @@ import { LectureRepository } from './lecture.repository';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { MemberRepository } from 'src/member/member.repository';
+import * as QRCode from 'qrcode';
+import { AwsService } from 'src/common/aws/aws.service';
 
 @Injectable()
 export class LectureService {
   constructor(
+    private readonly awsService: AwsService,
     private readonly lectureRepository: LectureRepository,
     private readonly memberRepository: MemberRepository,
   ) {}
@@ -95,7 +97,21 @@ export class LectureService {
     userId: number,
     lectureDto: LectureDto,
   ): Promise<Lecture> {
-    return await this.lectureRepository.createLecture(userId, lectureDto);
+    const newLecture = await this.lectureRepository.createLecture(
+      userId,
+      lectureDto,
+    );
+
+    // QR 생성
+    const qrCodeData = await QRCode.toDataURL(`${newLecture.lectureId}`);
+    const lectureQRCode = await this.awsService.uploadQRCodeToS3(
+      newLecture.lectureId,
+      qrCodeData,
+    );
+
+    await this.saveQRCode(newLecture.lectureId, lectureQRCode);
+
+    return newLecture;
   }
 
   // 강의 QR 코드 생성

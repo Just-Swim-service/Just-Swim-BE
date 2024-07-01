@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { FeedbackTarget } from './feedbackTarget.entity';
 import { Image } from 'src/image/entity/image.entity';
+import { FeedbackType } from '../enum/feedbackType.enum';
 
 @Entity('feedback')
 export class Feedback {
@@ -28,8 +29,8 @@ export class Feedback {
   @OneToMany(() => Image, (image) => image.feedbackId)
   image: Image[];
 
-  @Column({ type: 'varchar' })
-  feedbackType: string;
+  @Column({ type: 'enum', enum: FeedbackType })
+  feedbackType: FeedbackType;
 
   @Column({ type: 'varchar' })
   feedbackDate: string;
@@ -39,9 +40,6 @@ export class Feedback {
 
   @Column({ type: 'mediumtext' })
   feedbackContent: string;
-
-  @Column({ type: 'varchar' })
-  feedbackTargetList: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   feedbackCreatedAt: Date;

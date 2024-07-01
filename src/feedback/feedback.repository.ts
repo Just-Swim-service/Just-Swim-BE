@@ -45,23 +45,11 @@ export class FeedbackRepository {
     feedbackDto: FeedbackDto,
     queryRunner: QueryRunner,
   ): Promise<Feedback> {
-    const {
-      feedbackType,
-      feedbackContent,
-      feedbackDate,
-      feedbackLink,
-      feedbackTarget,
-    } = feedbackDto;
-    const result = await this.feedbackRepository.queryRunner.manager.query(
-      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
-      [
-        userId,
-        feedbackType,
-        feedbackContent,
-        feedbackDate,
-        feedbackLink,
-        feedbackTarget,
-      ],
+    const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
+      feedbackDto;
+    const result = await queryRunner.manager.query(
+      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?)',
+      [userId, feedbackType, feedbackContent, feedbackDate, feedbackLink],
     );
     return result[0][0];
   }
@@ -72,25 +60,16 @@ export class FeedbackRepository {
     editFeedbackDto: EditFeedbackDto,
     queryRunner: QueryRunner,
   ): Promise<void> {
-    const {
+    const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
+      editFeedbackDto;
+
+    await queryRunner.manager.query('CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?)', [
+      feedbackId,
       feedbackType,
       feedbackContent,
       feedbackDate,
       feedbackLink,
-      feedbackTarget,
-    } = editFeedbackDto;
-
-    await this.feedbackRepository.queryRunner.manager.query(
-      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?)',
-      [
-        feedbackId,
-        feedbackType,
-        feedbackContent,
-        feedbackDate,
-        feedbackLink,
-        feedbackTarget,
-      ],
-    );
+    ]);
   }
 
   /* feedback 삭제(softDelete) */
@@ -98,9 +77,8 @@ export class FeedbackRepository {
     feedbackId: number,
     queryRunner: QueryRunner,
   ): Promise<void> {
-    await this.feedbackRepository.queryRunner.manager.query(
-      'CALL SOFT_DELETE_FEEDBACK(?)',
-      [feedbackId],
-    );
+    await queryRunner.manager.query('CALL SOFT_DELETE_FEEDBACK(?)', [
+      feedbackId,
+    ]);
   }
 }

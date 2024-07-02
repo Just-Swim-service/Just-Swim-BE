@@ -79,6 +79,7 @@ export class AppModule implements NestModule {
       { path: 'lecture/:lectureId', method: RequestMethod.PATCH },
       { path: 'lecture/:lectureId', method: RequestMethod.DELETE },
       { path: 'lecture/:lectureId/qr-code', method: RequestMethod.POST },
+      { path: 'lecture/memberList/:lectureId', method: RequestMethod.GET },
       // Member
       { path: 'member/qr-code', method: RequestMethod.GET },
       { path: 'member', method: RequestMethod.GET },

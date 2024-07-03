@@ -2,11 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InstructorService } from './instructor.service';
 import { InstructorRepository } from './instructor.repository';
 import { Instructor } from './entity/instructor.entity';
+import { Users } from 'src/users/entity/users.entity';
 
 export class MockInstructorRepository {
   readonly mockInstructor: Instructor = {
     instructorId: 1,
-    userId: 3,
+    user: new Users(),
     workingLocation: null,
     career: null,
     history: null,
@@ -17,7 +18,6 @@ export class MockInstructorRepository {
     facebookLink: null,
     instructorCreatedAt: new Date(),
     instructorUpdatedAt: new Date(),
-    instructorDeletedAt: null,
   };
 }
 
@@ -51,10 +51,9 @@ describe('InstructorService', () => {
 
   describe('createInsturctor', () => {
     it('should create a new instructor with the provided data', async () => {
-      const instructorData = { userId: 3 };
       const newInstructor: Instructor = {
         instructorId: 1,
-        ...instructorData,
+        user: new Users(),
         workingLocation: null,
         career: null,
         history: null,
@@ -65,13 +64,12 @@ describe('InstructorService', () => {
         facebookLink: null,
         instructorCreatedAt: new Date(),
         instructorUpdatedAt: new Date(),
-        instructorDeletedAt: null,
       };
       (repository.createInstructor as jest.Mock).mockResolvedValue(
         newInstructor,
       );
 
-      const result = await service.createInstructor(instructorData.userId);
+      const result = await service.createInstructor(newInstructor.user.userId);
 
       expect(result).toEqual(newInstructor);
     });

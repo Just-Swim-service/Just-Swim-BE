@@ -2,15 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CustomerService } from './customer.service';
 import { CustomerRepository } from './customer.repository';
 import { Customer } from './entity/customer.entity';
+import { Users } from 'src/users/entity/users.entity';
 
 export class MockCustomerRepository {
   readonly mockCustomer: Customer = {
-    userId: 1,
+    user: new Users(),
     customerId: 1,
     customerNickname: '홍길동',
     customerCreatedAt: new Date(),
     customerUpdatedAt: new Date(),
-    customerDeletedAt: null,
   };
 }
 
@@ -44,18 +44,16 @@ describe('CustomerService', () => {
 
   describe('createCustomer', () => {
     it('should create a new customer with the provided data', async () => {
-      const customerData = { userId: 1 };
       const newCustomer: Customer = {
         customerId: 1,
-        ...customerData,
+        user: new Users(),
         customerNickname: null,
         customerCreatedAt: new Date(),
         customerUpdatedAt: new Date(),
-        customerDeletedAt: null,
       };
       (repository.createCustomer as jest.Mock).mockResolvedValue(newCustomer);
 
-      const result = await service.createCustomer(customerData.userId);
+      const result = await service.createCustomer(newCustomer.user.userId);
 
       expect(result).toEqual(newCustomer);
     });

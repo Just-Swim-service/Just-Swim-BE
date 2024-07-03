@@ -220,7 +220,10 @@ describe('UsersController', () => {
 
       usersService.findUserByPk.mockResolvedValue({ userType: null });
 
-      await controller.selectUserType(req.params.userType, res as Response);
+      await controller.selectUserType(
+        req.params.userType as any,
+        res as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: 'userType 지정 완료' });

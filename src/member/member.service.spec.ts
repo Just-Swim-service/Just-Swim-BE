@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MemberService } from './member.service';
 import { MemberRepository } from './member.repository';
 import { Member } from './entity/member.entity';
+import { Lecture } from 'src/lecture/entity/lecture.entity';
+import { Users } from 'src/users/entity/users.entity';
 
 export class MockMemberRepository {
   readonly mockMember: Member = {
     memberId: 1,
-    lectureId: 1,
-    userId: 1,
+    lecture: new Lecture(),
+    user: new Users(),
     memberNickname: '홍길동',
     memberCreatedAt: new Date(),
     memberUpdatedAt: new Date(),

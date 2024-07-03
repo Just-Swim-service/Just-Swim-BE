@@ -132,7 +132,7 @@ describe('UsersController', () => {
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+        `${process.env.SELECT_USERTYPE_REDIRECT_URI}/?token=accessToken`,
       );
     });
   });
@@ -164,7 +164,7 @@ describe('UsersController', () => {
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+        `${process.env.SELECT_USERTYPE_REDIRECT_URI}/?token=accessToken`,
       );
     });
   });
@@ -195,7 +195,7 @@ describe('UsersController', () => {
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+        `${process.env.SELECT_USERTYPE_REDIRECT_URI}/?token=accessToken`,
       );
     });
   });

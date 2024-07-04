@@ -31,11 +31,15 @@ export class FeedbackRepository {
   }
 
   /* feedback 상세 조회 */
-  async getFeedbackByPk(feedbackId: number): Promise<Feedback> {
+  async getFeedbackByPk(feedbackId: number) {
     const result = await this.feedbackRepository.query(
       'CALL GET_FEEDBACK_BY_PK(?)',
       [feedbackId],
     );
+
+    if (result[0].length === 0) {
+      return undefined;
+    }
     return result[0];
   }
 

@@ -45,9 +45,7 @@ export class FeedbackTargetRepository {
   }
 
   /* feedbackId를 통해 target 확인 */
-  async getFeedbackTargetByFeedbackId(
-    feedbackId: number,
-  ): Promise<FeedbackTarget[]> {
+  async getFeedbackTargetByFeedbackId(feedbackId: number) {
     const result = await this.feedbackTargetRepository.query(
       'CALL GET_FEEDBACK_TARGET_BY_FEEDBACKID(?)',
       [feedbackId],

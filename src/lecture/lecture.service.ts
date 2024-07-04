@@ -59,6 +59,7 @@ export class LectureService {
     }
     // member
     if (
+      Array.isArray(lectureMembers) &&
       lectureMembers.some(
         (member) => member.user && member.user.userId === userId,
       )

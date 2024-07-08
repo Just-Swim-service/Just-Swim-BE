@@ -104,7 +104,9 @@ export class LectureService {
     );
 
     // QR 생성
-    const qrCodeData = await QRCode.toDataURL(`${newLecture.lectureId}`);
+    const qrCodeData = await QRCode.toDataURL(
+      `${process.env.SERVER_QR_CHECK_URI}?lectureId=${newLecture.lectureId}`,
+    );
     const lectureQRCode = await this.awsService.uploadQRCodeToS3(
       newLecture.lectureId,
       qrCodeData,

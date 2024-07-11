@@ -45,20 +45,21 @@ export class FeedbackService {
       await this.feedbackTargetRepository.getFeedbackTargetByFeedbackId(
         feedbackId,
       );
-
+    console.log(feedbackTargetList);
     // instructor
-    if (feedback.user && feedback.user.userId === userId) {
-      return { feedback, feedbackTargetList };
+    for (let i = 0; i < feedback.length; i++) {
+      if (feedback[i].user.userId === userId) {
+        return { feedback, feedbackTargetList };
+      }
     }
+
     // member
-    if (
-      feedbackTargetList.some(
-        (feedbackTarget) =>
-          feedbackTarget.user && feedbackTarget.user.userId === userId,
-      )
-    ) {
-      return feedback;
+    for (let i = 0; i < feedbackTargetList.length; i++) {
+      if (feedbackTargetList[i].user.userId === userId) {
+        return feedback;
+      }
     }
+    throw new UnauthorizedException('feedback 상세 조회 권한이 없습니다.');
   }
 
   /* feedback 생성 */
@@ -160,8 +161,10 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    if (feedback.user && feedback.user.userId !== userId) {
-      throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
+    for (let i = 0; i < feedback.length; i++) {
+      if (feedback[i].user.userId !== userId) {
+        throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
+      }
     }
 
     // DB 트랜잭션 시작
@@ -238,6 +241,12 @@ export class FeedbackService {
     await queryRunner.startTransaction();
 
     try {
+      // update 시작 시 기존에 있던 feedback 대상 삭제
+      await this.feedbackTargetRepository.deleteFeedbackTarget(
+        feedbackId,
+        queryRunner,
+      );
+
       // 새로운 피드백 대상 생성
       for (const target of feedbackTarget) {
         const lectureId = target.lectureId;
@@ -270,8 +279,11 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    if (feedback.user && feedback.user.userId !== userId) {
-      throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
+
+    for (let i = 0; i < feedback.length; i++) {
+      if (feedback[i].user.userId !== userId) {
+        throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
+      }
     }
 
     // DB 트랜잭션 시작

@@ -4,6 +4,7 @@ import * as jwt from 'jsonwebtoken';
 import { UsersService } from 'src/users/users.service';
 import { Users } from 'src/users/entity/users.entity';
 import { MyLogger } from 'src/common/logger/logger.service';
+import { UserType } from 'src/users/enum/userType.enum';
 
 jest.mock('jsonwebtoken');
 
@@ -57,7 +58,7 @@ describe('AuthService', () => {
         birth: null,
         profileImage: null,
         phoneNumber: null,
-        userType: 'customer',
+        userType: UserType.Customer,
         userCreatedAt: new Date(),
         userUpdatedAt: new Date(),
         userDeletedAt: null,
@@ -106,7 +107,7 @@ describe('AuthService', () => {
         profileImage: 'profile_image_url',
         name: 'New User',
         provider: 'test_provider',
-        userType: 'customer',
+        userType: UserType.Customer,
       };
       const newUser: Users = {
         userId: 2,

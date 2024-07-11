@@ -66,7 +66,7 @@ export class MemberController {
           parseInt(userId),
           lectureId,
         );
-        return res.redirect(`/api/lecture/${lectureId}`);
+        return res.redirect(process.env.HOME_REDIRECT_URI);
       }
     } catch (error) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');

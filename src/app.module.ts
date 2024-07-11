@@ -40,8 +40,8 @@ import { AwsModule } from './common/aws/aws.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-        // synchronize: false,
+        // synchronize: true,
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
@@ -79,6 +79,7 @@ export class AppModule implements NestModule {
       { path: 'lecture/:lectureId', method: RequestMethod.PATCH },
       { path: 'lecture/:lectureId', method: RequestMethod.DELETE },
       { path: 'lecture/:lectureId/qr-code', method: RequestMethod.POST },
+      { path: 'lecture/memberList/:lectureId', method: RequestMethod.GET },
       // Member
       { path: 'member/qr-code', method: RequestMethod.GET },
       { path: 'member', method: RequestMethod.GET },

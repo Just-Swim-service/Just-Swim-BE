@@ -227,17 +227,6 @@ export class LectureController {
       .json({ message: '강의 생성 성공', lectureId: newLecture.lectureId });
   }
 
-  /* 강의 QR코드 생성 */
-  @Post(':lectureId/qr-code')
-  async createQRCode(
-    @Res() res: Response,
-    @Param('lectureId', ParseIntPipe) lectureId: number,
-    @Body('lectureQRCode') lectureQRCode: string,
-  ) {
-    await this.lectureService.saveQRCode(lectureId, lectureQRCode);
-    return res.status(HttpStatus.OK).json({ message: 'QR 코드 생성 완료' });
-  }
-
   /* 강의에 해당하는 수강생 목록 */
   @Get('memberList/:lectureId')
   @ApiOperation({

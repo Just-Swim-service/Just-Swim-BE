@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { HttpStatus } from '@nestjs/common';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
+import { FeedbackType } from './enum/feedbackType.enum';
 
 class MockFeedbackService {
   getAllFeedbackByInstructor = jest.fn();
@@ -90,8 +91,16 @@ describe('FeedbackController', () => {
 
   describe('createFeedback', () => {
     it('instructor가 member에 해당하는 customer에게 feedback을 남긴다.', async () => {
-      const req: Partial<Request> = {
-        body: { feedbackDto: FeedbackDto },
+      const editFeedbackDto: EditFeedbackDto = {
+        feedbackType: FeedbackType.Group,
+        feedbackDate: '2024.04.22',
+        feedbackLink: 'URL',
+        feedbackContent:
+          '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
+        feedbackTarget: [
+          { lectureId: 1, userIds: [2, 3] },
+          { lectureId: 2, userIds: [4, 5, 13] },
+        ],
       };
 
       const res: Partial<Response> = {
@@ -105,9 +114,11 @@ describe('FeedbackController', () => {
         json: jest.fn(),
       };
 
+      const files: Express.Multer.File[] = [];
+
       feedbackService.createFeedback.mockResolvedValue(true);
 
-      await controller.createFeedback(res as Response, req.body);
+      await controller.createFeedback(res as Response, editFeedbackDto, files);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: 'feedback 생성 성공' });
@@ -133,9 +144,16 @@ describe('FeedbackController', () => {
 
       const feedbackId = 1;
 
+      const files: Express.Multer.File[] = [];
+
       feedbackService.updateFeedback.mockResolvedValue(true);
 
-      await controller.updateFeedback(res as Response, feedbackId, req.body);
+      await controller.updateFeedback(
+        res as Response,
+        feedbackId,
+        req.body,
+        files,
+      );
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: 'feedback 수정 성공' });

@@ -4,19 +4,27 @@ import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
 import { FeedbackTarget } from './entity/feedbackTarget.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunnerProviderAlreadyReleasedError } from 'typeorm';
+import { FeedbackType } from './enum/feedbackType.enum';
+import { MockUsersRepository } from 'src/users/users.service.spec';
+import { MockLectureRepository } from 'src/lecture/lecture.service.spec';
+import { AwsService } from 'src/common/aws/aws.service';
+import { FeedbackTargetDto } from './dto/feedbackTarget.dto';
+import { ImageService } from 'src/image/image.service';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { EditFeedbackDto } from './dto/editFeedback.dto';
+
+const mockUser = new MockUsersRepository().mockUser;
 
 export class MockFeedbackRepository {
   readonly mockFeedback: Feedback = {
     feedbackId: 1,
-    userId: 1,
-    feedbackType: 'personal',
+    user: mockUser,
+    feedbackType: FeedbackType.Personal,
     feedbackContent:
       '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
-    feedbackFile: 'file1',
     feedbackLink: 'URL',
     feedbackDate: '2024.04.22',
-    feedbackTargetList: '2:2,3',
     feedbackCreatedAt: new Date(),
     feedbackUpdatedAt: new Date(),
     feedbackDeletedAt: null,
@@ -25,12 +33,15 @@ export class MockFeedbackRepository {
   };
 }
 
+const mockFeedback = new MockFeedbackRepository().mockFeedback;
+const mockLecture = new MockLectureRepository().mockLecture;
+
 export class MockFeedbackTargetRepository {
   readonly mockFeedbackTarget: FeedbackTarget = {
     feedbackTargetId: 1,
-    feedbackId: 1,
-    userId: 2,
-    lectureId: 1,
+    feedback: mockFeedback,
+    user: mockUser,
+    lecture: mockLecture,
     feedbackTargetCreatedAt: new Date(),
     feedbackTargetUpdatedAt: new Date(),
   };
@@ -51,6 +62,8 @@ describe('FeedbackService', () => {
   let feedbackRepository: FeedbackRepository;
   let feedbackTargetRepository: FeedbackTargetRepository;
   let dataSource: DataSource;
+  let awsService: AwsService;
+  let imageService: ImageService;
 
   const mockFeedback = new MockFeedbackRepository().mockFeedback;
   const mockFeedbackTarget = new MockFeedbackTargetRepository()
@@ -61,33 +74,40 @@ describe('FeedbackService', () => {
       providers: [
         FeedbackService,
         {
+          provide: ImageService,
+          useValue: {
+            createImage: jest.fn(),
+            getImagesByFeedbackId: jest.fn(),
+            deleteImagesByFeedbackId: jest.fn(),
+            deleteImage: jest.fn(),
+          },
+        },
+        {
+          provide: AwsService,
+          useValue: {
+            uploadImageToS3: jest.fn(),
+            deleteImageFromS3: jest.fn(),
+            uploadQRCodeToS3: jest.fn(),
+          },
+        },
+        {
           provide: FeedbackRepository,
           useValue: {
-            getAllFeedbackByInstructor: jest
-              .fn()
-              .mockResolvedValue(mockFeedback),
-            getAllFeedbackByCustomer: jest.fn().mockRejectedValue(mockFeedback),
-            getFeedbackByPk: jest.fn().mockResolvedValue(mockFeedback),
-            createFeedback: jest.fn().mockResolvedValue(mockFeedback),
-            updateFeedback: jest.fn().mockResolvedValue(mockFeedback),
-            softDeleteFeedback: jest.fn().mockResolvedValue(mockFeedback),
+            getAllFeedbackByInstructor: jest.fn(),
+            getAllFeedbackByCustomer: jest.fn(),
+            getFeedbackByPk: jest.fn(),
+            createFeedback: jest.fn(),
+            updateFeedback: jest.fn(),
+            softDeleteFeedback: jest.fn(),
           },
         },
         {
           provide: FeedbackTargetRepository,
           useValue: {
-            getFeedbackTargetByFeedbackId: jest
-              .fn()
-              .mockRejectedValue(mockFeedbackTarget),
-            createFeedbackTarget: jest
-              .fn()
-              .mockResolvedValue(mockFeedbackTarget),
-            updateFeedbackTarget: jest
-              .fn()
-              .mockResolvedValue(mockFeedbackTarget),
-            deleteFeedbackTarget: jest
-              .fn()
-              .mockResolvedValue(mockFeedbackTarget),
+            getFeedbackTargetByFeedbackId: jest.fn(),
+            createFeedbackTarget: jest.fn(),
+            updateFeedbackTarget: jest.fn(),
+            deleteFeedbackTarget: jest.fn(),
           },
         },
         { provide: DataSource, useClass: MockDataSource },
@@ -100,6 +120,8 @@ describe('FeedbackService', () => {
       FeedbackTargetRepository,
     );
     dataSource = module.get<DataSource>(DataSource);
+    awsService = module.get<AwsService>(AwsService);
+    imageService = module.get<ImageService>(ImageService);
   });
 
   it('should be defined', () => {
@@ -134,22 +156,42 @@ describe('FeedbackService', () => {
 
   describe('getFeedbackByPk', () => {
     it('feedbackId에 해당하는 feedback을 상세 조회해서 return', async () => {
-      const feedbackId = 1;
-      const userId = 1;
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([
+        mockFeedback,
+      ]);
+      (
+        feedbackTargetRepository.getFeedbackTargetByFeedbackId as jest.Mock
+      ).mockResolvedValue([mockFeedbackTarget]);
 
-      jest
-        .spyOn(feedbackRepository, 'getFeedbackByPk')
-        .mockResolvedValue(mockFeedback);
-      jest
-        .spyOn(feedbackTargetRepository, 'getFeedbackTargetByFeedbackId')
-        .mockResolvedValue([mockFeedbackTarget]);
-
-      const result = await service.getFeedbackByPk(userId, feedbackId);
-
+      const result = await service.getFeedbackByPk(
+        mockUser.userId,
+        mockFeedback.feedbackId,
+      );
       expect(result).toEqual({
-        feedback: mockFeedback,
+        feedback: [mockFeedback],
         feedbackTargetList: [mockFeedbackTarget],
       });
+    });
+
+    it('feedback이 존재하지 않을 경우 NotFoundException 발생', async () => {
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(null);
+      await expect(service.getFeedbackByPk(mockUser.userId, 2)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('접근 권한이 없는 user일 경우 UnauthorizedException 발생', async () => {
+      const anotherUser = { userId: 2 };
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+        mockFeedback,
+      );
+      (
+        feedbackTargetRepository.getFeedbackTargetByFeedbackId as jest.Mock
+      ).mockResolvedValue([mockFeedbackTarget]);
+
+      await expect(
+        service.getFeedbackByPk(anotherUser.userId, mockFeedback.feedbackId),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -157,106 +199,73 @@ describe('FeedbackService', () => {
     it('새로운 feedback을 instructor가 생성', async () => {
       const userId = 1;
       const feedbackDto = {
-        feedbackType: 'personal',
+        feedbackType: FeedbackType.Group,
         feedbackContent:
           '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
         feedbackDate: '2024.04.22',
-        feedbackFile: 'file1',
         feedbackLink: 'URL',
-        feedbackTarget: '1:1,2/2:3,4',
+        feedbackTarget: [
+          { lectureId: 1, userIds: [2, 3] },
+          { lectureId: 2, userIds: [4, 5, 13] },
+        ],
       };
-      const feedback: Feedback = {
-        userId,
-        feedbackId: 2,
-        feedbackType: feedbackDto.feedbackType,
-        feedbackContent: feedbackDto.feedbackContent,
-        feedbackDate: feedbackDto.feedbackDate,
-        feedbackFile: feedbackDto.feedbackFile,
-        feedbackLink: feedbackDto.feedbackLink,
-        feedbackTargetList: feedbackDto.feedbackTarget,
+
+      const newFeedback: Feedback = {
+        ...mockFeedback,
+        feedbackType: FeedbackType.Group,
         feedbackCreatedAt: new Date(),
         feedbackUpdatedAt: new Date(),
-        feedbackDeletedAt: null,
-        feedbackTarget: [],
-        image: [],
       };
       (feedbackRepository.createFeedback as jest.Mock).mockResolvedValue(
-        feedback,
+        newFeedback,
       );
 
       const result = await service.createFeedback(userId, feedbackDto);
 
-      expect(result).toEqual(feedback);
+      expect(result).toEqual(newFeedback);
     });
   });
 
   describe('createFeedbackTarget', () => {
     it('feedbackId에 해당하는 feedback을 대상에게 전달하기 위해 feedbackTarget 생성', async () => {
-      const feedbackId = 1;
-
-      // feedbackType이 personal
-      const feedbackTargetPersonal = '1:2';
-      jest
-        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
-        .mockResolvedValue(mockFeedbackTarget);
-
-      await service.createFeedbackTarget(feedbackId, feedbackTargetPersonal);
+      const feedbackTargetDto: FeedbackTargetDto[] = [
+        { lectureId: 1, userIds: [2, 3] },
+      ];
+      await service.createFeedbackTarget(
+        mockFeedback.feedbackId,
+        feedbackTargetDto,
+      );
       expect(
         feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId, 1, 2);
-
-      // feedbackType이 group
-      const feedbackTargetGroup = '2,3,4';
-      const lectureId = 1;
-      const expectedUserIds = [2, 3, 4];
-      jest
-        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
-        .mockResolvedValue(mockFeedbackTarget);
-
-      await service.createFeedbackTarget(
-        feedbackId,
-        `1:${feedbackTargetGroup}`,
-      );
-
-      expectedUserIds.forEach((userId) => {
-        expect(
-          feedbackTargetRepository.createFeedbackTarget,
-        ).toHaveBeenCalledWith(feedbackId, lectureId, userId);
-      });
+      ).toHaveBeenCalledWith(mockFeedback.feedbackId, 1, 2, expect.any(Object));
+      expect(
+        feedbackTargetRepository.createFeedbackTarget,
+      ).toHaveBeenCalledWith(mockFeedback.feedbackId, 1, 3, expect.any(Object));
     });
   });
 
   describe('updateFeedback', () => {
     it('feedbackId에 해당하는 feedback을 수정', async () => {
-      const feedbackId = 1;
-      const userId = 1;
-      const editFeedbackDto = {
-        feedbackId: '1',
-        feedbackType: 'group',
-        feedbackDate: '2024.04.22',
-        feedbackTarget: '2:3,4,5',
-        feedbackFile: 'file1',
+      const editFeedbackDto: EditFeedbackDto = {
+        feedbackType: FeedbackType.Personal,
+        feedbackContent: 'Updated feedback content',
+        feedbackDate: '2024-04-23',
         feedbackLink: 'URL',
-        feedbackContent:
-          '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
+        feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
       };
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+        mockFeedback,
+      );
 
-      jest
-        .spyOn(feedbackRepository, 'getFeedbackByPk')
-        .mockResolvedValue(mockFeedback);
-      jest.spyOn(feedbackRepository, 'updateFeedback').mockResolvedValue(null);
-      jest
-        .spyOn(feedbackTargetRepository, 'deleteFeedbackTarget')
-        .mockResolvedValue(null);
-      jest
-        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
-        .mockResolvedValue(null);
-
-      await service.updateFeedback(userId, feedbackId, editFeedbackDto);
-
-      expect(feedbackRepository.updateFeedback).toHaveBeenCalledWith(
-        feedbackId,
+      await service.updateFeedback(
+        mockUser.userId,
+        mockFeedback.feedbackId,
         editFeedbackDto,
+      );
+      expect(feedbackRepository.updateFeedback).toHaveBeenCalledWith(
+        mockFeedback.feedbackId,
+        editFeedbackDto,
+        expect.any(Object),
       );
     });
   });
@@ -264,48 +273,55 @@ describe('FeedbackService', () => {
   describe('updateFeedbackTarget', () => {
     it('feedbackId에 해당하는 feedbackTarget 수정', async () => {
       const feedbackId = 1;
-      const feedbackTargetGroup = '1:2,3,4';
-      const expectedUserIds = [2, 3, 4];
-
-      jest
-        .spyOn(feedbackTargetRepository, 'deleteFeedbackTarget')
-        .mockResolvedValue(null);
-      jest
-        .spyOn(feedbackTargetRepository, 'createFeedbackTarget')
-        .mockResolvedValue(null);
-
+      const feedbackTargetGroup: FeedbackTargetDto[] = [
+        { lectureId: 1, userIds: [2, 3, 4] },
+      ];
       await service.updateFeedbackTarget(feedbackId, feedbackTargetGroup);
-
       expect(
         feedbackTargetRepository.deleteFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId);
+      ).toHaveBeenCalledWith(feedbackId, expect.any(Object));
+      expect(
+        feedbackTargetRepository.createFeedbackTarget,
+      ).toHaveBeenCalledWith(feedbackId, 1, 2, expect.any(Object));
+      expect(
+        feedbackTargetRepository.createFeedbackTarget,
+      ).toHaveBeenCalledWith(feedbackId, 1, 3, expect.any(Object));
+      expect(
+        feedbackTargetRepository.createFeedbackTarget,
+      ).toHaveBeenCalledWith(feedbackId, 1, 4, expect.any(Object));
+    });
 
-      expectedUserIds.forEach((userId) => {
-        expect(
-          feedbackTargetRepository.createFeedbackTarget,
-        ).toHaveBeenCalledWith(feedbackId, 1, userId);
+    describe('softDeleteFeedback', () => {
+      it('feedbackId에 해당하는 feedback softDelete', async () => {
+        (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+          mockFeedback,
+        );
+
+        await service.softDeleteFeedback(
+          mockUser.userId,
+          mockFeedback.feedbackId,
+        );
+        expect(feedbackRepository.softDeleteFeedback).toHaveBeenCalledWith(
+          mockFeedback.feedbackId,
+          expect.any(Object),
+        );
       });
     });
-  });
 
-  describe('softDeleteFeedback', () => {
-    it('feedbackId에 해당하는 feedback softDelete', async () => {
-      const feedbackId = 1;
-      const userId = 1;
-      await service.softDeleteFeedback(userId, feedbackId);
-      expect(feedbackRepository.softDeleteFeedback).toHaveBeenCalledWith(
-        feedbackId,
-      );
-    });
-  });
+    describe('deleteFeedbackTarget', () => {
+      it('feedbackId에 해당하는 feedbackTarget delete', async () => {
+        const feedbackId = 1;
+        const queryRunner = new MockDataSource().createQueryRunner();
+        jest
+          .spyOn(feedbackTargetRepository, 'deleteFeedbackTarget')
+          .mockResolvedValue(null);
 
-  describe('deleteFeedbackTarget', () => {
-    it('feedbackId에 해당하는 feedbackTarget delete', async () => {
-      const feedbackId = 1;
-      await service.deleteFeedbackTarget(feedbackId);
-      expect(
-        feedbackTargetRepository.deleteFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId);
+        await service.deleteFeedbackTarget(feedbackId, queryRunner as any);
+
+        expect(
+          feedbackTargetRepository.deleteFeedbackTarget,
+        ).toHaveBeenCalledWith(feedbackId, queryRunner);
+      });
     });
   });
 });

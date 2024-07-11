@@ -16,18 +16,19 @@ export class ImageRepository {
     imagePath: string,
     queryRunner: QueryRunner,
   ) {
-    return await this.imageRepository.queryRunner.manager.query(
-      'CALL CREATE_IMAGE(?, ?)',
-      [feedbackId, imagePath],
-    );
+    return await queryRunner.manager.query('CALL CREATE_IMAGE(?, ?)', [
+      feedbackId,
+      imagePath,
+    ]);
   }
 
   // feedback image 조회
-  async getImagesByFeedbackId(feedbackId: number): Promise<Image[]> {
-    return await this.imageRepository.query(
+  async getImagesByFeedbackId(feedbackId: number) {
+    const result = await this.imageRepository.query(
       'CALL GET_IMAGES_BY_FEEDBACKID(?)',
       [feedbackId],
     );
+    return result[0];
   }
 
   // image 삭제
@@ -40,9 +41,8 @@ export class ImageRepository {
     feedbackId: number,
     queryRunner: QueryRunner,
   ): Promise<void> {
-    await this.imageRepository.queryRunner.manager.query(
-      'CALL DELETE_IMAGES_BY_FEEDBACKID(?)',
-      [feedbackId],
-    );
+    await queryRunner.manager.query('CALL DELETE_IMAGES_BY_FEEDBACKID(?)', [
+      feedbackId,
+    ]);
   }
 }

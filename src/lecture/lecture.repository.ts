@@ -113,11 +113,11 @@ export class LectureRepository {
       lectureTime,
       lectureDays,
       lectureColor,
-      lectureQRCode,
       lectureLocation,
+      lectureQRCode,
       lectureEndDate,
     } = lectureDto;
-    return await this.lectureRepository.query(
+    const result = await this.lectureRepository.query(
       'CALL CREATE_LECTURE(?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         userId,
@@ -126,11 +126,12 @@ export class LectureRepository {
         lectureTime,
         lectureDays,
         lectureColor,
-        lectureQRCode,
         lectureLocation,
+        lectureQRCode,
         lectureEndDate,
       ],
     );
+    return result[0][0];
   }
 
   /* 강의 QR 코드 생성 */

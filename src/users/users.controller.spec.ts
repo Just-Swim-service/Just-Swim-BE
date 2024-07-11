@@ -132,7 +132,7 @@ describe('UsersController', () => {
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+        `${process.env.SELECT_USERTYPE_REDIRECT_URI}/?token=accessToken`,
       );
     });
   });
@@ -164,7 +164,7 @@ describe('UsersController', () => {
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+        `${process.env.SELECT_USERTYPE_REDIRECT_URI}/?token=accessToken`,
       );
     });
   });
@@ -195,7 +195,7 @@ describe('UsersController', () => {
       expect(authService.validateUser).toHaveBeenCalled();
       expect(authService.createUser).toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+        `${process.env.SELECT_USERTYPE_REDIRECT_URI}/?token=accessToken`,
       );
     });
   });
@@ -220,7 +220,10 @@ describe('UsersController', () => {
 
       usersService.findUserByPk.mockResolvedValue({ userType: null });
 
-      await controller.selectUserType(req.params.userType, res as Response);
+      await controller.selectUserType(
+        req.params.userType as any,
+        res as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith({ message: 'userType 지정 완료' });

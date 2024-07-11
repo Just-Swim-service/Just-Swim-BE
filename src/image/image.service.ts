@@ -23,8 +23,7 @@ export class ImageService {
 
   // feedback image 조회
   async getImagesByFeedbackId(feedbackId: number): Promise<Image[]> {
-    const result = await this.imageRepository.getImagesByFeedbackId(feedbackId);
-    return result[0][0];
+    return await this.imageRepository.getImagesByFeedbackId(feedbackId);
   }
 
   // feedbackId에 해당하는 image 삭제

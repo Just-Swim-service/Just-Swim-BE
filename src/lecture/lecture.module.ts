@@ -5,9 +5,14 @@ import { LectureRepository } from './lecture.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Lecture } from './entity/lecture.entity';
 import { MemberModule } from 'src/member/member.module';
+import { AwsModule } from 'src/common/aws/aws.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Lecture]), MemberModule],
+  imports: [
+    TypeOrmModule.forFeature([Lecture]),
+    forwardRef(() => MemberModule),
+    forwardRef(() => AwsModule),
+  ],
   controllers: [LectureController],
   providers: [LectureService, LectureRepository],
   exports: [LectureService, LectureRepository],

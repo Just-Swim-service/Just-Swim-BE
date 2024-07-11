@@ -4,11 +4,17 @@ import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
 import { MemberRepository } from 'src/member/member.repository';
 import { MockMemberRepository } from 'src/member/member.service.spec';
+import { AwsService } from 'src/common/aws/aws.service';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { MockUsersRepository } from 'src/users/users.service.spec';
+import * as QRCode from 'qrcode';
+
+const mockUser = new MockUsersRepository().mockUser;
 
 export class MockLectureRepository {
   readonly mockLecture: Lecture = {
     lectureId: 1,
-    userId: 1,
+    user: mockUser,
     lectureTitle: '아침 5반',
     lectureContent: '이 강의는 고급자를 대상으로 합니다. 응용을 다룹니다.',
     lectureTime: '12:00-14:00',
@@ -29,6 +35,7 @@ describe('LectureService', () => {
   let service: LectureService;
   let lectureRepository: LectureRepository;
   let memberRepository: MemberRepository;
+  let awsService: AwsService;
 
   const mockLecture = new MockLectureRepository().mockLecture;
   const mockMember = new MockMemberRepository().mockMember;
@@ -37,6 +44,14 @@ describe('LectureService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LectureService,
+        {
+          provide: AwsService,
+          useValue: {
+            uploadImageToS3: jest.fn(),
+            deleteImageFromS3: jest.fn(),
+            uploadQRCodeToS3: jest.fn(),
+          },
+        },
         {
           provide: LectureRepository,
           useValue: {
@@ -49,13 +64,14 @@ describe('LectureService', () => {
             updateLecture: jest.fn().mockResolvedValue(mockLecture),
             softDeleteLecture: jest.fn().mockResolvedValue(mockLecture),
             createLecture: jest.fn().mockResolvedValue(mockLecture),
+            saveQRCode: jest.fn(),
           },
         },
         {
           provide: MemberRepository,
           useValue: {
             insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
-            getAllMembersByLectureId: jest.fn().mockResolvedValue(mockMember),
+            getAllMembersByLectureId: jest.fn().mockResolvedValue([mockMember]),
           },
         },
       ],
@@ -64,6 +80,7 @@ describe('LectureService', () => {
     service = module.get<LectureService>(LectureService);
     lectureRepository = module.get<LectureRepository>(LectureRepository);
     memberRepository = module.get<MemberRepository>(MemberRepository);
+    awsService = module.get<AwsService>(AwsService);
   });
 
   it('should be defined', () => {
@@ -113,19 +130,43 @@ describe('LectureService', () => {
       const userId = 1;
       const lectureId = 1;
 
+      const result = await service.getLectureByPk(userId, lectureId);
+
+      expect(result).toEqual({
+        lecture: mockLecture,
+        lectureMembers: [mockMember],
+      });
+      expect(lectureRepository.getLectureByPk).toHaveBeenCalledWith(lectureId);
+      expect(memberRepository.getAllMembersByLectureId).toHaveBeenCalledWith(
+        lectureId,
+      );
+    });
+
+    it('lectureId에 해당하는 lecture가 존재하지 않으면 NotFoundException을 throw', async () => {
+      const userId = 1;
+      const lectureId = 999;
+
+      (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.getLectureByPk(userId, lectureId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('강의 접근 권한이 없으면 UnauthorizedException을 throw', async () => {
+      const userId = 999;
+      const lectureId = 1;
+
       (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue(
         mockLecture,
       );
       (
         memberRepository.getAllMembersByLectureId as jest.Mock
-      ).mockResolvedValue(mockMember);
+      ).mockResolvedValue([]);
 
-      const result = await service.getLectureByPk(userId, lectureId);
-
-      expect(result).toEqual({
-        lecture: mockLecture,
-        lectureMembers: mockMember,
-      });
+      await expect(service.getLectureByPk(userId, lectureId)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -177,7 +218,7 @@ describe('LectureService', () => {
         lectureEndDate: '2024.05.31',
       };
       const newLecture: Lecture = {
-        userId,
+        user: mockUser,
         lectureId: 2,
         ...lectureDto,
         lectureCreatedAt: new Date(),
@@ -186,6 +227,8 @@ describe('LectureService', () => {
         member: [],
         feedbackTarget: [],
       };
+      const mockQRCode = `${newLecture.lectureId}`;
+      jest.spyOn(QRCode, 'toDataURL').mockResolvedValue(mockQRCode as never);
       (lectureRepository.createLecture as jest.Mock).mockResolvedValue(
         newLecture,
       );
@@ -193,6 +236,15 @@ describe('LectureService', () => {
       const result = await service.createLecture(userId, lectureDto);
 
       expect(result).toEqual(newLecture);
+      expect(lectureRepository.createLecture).toHaveBeenCalledWith(
+        userId,
+        lectureDto,
+      );
+      expect(QRCode.toDataURL).toHaveBeenCalledWith(`${newLecture.lectureId}`);
+      expect(awsService.uploadQRCodeToS3).toHaveBeenCalledWith(
+        newLecture.lectureId,
+        expect.any(String),
+      );
     });
   });
 });

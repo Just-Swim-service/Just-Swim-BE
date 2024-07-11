@@ -8,6 +8,7 @@ import { MockCustomerRepository } from 'src/customer/customer.service.spec';
 import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
 import { NotFoundException } from '@nestjs/common';
 import { AwsService } from 'src/common/aws/aws.service';
+import { UserType } from './enum/userType.enum';
 
 export class MockUsersRepository {
   readonly mockUser: Users = {
@@ -18,7 +19,7 @@ export class MockUsersRepository {
     birth: null,
     profileImage: 'old_profile_image_url',
     phoneNumber: null,
-    userType: 'customer',
+    userType: UserType.Customer,
     userCreatedAt: new Date(),
     userUpdatedAt: new Date(),
     userDeletedAt: null,
@@ -31,6 +32,9 @@ export class MockUsersRepository {
   };
 }
 
+const mockCustomer = new MockCustomerRepository().mockCustomer;
+const mockInstructor = new MockInstructorRepository().mockInstructor;
+
 describe('UsersService', () => {
   let usersService: UsersService;
   let awsService: AwsService;
@@ -39,8 +43,6 @@ describe('UsersService', () => {
   let instructorRepository: InstructorRepository;
 
   const mockUser = new MockUsersRepository().mockUser;
-  const mockCustomer = new MockCustomerRepository().mockCustomer;
-  const mockInstructor = new MockInstructorRepository().mockInstructor;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -112,9 +114,9 @@ describe('UsersService', () => {
         undefined,
       );
 
-      await expect(
-        usersService.findUserByEmail(email, provider),
-      ).rejects.toThrow(NotFoundException);
+      const result = await usersService.findUserByEmail(email, provider);
+
+      expect(result).toBeUndefined();
     });
   });
 
@@ -125,7 +127,7 @@ describe('UsersService', () => {
         profileImage: 'profile_image_url',
         name: 'New User',
         provider: 'test_provider',
-        userType: 'customer',
+        userType: UserType.Customer,
       };
       const newUser: Users = {
         userId: 2,
@@ -173,7 +175,7 @@ describe('UsersService', () => {
   describe('selectUserType', () => {
     it('userId에 해당하는 user의 userType을 설정', async () => {
       const userId = 1;
-      const userType = 'customer' || 'instructor';
+      const userType = UserType.Customer || UserType.Instructor;
       mockUser.userType = null;
       await usersService.selectUserType(userId, userType);
 

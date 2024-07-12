@@ -74,24 +74,24 @@ jobs:
         run: |
           docker buildx build --push --tag ghcr.io/${{ github.repository }}:dev .
 
-    deploy:
-      name: Deploy
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
-        - name: Setup SSH key
-          uses: webfactory/ssh-agent@v0.5.3
-          with:
-            ssh-private-key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
 
-        - name: Deploy to AWS Lightsail
-          run: |
-            echo "${LIGHTSAIL_SSH_KEY}" > lightsail_key.pem
-            chmod 600 lightsail_key.pem
+      - name: Deploy to AWS Lightsail
+        run: |
+          echo "${LIGHTSAIL_SSH_KEY}" > lightsail_key.pem
+          chmod 600 lightsail_key.pem
 
-            ssh -i lightsail_key.pem -o StrictHostKeyChecking=no $LIGHTSAIL_USERNAME@$LIGHTSAIL_HOST << 'EOF'
-              docker pull ghcr.io/${{ github.repository }}:dev
-              docker stop just-swim || true
-              docker rm just-swim || true
-              docker run -d --name just-swim --env-file .env -p 80:80 ghcr.io/${{ github.repository }}:latest
-            EOF
+          ssh -i lightsail_key.pem -o StrictHostKeyChecking=no $LIGHTSAIL_USERNAME@$LIGHTSAIL_HOST << 'EOF'
+            docker pull ghcr.io/${{ github.repository }}:dev
+            docker stop just-swim || true
+            docker rm just-swim || true
+            docker run -d --name just-swim --env-file .env -p 80:80 ghcr.io/${{ github.repository }}:latest
+          EOF

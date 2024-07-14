@@ -45,17 +45,16 @@ export class FeedbackService {
       await this.feedbackTargetRepository.getFeedbackTargetByFeedbackId(
         feedbackId,
       );
-    console.log(feedbackTargetList);
     // instructor
     for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].user.userId === userId) {
+      if (feedback[i].userId === userId) {
         return { feedback, feedbackTargetList };
       }
     }
 
     // member
     for (let i = 0; i < feedbackTargetList.length; i++) {
-      if (feedbackTargetList[i].user.userId === userId) {
+      if (feedbackTargetList[i].userId === userId) {
         return feedback;
       }
     }

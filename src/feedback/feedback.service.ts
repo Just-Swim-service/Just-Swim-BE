@@ -101,7 +101,6 @@ export class FeedbackService {
       await queryRunner.commitTransaction();
       return feedback;
     } catch (error) {
-      console.log(error);
       // 에러 발생 시 트랜잭션 rollback
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException('피드백 생성 실패');

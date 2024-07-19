@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -35,7 +36,7 @@ export class FeedbackDto {
     description: 'feedback에 남길 관련 링크',
     required: true,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   readonly feedbackLink: string;
 
@@ -50,10 +51,7 @@ export class FeedbackDto {
   readonly feedbackContent: string;
 
   @ApiProperty({
-    example: [
-      { lectureId: 1, userIds: [2, 3] },
-      { lectureId: 2, userIds: [4, 5, 13] },
-    ],
+    example: [{ lectureId: 1, userIds: [2, 3, 7] }],
     description: 'lectureId와 userIds 쌍의 배열',
     required: true,
   })

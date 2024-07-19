@@ -7,13 +7,7 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:80',
-      'http://192.168.219.194:3000',
-      'http://192.168.233.44:3000',
-      'http://192.168.233.179:3000',
-    ],
+    origin: ['http://localhost:3000', 'http://localhost:80'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     optionsSuccessStatus: 204,
@@ -39,6 +33,7 @@ async function bootstrap() {
       'accessToken',
     )
     .addServer('http://3.38.162.80', '서버 주소')
+    .addServer('http://localhost', '로컬 주소')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

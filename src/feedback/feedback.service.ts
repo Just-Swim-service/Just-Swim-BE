@@ -101,7 +101,6 @@ export class FeedbackService {
       await queryRunner.commitTransaction();
       return feedback;
     } catch (error) {
-      console.log(error);
       // 에러 발생 시 트랜잭션 rollback
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException('피드백 생성 실패');
@@ -161,7 +160,7 @@ export class FeedbackService {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
     for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].user.userId !== userId) {
+      if (feedback[i].userId !== userId) {
         throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
       }
     }
@@ -184,6 +183,7 @@ export class FeedbackService {
         await this.updateFeedbackTarget(
           feedbackId,
           editFeedbackDto.feedbackTarget,
+          queryRunner,
         );
       }
 
@@ -233,42 +233,27 @@ export class FeedbackService {
   async updateFeedbackTarget(
     feedbackId: number,
     feedbackTarget: FeedbackTargetDto[],
+    queryRunner: QueryRunner,
   ): Promise<void> {
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    // update 시작 시 기존에 있던 feedback 대상 삭제
+    await this.feedbackTargetRepository.deleteFeedbackTarget(
+      feedbackId,
+      queryRunner,
+    );
 
-    try {
-      // update 시작 시 기존에 있던 feedback 대상 삭제
-      await this.feedbackTargetRepository.deleteFeedbackTarget(
-        feedbackId,
-        queryRunner,
-      );
-
-      // 새로운 피드백 대상 생성
-      for (const target of feedbackTarget) {
-        const lectureId = target.lectureId;
-        for (const userId of target.userIds) {
-          if (!isNaN(userId)) {
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              lectureId,
-              userId,
-              queryRunner,
-            );
-          }
+    // 새로운 피드백 대상 생성
+    for (const target of feedbackTarget) {
+      const lectureId = target.lectureId;
+      for (const userId of target.userIds) {
+        if (!isNaN(userId)) {
+          await this.feedbackTargetRepository.createFeedbackTarget(
+            feedbackId,
+            lectureId,
+            userId,
+            queryRunner,
+          );
         }
       }
-      // 정상적으로 끝났을 경우 commit
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      // error 발생 시 트랜잭션 rollback
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('feedback 삭제 실패');
-    } finally {
-      // 끝났을 경우 queryRunner 해제
-      await queryRunner.release();
     }
   }
 
@@ -280,7 +265,7 @@ export class FeedbackService {
     }
 
     for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].user.userId !== userId) {
+      if (feedback[i].userId !== userId) {
         throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
       }
     }

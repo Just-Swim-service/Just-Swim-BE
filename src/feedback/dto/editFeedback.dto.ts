@@ -50,10 +50,7 @@ export class EditFeedbackDto {
   readonly feedbackContent: string;
 
   @ApiProperty({
-    example: [
-      { lectureId: 1, userIds: [2, 3] },
-      { lectureId: 2, userIds: [4, 5, 13] },
-    ],
+    example: [{ lectureId: 1, userIds: [2, 3] }],
     description: 'lectureId와 userIds 쌍의 배열',
     required: true,
   })

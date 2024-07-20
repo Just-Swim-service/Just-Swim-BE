@@ -179,7 +179,10 @@ export class FeedbackService {
       );
 
       // 피드백 타겟 업데이트
-      if (editFeedbackDto.feedbackTarget.length > 0) {
+      if (
+        editFeedbackDto.feedbackTarget &&
+        editFeedbackDto.feedbackTarget.length > 0
+      ) {
         await this.updateFeedbackTarget(
           feedbackId,
           editFeedbackDto.feedbackTarget,

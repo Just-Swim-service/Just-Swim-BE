@@ -22,8 +22,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { FeedbackDto } from './dto/feedback.dto';
-import { EditFeedbackDto } from './dto/editFeedback.dto';
 import {
   feedbackDetailByCustomer,
   feedbackDetailByInstructor,
@@ -164,7 +162,6 @@ export class FeedbackController {
     }
     // feedback 생성 후에 feedbackTargetList에 맞게 feedbackTarget 생성
     if (feedback) {
-      console.log(typeof feedback.feedbackId);
       await this.feedbackService.createFeedbackTarget(
         feedback.feedbackId,
         feedbackDto.feedbackTarget,

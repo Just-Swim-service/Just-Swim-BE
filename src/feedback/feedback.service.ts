@@ -67,47 +67,27 @@ export class FeedbackService {
     feedbackDto: FeedbackDto,
     files?: Express.Multer.File[],
   ): Promise<Feedback> {
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const feedback = await this.feedbackRepository.createFeedback(
+      userId,
+      feedbackDto,
+    );
 
-    try {
-      const feedback = await this.feedbackRepository.createFeedback(
-        userId,
-        feedbackDto,
-        queryRunner,
-      );
+    if (files && files.length > 0) {
+      const fileUploadPromises = files.map(async (file) => {
+        const ext = file.mimetype.split('/')[1];
+        const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
+        const fileUrl = await this.awsService.uploadImageToS3(
+          fileName,
+          file,
+          ext,
+        );
+        await this.imageService.createImage(feedback.feedbackId, fileUrl);
+      });
 
-      if (files && files.length > 0) {
-        const fileUploadPromises = files.map(async (file) => {
-          const ext = file.mimetype.split('/')[1];
-          const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
-          const fileUrl = await this.awsService.uploadImageToS3(
-            fileName,
-            file,
-            ext,
-          );
-          await this.imageService.createImage(
-            feedback.feedbackId,
-            fileUrl,
-            queryRunner,
-          );
-        });
-
-        await Promise.all(fileUploadPromises);
-      }
-      // 정상적으로 끝났을 경우 commit
-      await queryRunner.commitTransaction();
-      return feedback;
-    } catch (error) {
-      // 에러 발생 시 트랜잭션 rollback
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('피드백 생성 실패');
-    } finally {
-      // 끝났을 경우 queryRunner 해제
-      await queryRunner.release();
+      await Promise.all(fileUploadPromises);
     }
+
+    return feedback;
   }
 
   /* feedbackTarget 생성 */
@@ -115,36 +95,18 @@ export class FeedbackService {
     feedbackId: number,
     feedbackTarget: FeedbackTargetDto[],
   ): Promise<void> {
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      for (const target of feedbackTarget) {
-        const lectureId = target.lectureId;
-        for (const userId of target.userIds) {
-          if (!isNaN(userId)) {
-            // 여기서 추가적인 유효성 검사를 수행할 수 있음
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              lectureId,
-              userId,
-              queryRunner,
-            );
-          }
+    for (const target of feedbackTarget) {
+      const lectureId = target.lectureId;
+      for (const userId of target.userIds) {
+        if (!isNaN(userId)) {
+          // 여기서 추가적인 유효성 검사를 수행할 수 있음
+          await this.feedbackTargetRepository.createFeedbackTarget(
+            feedbackId,
+            lectureId,
+            userId,
+          );
         }
       }
-
-      // 모든 작업이 성공적으로 완료되면 커밋
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      // 롤백
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('피드백 타겟 생성 실패');
-    } finally {
-      // queryRunner 해제
-      await queryRunner.release();
     }
   }
 
@@ -214,7 +176,7 @@ export class FeedbackService {
             file,
             ext,
           );
-          await this.imageService.createImage(feedbackId, fileUrl, queryRunner);
+          await this.imageService.createImage(feedbackId, fileUrl);
         });
 
         await Promise.all(fileUploadPromises);
@@ -253,7 +215,6 @@ export class FeedbackService {
             feedbackId,
             lectureId,
             userId,
-            queryRunner,
           );
         }
       }

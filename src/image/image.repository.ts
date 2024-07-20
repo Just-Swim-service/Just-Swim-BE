@@ -11,12 +11,8 @@ export class ImageRepository {
   ) {}
 
   // feedback에 따라 image 경로 저장
-  async createImage(
-    feedbackId: number,
-    imagePath: string,
-    queryRunner: QueryRunner,
-  ) {
-    return await queryRunner.manager.query('CALL CREATE_IMAGE(?, ?)', [
+  async createImage(feedbackId: number, imagePath: string) {
+    return await this.imageRepository.query('CALL CREATE_IMAGE(?, ?)', [
       feedbackId,
       imagePath,
     ]);

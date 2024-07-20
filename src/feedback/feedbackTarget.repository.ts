@@ -15,9 +15,8 @@ export class FeedbackTargetRepository {
     feedbackId: number,
     lectureId: number,
     userId: number,
-    queryRunner?: QueryRunner,
   ): Promise<FeedbackTarget> {
-    return await queryRunner.manager.query(
+    return await this.feedbackTargetRepository.query(
       'CALL CREATE_FEEDBACK_TARGET(?, ?, ?)',
       [feedbackId, lectureId, userId],
     );

@@ -47,11 +47,10 @@ export class FeedbackRepository {
   async createFeedback(
     userId: number,
     feedbackDto: FeedbackDto,
-    queryRunner: QueryRunner,
   ): Promise<Feedback> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
       feedbackDto;
-    const result = await queryRunner.manager.query(
+    const result = await this.feedbackRepository.query(
       'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?)',
       [userId, feedbackType, feedbackContent, feedbackDate, feedbackLink],
     );

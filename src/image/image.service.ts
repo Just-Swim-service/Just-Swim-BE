@@ -8,17 +8,9 @@ export class ImageService {
   constructor(private readonly imageRepository: ImageRepository) {}
 
   // feedback image 저장
-  async createImage(
-    feedbackId: number,
-    fileUrl: string,
-    queryRunner: QueryRunner,
-  ) {
+  async createImage(feedbackId: number, fileUrl: string) {
     const imagePath = fileUrl;
-    return await this.imageRepository.createImage(
-      feedbackId,
-      imagePath,
-      queryRunner,
-    );
+    return await this.imageRepository.createImage(feedbackId, imagePath);
   }
 
   // feedback image 조회

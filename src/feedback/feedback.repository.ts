@@ -61,12 +61,11 @@ export class FeedbackRepository {
   async updateFeedback(
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
-    queryRunner: QueryRunner,
   ): Promise<void> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
       editFeedbackDto;
 
-    await queryRunner.manager.query('CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?)', [
+    await this.feedbackRepository.query('CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?)', [
       feedbackId,
       feedbackType,
       feedbackContent,

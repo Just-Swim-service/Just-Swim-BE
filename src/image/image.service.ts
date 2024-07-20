@@ -19,14 +19,8 @@ export class ImageService {
   }
 
   // feedbackId에 해당하는 image 삭제
-  async deleteImagesByFeedbackId(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await this.imageRepository.deleteImagesByFeedbackId(
-      feedbackId,
-      queryRunner,
-    );
+  async deleteImagesByFeedbackId(feedbackId: number): Promise<void> {
+    await this.imageRepository.deleteImagesByFeedbackId(feedbackId);
   }
 
   // image 삭제

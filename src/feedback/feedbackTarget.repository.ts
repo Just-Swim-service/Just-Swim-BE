@@ -34,13 +34,11 @@ export class FeedbackTargetRepository {
   }
 
   /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await queryRunner.manager.query('CALL DELETE_FEEDBACK_TARGET(?)', [
-      feedbackId,
-    ]);
+  async deleteFeedbackTarget(feedbackId: number): Promise<void> {
+    await this.feedbackTargetRepository.query(
+      'CALL DELETE_FEEDBACK_TARGET(?)',
+      [feedbackId],
+    );
   }
 
   /* feedbackId를 통해 target 확인 */

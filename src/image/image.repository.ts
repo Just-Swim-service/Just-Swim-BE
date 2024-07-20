@@ -33,11 +33,8 @@ export class ImageRepository {
   }
 
   // feedbackId에 해당하는 image 삭제
-  async deleteImagesByFeedbackId(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await queryRunner.manager.query('CALL DELETE_IMAGES_BY_FEEDBACKID(?)', [
+  async deleteImagesByFeedbackId(feedbackId: number): Promise<void> {
+    await this.imageRepository.query('CALL DELETE_IMAGES_BY_FEEDBACKID(?)', [
       feedbackId,
     ]);
   }

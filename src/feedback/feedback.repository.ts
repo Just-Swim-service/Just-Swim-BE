@@ -47,12 +47,22 @@ export class FeedbackRepository {
   async createFeedback(
     userId: number,
     feedbackDto: FeedbackDto,
+    feedbackTargetJson: string,
+    filesJson: string,
   ): Promise<Feedback> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
       feedbackDto;
     const result = await this.feedbackRepository.query(
-      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?)',
-      [userId, feedbackType, feedbackContent, feedbackDate, feedbackLink],
+      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
+      [
+        userId,
+        feedbackType,
+        feedbackContent,
+        feedbackDate,
+        feedbackLink,
+        feedbackTargetJson,
+        filesJson,
+      ],
     );
     return result[0][0];
   }

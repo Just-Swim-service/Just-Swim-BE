@@ -67,25 +67,34 @@ export class FeedbackService {
     feedbackDto: FeedbackDto,
     files?: Express.Multer.File[],
   ): Promise<Feedback> {
+    // image
+    let filesJsonArray = [];
+    if (files && files.length > 0) {
+      filesJsonArray = await Promise.all(
+        files.map(async (file) => {
+          const ext = file.mimetype.split('/')[1];
+          const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
+          const fileUrl = await this.awsService.uploadImageToS3(
+            fileName,
+            file,
+            ext,
+          );
+          return { filePath: fileUrl };
+        }),
+      );
+    }
+    const filesJson = JSON.stringify(filesJsonArray);
+
+    // feedbackTarget을 db에 넣을 수 있게 변경
+    const feedbackTargetJson = JSON.stringify(feedbackDto.feedbackTarget);
+
+    // feedback 생성
     const feedback = await this.feedbackRepository.createFeedback(
       userId,
       feedbackDto,
+      feedbackTargetJson,
+      filesJson,
     );
-
-    if (files && files.length > 0) {
-      const fileUploadPromises = files.map(async (file) => {
-        const ext = file.mimetype.split('/')[1];
-        const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
-        const fileUrl = await this.awsService.uploadImageToS3(
-          fileName,
-          file,
-          ext,
-        );
-        await this.imageService.createImage(feedback.feedbackId, fileUrl);
-      });
-
-      await Promise.all(fileUploadPromises);
-    }
 
     return feedback;
   }

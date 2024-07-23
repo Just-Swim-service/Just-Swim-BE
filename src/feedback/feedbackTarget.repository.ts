@@ -10,14 +10,6 @@ export class FeedbackTargetRepository {
     private readonly feedbackTargetRepository: Repository<FeedbackTarget>,
   ) {}
 
-  /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(feedbackId: number): Promise<void> {
-    await this.feedbackTargetRepository.query(
-      'CALL DELETE_FEEDBACK_TARGET(?)',
-      [feedbackId],
-    );
-  }
-
   /* feedbackId를 통해 target 확인 */
   async getFeedbackTargetByFeedbackId(feedbackId: number) {
     const result = await this.feedbackTargetRepository.query(

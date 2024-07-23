@@ -92,11 +92,8 @@ export class FeedbackRepository {
   }
 
   /* feedback 삭제(softDelete) */
-  async softDeleteFeedback(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await queryRunner.manager.query('CALL SOFT_DELETE_FEEDBACK(?)', [
+  async softDeleteFeedback(feedbackId: number): Promise<void> {
+    await this.feedbackRepository.query('CALL SOFT_DELETE_FEEDBACK(?)', [
       feedbackId,
     ]);
   }

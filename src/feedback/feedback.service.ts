@@ -119,11 +119,12 @@ export class FeedbackService {
     const existingImages =
       await this.imageService.getImagesByFeedbackId(feedbackId);
     if (existingImages && existingImages.length > 0) {
-      const deleteImageS3 = existingImages.map(async (image) => {
-        const fileName = image.imagePath.split('/').slice(-2).join('/');
-        await this.awsService.deleteImageFromS3(fileName);
-      });
-      await Promise.all(deleteImageS3);
+      await Promise.all(
+        existingImages.map(async (image) => {
+          const fileName = image.imagePath.split('/').slice(-2).join('/');
+          await this.awsService.deleteImageFromS3(fileName);
+        }),
+      );
     }
 
     // 이미지 파일 JSON 생성
@@ -174,44 +175,19 @@ export class FeedbackService {
       }
     }
 
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // 피드백, 피드백 대상 및 이미지 삭제
-      await Promise.all([
-        this.feedbackRepository.softDeleteFeedback(feedbackId, queryRunner),
-        this.deleteFeedbackTarget(feedbackId),
-        this.imageService.deleteImagesByFeedbackId(feedbackId),
-      ]);
-
-      // S3에서 이미지 삭제
-      const existingImages =
-        await this.imageService.getImagesByFeedbackId(feedbackId);
-      if (existingImages && existingImages.length > 0) {
-        const deleteImagePromises = existingImages.map((image) => {
+    // S3에서 이미지 삭제
+    const existingImages =
+      await this.imageService.getImagesByFeedbackId(feedbackId);
+    if (existingImages && existingImages.length > 0) {
+      await Promise.all(
+        existingImages.map((image) => {
           const fileName = image.imagePath.split('/').slice(-2).join('/');
           this.awsService.deleteImageFromS3(fileName);
-        });
-        await Promise.all(deleteImagePromises);
-      }
-
-      // 정상적으로 끝났을 경우 commit
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      // error 발생 시 트랜잭션 rollback
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('feedback 삭제 실패');
-    } finally {
-      // 끝났을 경우 queryRunner 해제
-      await queryRunner.release();
+        }),
+      );
     }
-  }
 
-  /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(feedbackId: number): Promise<void> {
-    await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
+    // 피드백 삭제
+    await this.feedbackRepository.softDeleteFeedback(feedbackId);
   }
 }

@@ -71,17 +71,24 @@ export class FeedbackRepository {
   async updateFeedback(
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
+    feedbackTargetJson: string,
+    filesJson: string,
   ): Promise<void> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
       editFeedbackDto;
 
-    await this.feedbackRepository.query('CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?)', [
-      feedbackId,
-      feedbackType,
-      feedbackContent,
-      feedbackDate,
-      feedbackLink,
-    ]);
+    await this.feedbackRepository.query(
+      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
+      [
+        feedbackId,
+        feedbackType,
+        feedbackContent,
+        feedbackDate,
+        feedbackLink,
+        feedbackTargetJson,
+        filesJson,
+      ],
+    );
   }
 
   /* feedback 삭제(softDelete) */

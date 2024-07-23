@@ -160,13 +160,6 @@ export class FeedbackController {
         .status(HttpStatus.BAD_REQUEST)
         .json({ message: 'feedback 생성 실패' });
     }
-    // feedback 생성 후에 feedbackTargetList에 맞게 feedbackTarget 생성
-    if (feedback) {
-      await this.feedbackService.createFeedbackTarget(
-        feedback.feedbackId,
-        feedbackDto.feedbackTarget,
-      );
-    }
     return res.status(HttpStatus.OK).json({ message: 'feedback 생성 성공' });
   }
 

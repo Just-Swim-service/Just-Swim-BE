@@ -99,26 +99,6 @@ export class FeedbackService {
     return feedback;
   }
 
-  /* feedbackTarget 생성 */
-  async createFeedbackTarget(
-    feedbackId: number,
-    feedbackTarget: FeedbackTargetDto[],
-  ): Promise<void> {
-    for (const target of feedbackTarget) {
-      const lectureId = target.lectureId;
-      for (const userId of target.userIds) {
-        if (!isNaN(userId)) {
-          // 여기서 추가적인 유효성 검사를 수행할 수 있음
-          await this.feedbackTargetRepository.createFeedbackTarget(
-            feedbackId,
-            lectureId,
-            userId,
-          );
-        }
-      }
-    }
-  }
-
   /* feedback 수정 */
   async updateFeedback(
     userId: number,
@@ -136,21 +116,6 @@ export class FeedbackService {
       }
     }
 
-    // 피드백 업데이트
-    await this.feedbackRepository.updateFeedback(feedbackId, editFeedbackDto);
-
-    // 피드백 타겟 업데이트
-    if (
-      editFeedbackDto.feedbackTarget &&
-      editFeedbackDto.feedbackTarget.length > 0
-    ) {
-      await this.updateFeedbackTarget(
-        feedbackId,
-        editFeedbackDto.feedbackTarget,
-      );
-    }
-
-    // 이미지 관리
     const existingImages =
       await this.imageService.getImagesByFeedbackId(feedbackId);
     if (existingImages && existingImages.length > 0) {
@@ -158,48 +123,42 @@ export class FeedbackService {
         const fileName = image.imagePath.split('/').slice(-2).join('/');
         await this.awsService.deleteImageFromS3(fileName);
       });
-      const deleteImageDB =
-        this.imageService.deleteImagesByFeedbackId(feedbackId);
-      await Promise.all([...deleteImageS3, deleteImageDB]);
+      await Promise.all(deleteImageS3);
     }
 
+    // 이미지 파일 JSON 생성
+    let filesJsonArray = [];
     if (files && files.length > 0) {
-      const fileUploadPromises = files.map(async (file) => {
-        const ext = file.mimetype.split('/')[1];
-        const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
-        const fileUrl = await this.awsService.uploadImageToS3(
-          fileName,
-          file,
-          ext,
-        );
-        await this.imageService.createImage(feedbackId, fileUrl);
-      });
-
-      await Promise.all(fileUploadPromises);
-    }
-  }
-
-  /* feedbackTarget 수정 */
-  async updateFeedbackTarget(
-    feedbackId: number,
-    feedbackTarget: FeedbackTargetDto[],
-  ): Promise<void> {
-    // update 시작 시 기존에 있던 feedback 대상 삭제
-    await this.feedbackTargetRepository.deleteFeedbackTarget(feedbackId);
-
-    // 새로운 피드백 대상 생성
-    for (const target of feedbackTarget) {
-      const lectureId = target.lectureId;
-      for (const userId of target.userIds) {
-        if (!isNaN(userId)) {
-          await this.feedbackTargetRepository.createFeedbackTarget(
-            feedbackId,
-            lectureId,
-            userId,
+      filesJsonArray = await Promise.all(
+        files.map(async (file) => {
+          const ext = file.mimetype.split('/')[1];
+          const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
+          const fileUrl = await this.awsService.uploadImageToS3(
+            fileName,
+            file,
+            ext,
           );
-        }
-      }
+          return { filePath: fileUrl };
+        }),
+      );
     }
+    const filesJson =
+      filesJsonArray.length > 0 ? JSON.stringify(filesJsonArray) : null;
+
+    // feedbackTarget을 db에 넣을 수 있게 변경
+    const feedbackTargetJson =
+      editFeedbackDto.feedbackTarget &&
+      editFeedbackDto.feedbackTarget.length > 0
+        ? JSON.stringify(editFeedbackDto.feedbackTarget)
+        : null;
+
+    // 피드백 업데이트
+    await this.feedbackRepository.updateFeedback(
+      feedbackId,
+      editFeedbackDto,
+      feedbackTargetJson,
+      filesJson,
+    );
   }
 
   /* feedback 삭제(softDelete) */

@@ -47,13 +47,22 @@ export class FeedbackRepository {
   async createFeedback(
     userId: number,
     feedbackDto: FeedbackDto,
-    queryRunner: QueryRunner,
+    feedbackTargetJson: string,
+    filesJson: string,
   ): Promise<Feedback> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
       feedbackDto;
-    const result = await queryRunner.manager.query(
-      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?)',
-      [userId, feedbackType, feedbackContent, feedbackDate, feedbackLink],
+    const result = await this.feedbackRepository.query(
+      'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
+      [
+        userId,
+        feedbackType,
+        feedbackContent,
+        feedbackDate,
+        feedbackLink,
+        feedbackTargetJson,
+        filesJson,
+      ],
     );
     return result[0][0];
   }
@@ -62,26 +71,29 @@ export class FeedbackRepository {
   async updateFeedback(
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
-    queryRunner: QueryRunner,
+    feedbackTargetJson: string,
+    filesJson: string,
   ): Promise<void> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
       editFeedbackDto;
 
-    await queryRunner.manager.query('CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?)', [
-      feedbackId,
-      feedbackType,
-      feedbackContent,
-      feedbackDate,
-      feedbackLink,
-    ]);
+    await this.feedbackRepository.query(
+      'CALL UPDATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
+      [
+        feedbackId,
+        feedbackType,
+        feedbackContent,
+        feedbackDate,
+        feedbackLink,
+        feedbackTargetJson,
+        filesJson,
+      ],
+    );
   }
 
   /* feedback 삭제(softDelete) */
-  async softDeleteFeedback(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await queryRunner.manager.query('CALL SOFT_DELETE_FEEDBACK(?)', [
+  async softDeleteFeedback(feedbackId: number): Promise<void> {
+    await this.feedbackRepository.query('CALL SOFT_DELETE_FEEDBACK(?)', [
       feedbackId,
     ]);
   }

@@ -11,12 +11,8 @@ export class ImageRepository {
   ) {}
 
   // feedback에 따라 image 경로 저장
-  async createImage(
-    feedbackId: number,
-    imagePath: string,
-    queryRunner: QueryRunner,
-  ) {
-    return await queryRunner.manager.query('CALL CREATE_IMAGE(?, ?)', [
+  async createImage(feedbackId: number, imagePath: string) {
+    return await this.imageRepository.query('CALL CREATE_IMAGE(?, ?)', [
       feedbackId,
       imagePath,
     ]);
@@ -37,11 +33,8 @@ export class ImageRepository {
   }
 
   // feedbackId에 해당하는 image 삭제
-  async deleteImagesByFeedbackId(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await queryRunner.manager.query('CALL DELETE_IMAGES_BY_FEEDBACKID(?)', [
+  async deleteImagesByFeedbackId(feedbackId: number): Promise<void> {
+    await this.imageRepository.query('CALL DELETE_IMAGES_BY_FEEDBACKID(?)', [
       feedbackId,
     ]);
   }

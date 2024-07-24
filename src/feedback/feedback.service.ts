@@ -67,20 +67,11 @@ export class FeedbackService {
     feedbackDto: FeedbackDto,
     files?: Express.Multer.File[],
   ): Promise<Feedback> {
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const feedback = await this.feedbackRepository.createFeedback(
-        userId,
-        feedbackDto,
-        queryRunner,
-      );
-
-      if (files && files.length > 0) {
-        const fileUploadPromises = files.map(async (file) => {
+    // image
+    let filesJsonArray = [];
+    if (files && files.length > 0) {
+      filesJsonArray = await Promise.all(
+        files.map(async (file) => {
           const ext = file.mimetype.split('/')[1];
           const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
           const fileUrl = await this.awsService.uploadImageToS3(
@@ -88,64 +79,24 @@ export class FeedbackService {
             file,
             ext,
           );
-          await this.imageService.createImage(
-            feedback.feedbackId,
-            fileUrl,
-            queryRunner,
-          );
-        });
-
-        await Promise.all(fileUploadPromises);
-      }
-      // 정상적으로 끝났을 경우 commit
-      await queryRunner.commitTransaction();
-      return feedback;
-    } catch (error) {
-      // 에러 발생 시 트랜잭션 rollback
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('피드백 생성 실패');
-    } finally {
-      // 끝났을 경우 queryRunner 해제
-      await queryRunner.release();
+          return { filePath: fileUrl };
+        }),
+      );
     }
-  }
+    const filesJson = JSON.stringify(filesJsonArray);
 
-  /* feedbackTarget 생성 */
-  async createFeedbackTarget(
-    feedbackId: number,
-    feedbackTarget: FeedbackTargetDto[],
-  ): Promise<void> {
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    // feedbackTarget을 db에 넣을 수 있게 변경
+    const feedbackTargetJson = JSON.stringify(feedbackDto.feedbackTarget);
 
-    try {
-      for (const target of feedbackTarget) {
-        const lectureId = target.lectureId;
-        for (const userId of target.userIds) {
-          if (!isNaN(userId)) {
-            // 여기서 추가적인 유효성 검사를 수행할 수 있음
-            await this.feedbackTargetRepository.createFeedbackTarget(
-              feedbackId,
-              lectureId,
-              userId,
-              queryRunner,
-            );
-          }
-        }
-      }
+    // feedback 생성
+    const feedback = await this.feedbackRepository.createFeedback(
+      userId,
+      feedbackDto,
+      feedbackTargetJson,
+      filesJson,
+    );
 
-      // 모든 작업이 성공적으로 완료되면 커밋
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      // 롤백
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('피드백 타겟 생성 실패');
-    } finally {
-      // queryRunner 해제
-      await queryRunner.release();
-    }
+    return feedback;
   }
 
   /* feedback 수정 */
@@ -165,45 +116,22 @@ export class FeedbackService {
       }
     }
 
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // 피드백 업데이트
-      await this.feedbackRepository.updateFeedback(
-        feedbackId,
-        editFeedbackDto,
-        queryRunner,
-      );
-
-      // 피드백 타겟 업데이트
-      if (editFeedbackDto.feedbackTarget.length > 0) {
-        await this.updateFeedbackTarget(
-          feedbackId,
-          editFeedbackDto.feedbackTarget,
-          queryRunner,
-        );
-      }
-
-      // 이미지 관리
-      const existingImages =
-        await this.imageService.getImagesByFeedbackId(feedbackId);
-      if (existingImages && existingImages.length > 0) {
-        const deleteImageS3 = existingImages.map(async (image) => {
+    const existingImages =
+      await this.imageService.getImagesByFeedbackId(feedbackId);
+    if (existingImages && existingImages.length > 0) {
+      await Promise.all(
+        existingImages.map(async (image) => {
           const fileName = image.imagePath.split('/').slice(-2).join('/');
           await this.awsService.deleteImageFromS3(fileName);
-        });
-        const deleteImageDB = this.imageService.deleteImagesByFeedbackId(
-          feedbackId,
-          queryRunner,
-        );
-        await Promise.all([...deleteImageS3, deleteImageDB]);
-      }
+        }),
+      );
+    }
 
-      if (files && files.length > 0) {
-        const fileUploadPromises = files.map(async (file) => {
+    // 이미지 파일 JSON 생성
+    let filesJsonArray = [];
+    if (files && files.length > 0) {
+      filesJsonArray = await Promise.all(
+        files.map(async (file) => {
           const ext = file.mimetype.split('/')[1];
           const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
           const fileUrl = await this.awsService.uploadImageToS3(
@@ -211,50 +139,27 @@ export class FeedbackService {
             file,
             ext,
           );
-          await this.imageService.createImage(feedbackId, fileUrl, queryRunner);
-        });
-
-        await Promise.all(fileUploadPromises);
-      }
-
-      // 정상적으로 끝났을 경우 commit
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      // error 발생 시 트랜잭션 rollback
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('feedback 수정 실패');
-    } finally {
-      // 끝났을 경우 queryRunner 해제
-      await queryRunner.release();
+          return { filePath: fileUrl };
+        }),
+      );
     }
-  }
+    const filesJson =
+      filesJsonArray.length > 0 ? JSON.stringify(filesJsonArray) : null;
 
-  /* feedbackTarget 수정 */
-  async updateFeedbackTarget(
-    feedbackId: number,
-    feedbackTarget: FeedbackTargetDto[],
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    // update 시작 시 기존에 있던 feedback 대상 삭제
-    await this.feedbackTargetRepository.deleteFeedbackTarget(
+    // feedbackTarget을 db에 넣을 수 있게 변경
+    const feedbackTargetJson =
+      editFeedbackDto.feedbackTarget &&
+      editFeedbackDto.feedbackTarget.length > 0
+        ? JSON.stringify(editFeedbackDto.feedbackTarget)
+        : null;
+
+    // 피드백 업데이트
+    await this.feedbackRepository.updateFeedback(
       feedbackId,
-      queryRunner,
+      editFeedbackDto,
+      feedbackTargetJson,
+      filesJson,
     );
-
-    // 새로운 피드백 대상 생성
-    for (const target of feedbackTarget) {
-      const lectureId = target.lectureId;
-      for (const userId of target.userIds) {
-        if (!isNaN(userId)) {
-          await this.feedbackTargetRepository.createFeedbackTarget(
-            feedbackId,
-            lectureId,
-            userId,
-            queryRunner,
-          );
-        }
-      }
-    }
   }
 
   /* feedback 삭제(softDelete) */
@@ -270,50 +175,19 @@ export class FeedbackService {
       }
     }
 
-    // DB 트랜잭션 시작
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // 피드백, 피드백 대상 및 이미지 삭제
-      await Promise.all([
-        this.feedbackRepository.softDeleteFeedback(feedbackId, queryRunner),
-        this.deleteFeedbackTarget(feedbackId, queryRunner),
-        this.imageService.deleteImagesByFeedbackId(feedbackId, queryRunner),
-      ]);
-
-      // S3에서 이미지 삭제
-      const existingImages =
-        await this.imageService.getImagesByFeedbackId(feedbackId);
-      if (existingImages && existingImages.length > 0) {
-        const deleteImagePromises = existingImages.map((image) => {
+    // S3에서 이미지 삭제
+    const existingImages =
+      await this.imageService.getImagesByFeedbackId(feedbackId);
+    if (existingImages && existingImages.length > 0) {
+      await Promise.all(
+        existingImages.map((image) => {
           const fileName = image.imagePath.split('/').slice(-2).join('/');
           this.awsService.deleteImageFromS3(fileName);
-        });
-        await Promise.all(deleteImagePromises);
-      }
-
-      // 정상적으로 끝났을 경우 commit
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      // error 발생 시 트랜잭션 rollback
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('feedback 삭제 실패');
-    } finally {
-      // 끝났을 경우 queryRunner 해제
-      await queryRunner.release();
+        }),
+      );
     }
-  }
 
-  /* feedbackTarget 삭제 */
-  async deleteFeedbackTarget(
-    feedbackId: number,
-    queryRunner: QueryRunner,
-  ): Promise<void> {
-    await this.feedbackTargetRepository.deleteFeedbackTarget(
-      feedbackId,
-      queryRunner,
-    );
+    // 피드백 삭제
+    await this.feedbackRepository.softDeleteFeedback(feedbackId);
   }
 }

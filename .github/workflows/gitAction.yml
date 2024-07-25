@@ -6,7 +6,7 @@ on:
     # 여러개 가능 (develop 브랜치로 먼저 개발하고 main에 적용시키는게 안전하다.)
 
 env:
-  DOCKER_IMAGE: ghcr.io/yoonsoo7429/just-swim-be
+  DOCKER_IMAGE: ghcr.io/yoonsoo7429/justswim
   VERSION: ${{ github.sha }}
   NAME: just-swim
   LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
@@ -76,8 +76,8 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{secrets.ACCESS_TOKEN}}
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Build and Push Docker Image
         id: docker_build

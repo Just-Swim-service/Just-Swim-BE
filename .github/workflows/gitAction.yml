@@ -100,12 +100,12 @@ jobs:
 
       - name: Deploy to AWS Lightsail
         run: |
-          echo "${LIGHTSAIL_SSH_KEY}" > lightsail_key.pem
-          chmod 600 lightsail_key.pem
+          echo "${LIGHTSAIL_SSH_KEY}" > LightsailDefaultKey-ap-northeast-2.pem
+          chmod 600 LightsailDefaultKey-ap-northeast-2.pem
 
-          ssh -i lightsail_key.pem -o StrictHostKeyChecking=no ${{ env.LIGHTSAIL_USERNAME }}@${{ env.LIGHTSAIL_HOST }} << EOF
-            docker stop ${{ env.NAME }} && docker rm ${{env.NAME}} && docker rmi ${{ env.DOCKER_IMAGE}}:dev
-            docker pull ${{ env.DOCKER_IMAGE }}
+          ssh -i LightsailDefaultKey-ap-northeast-2.pem -o StrictHostKeyChecking=no ${{ env.LIGHTSAIL_USERNAME }}@${{ env.LIGHTSAIL_HOST }} << EOF
+            docker stop ${{ env.NAME }} && docker rm -f ${{env.NAME}} && docker rmi -f ${{ env.DOCKER_IMAGE}}:dev
+            docker pull ${{ env.DOCKER_IMAGE }}:dev
             docker run -d -p 80:80 \
             -e KAKAO_ID: ${{ secrets.KAKAO_ID }} \
             -e NAVER_ID: ${{ secrets.NAVER_ID }} \

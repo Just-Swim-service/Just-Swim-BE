@@ -114,5 +114,5 @@ jobs:
             echo "${{ secrets.ACCESS_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
             docker stop ${{ env.NAME }} && docker rm -f ${{env.NAME}} && docker rmi -f ${{ env.DOCKER_IMAGE}}:dev
             docker pull ${{ env.DOCKER_IMAGE }}:dev
-            docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}.env -d -p 80:80 ${{ env.DOCKER_IMAGE }}:dev
+            docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 80:80 ${{ env.DOCKER_IMAGE }}:dev
           EOF

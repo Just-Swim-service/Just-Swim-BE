@@ -8,7 +8,7 @@ on:
 env:
   DOCKER_IMAGE: ghcr.io/yoonsoo7429/justswim
   VERSION: ${{ github.sha }}
-  NAME: just-swim
+  NAME: justswim
   LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
   LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
   LIGHTSAIL_USERNAME: ubuntu
@@ -111,6 +111,7 @@ jobs:
           chmod 600 LightsailDefaultKey-ap-northeast-2.pem
 
           ssh -i LightsailDefaultKey-ap-northeast-2.pem -o StrictHostKeyChecking=no ${{ env.LIGHTSAIL_USERNAME }}@${{ env.LIGHTSAIL_HOST }} << EOF
+            echo "${{ secrets.ACCESS_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
             docker stop ${{ env.NAME }} && docker rm -f ${{env.NAME}} && docker rmi -f ${{ env.DOCKER_IMAGE}}:dev
             docker pull ${{ env.DOCKER_IMAGE }}:dev
             docker run -d -p 80:80 \

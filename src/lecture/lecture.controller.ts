@@ -27,8 +27,8 @@ import {
   lectureDetailByCustomer,
   lectureDetailByInstructor,
   lectureMemberList,
-  lecturesByCustomer,
-  lecturesByInstructor,
+  getScheduleLecturesByCustomer,
+  getScheuldeLecturesByInstructor,
 } from './example/lectureExample';
 
 @ApiTags('Lecture')
@@ -50,8 +50,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          lecturesByInstructor,
-          lecturesByCustomer,
+          getScheuldeLecturesByInstructor,
+          getScheduleLecturesByCustomer,
         },
       },
     },
@@ -65,13 +65,14 @@ export class LectureController {
     // instructor 페이지
     if (userType === 'instructor') {
       const lectures =
-        await this.lectureService.getLecturesByInstructor(userId);
+        await this.lectureService.getScheduleLecturesByInstructor(userId);
       return res.status(HttpStatus.OK).json(lectures);
     }
 
     // customer 페이지
     if (userType === 'customer') {
-      const lectures = await this.lectureService.getLecturesByCustomer(userId);
+      const lectures =
+        await this.lectureService.getScheduleLecturesByCustomer(userId);
       return res.status(HttpStatus.OK).json(lectures);
     }
   }
@@ -87,8 +88,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          AllLectureByInstructor: lecturesByInstructor,
-          AllLectureByCustomer: lecturesByCustomer,
+          AllLecturesByInstructor: getScheuldeLecturesByInstructor,
+          AllLecturesByCustomer: getScheduleLecturesByCustomer,
         },
       },
     },

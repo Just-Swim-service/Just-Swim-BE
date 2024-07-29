@@ -1,4 +1,4 @@
-export const lecturesByInstructor = {
+export const getScheuldeLecturesByInstructor = {
   value: [
     {
       lectureId: '1',
@@ -8,18 +8,12 @@ export const lecturesByInstructor = {
       lectureDays: '화목',
       lectureLocation: '강동구 실내 수영장',
       lectureColor: '#F1554C',
-      lectureQRCode: 'QR 코드',
+      lectureQRCode:
+        'https://just-swim-bucket.s3.ap-northeast-2.amazonaws.com/qrcodes/1.png',
       lectureEndDate: '2024.10.31',
-      lectureMembers: [
-        {
-          memberUserId: 2,
-          memberProfileImage: 'image1',
-        },
-        {
-          memberUserId: 3,
-          memberProfileImage: 'image2',
-        },
-      ],
+      memberUserId: '12',
+      memberProfileImage:
+        'https://ssl.pstatic.net/static/pwe/address/img_profile.png',
     },
     {
       lectureId: '30',
@@ -31,21 +25,13 @@ export const lecturesByInstructor = {
       lectureColor: '#F1547C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      lectureMembers: [
-        {
-          memberUserId: 2,
-          memberProfileImage: 'image1',
-        },
-        {
-          memberUserId: 3,
-          memberProfileImage: 'image2',
-        },
-      ],
+      memberUserId: null,
+      memberProfileImage: null,
     },
   ],
 };
 
-export const lecturesByCustomer = {
+export const getScheduleLecturesByCustomer = {
   value: [
     {
       lectureId: '1',

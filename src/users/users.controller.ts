@@ -33,6 +33,7 @@ import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserType } from './enum/userType.enum';
+import { EditProfileImageDto } from 'src/image/dto/editProfileImage.dto';
 
 @ApiTags('Users')
 @Controller()
@@ -331,41 +332,12 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('profileImage'))
   @ApiOperation({
     summary: '유저 프로필 수정',
-    description:
-      'content type을 profileImage는 multipart/form-data로 넘겨주시고 나머지는 application/json으로 넘겨주시면 됩니다.',
+    description: 'user의 프로필 수정을 한다.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        profileImage: {
-          type: 'string',
-          format: 'binary',
-          description: '수정할 사용자 프로필 이미지',
-        },
-        editUserDto: {
-          type: 'object',
-          properties: {
-            name: {
-              type: 'string',
-              example: '홍길동',
-              description: '수정할 사용자 이름',
-            },
-            birth: {
-              type: 'string',
-              example: '1995.09.13',
-              description: '수정할 사용자 생년월일',
-            },
-            phoneNumber: {
-              type: 'string',
-              example: '010-1234-1234',
-              description: '수정할 사용자 핸드폰 번호',
-            },
-          },
-        },
-      },
-    },
+    description: '프로필 이미지 업로드',
+    type: EditProfileImageDto,
   })
   @ApiResponse({ status: 200, description: '프로필 수정 완료' })
   @ApiResponse({ status: 400, description: '프로필을 수정할 수 없습니다.' })
@@ -373,9 +345,10 @@ export class UsersController {
   @ApiBearerAuth('accessToken')
   async editUserProfile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() editUserDto: EditUserDto,
+    @Body('editUserDto') body: any,
     @Res() res: Response,
   ) {
+    const editUserDto = JSON.parse(body);
     const { userId } = res.locals.user;
 
     await this.usersService.editUserProfile(userId, editUserDto, file);

@@ -55,12 +55,12 @@ export class LectureRepository {
   }
 
   /* 강의 상세 조회 */
-  async getLectureByPk(lectureId: number) {
+  async getLectureByPk(lectureId: number, userId: number) {
     const result = await this.lectureRepository.query(
-      'CALL GET_LECTURE_BY_PK(?)',
-      [lectureId],
+      'CALL GET_LECTURE_BY_PK(?, ?)',
+      [lectureId, userId],
     );
-    return result[0][0];
+    return result[0];
   }
 
   /* 강의 수정 */
@@ -140,5 +140,14 @@ export class LectureRepository {
       lectureId,
       lectureQRCode,
     ]);
+  }
+
+  /* 강의 권한 확인을 위한 조회 */
+  async getLectureForAuth(lectureId: number) {
+    const result = await this.lectureRepository.query(
+      'CALL GET_LECTURE_FOR_AUTH(?)',
+      [lectureId],
+    );
+    return result[0][0];
   }
 }

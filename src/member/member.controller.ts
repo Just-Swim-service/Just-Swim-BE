@@ -6,7 +6,6 @@ import {
   ParseIntPipe,
   Res,
   HttpStatus,
-  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,

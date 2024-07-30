@@ -18,7 +18,7 @@ import { AuthMiddleWare } from './auth/middleware/auth.middleware';
 import { MemberModule } from './member/member.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { APP_FILTER } from '@nestjs/core';
-import { HttpExceptionFilter } from './common/exception/http-Exception.filter';
+import { HttpExceptionFilter } from './common/response/http-exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';

@@ -22,6 +22,7 @@ import { HttpExceptionFilter } from './common/response/http-exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
+import { ResponseService } from './common/response/reponse.service';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { AwsModule } from './common/aws/aws.module';
   providers: [
     AppService,
     JwtService,
+    ResponseService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })

@@ -1,6 +1,5 @@
 import {
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,7 +11,7 @@ import { FeedbackTargetRepository } from './feedbackTarget.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
-import { FeedbackTargetDto } from './dto/feedbackTarget.dto';
+import slugify from 'slugify';
 
 @Injectable()
 export class FeedbackService {
@@ -73,7 +72,16 @@ export class FeedbackService {
       filesJsonArray = await Promise.all(
         files.map(async (file) => {
           const ext = file.mimetype.split('/')[1];
-          const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
+          // slugify로 -나 스페이스를 처리
+          const originalNameWithoutExt = file.originalname
+            .split('.')
+            .slice(0, -1)
+            .join('.');
+          const slugifiedName = slugify(originalNameWithoutExt, {
+            lower: true,
+            strict: true,
+          });
+          const fileName = `feedback/${userId}/${Date.now().toString()}-${slugifiedName}.${ext}`;
           const fileUrl = await this.awsService.uploadImageToS3(
             fileName,
             file,
@@ -133,7 +141,16 @@ export class FeedbackService {
       filesJsonArray = await Promise.all(
         files.map(async (file) => {
           const ext = file.mimetype.split('/')[1];
-          const fileName = `feedback/${userId}/${Date.now().toString()}-${file.originalname}`;
+          // slugify로 -나 스페이스를 처리
+          const originalNameWithoutExt = file.originalname
+            .split('.')
+            .slice(0, -1)
+            .join('.');
+          const slugifiedName = slugify(originalNameWithoutExt, {
+            lower: true,
+            strict: true,
+          });
+          const fileName = `feedback/${userId}/${Date.now().toString()}-${slugifiedName}.${ext}`;
           const fileUrl = await this.awsService.uploadImageToS3(
             fileName,
             file,

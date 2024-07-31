@@ -5,7 +5,6 @@ import {
 } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import slugify from 'slugify';
 
 @Injectable()
 export class AwsService {
@@ -29,12 +28,10 @@ export class AwsService {
     file: Express.Multer.File,
     ext: string,
   ) {
-    const slugifiedFileName = slugify(fileName, { lower: true, strict: true });
-
     // AWS S3에 이미지 업로드 명령을 생성
     const command = new PutObjectCommand({
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
-      Key: slugifiedFileName, // 업로드될 파일의 이름
+      Key: fileName, // 업로드될 파일의 이름
       Body: file.buffer, // 업로드할 파일
       ACL: 'public-read', // 파일 접근 권한
       ContentType: `image/${ext}`, // 파일 타입/확장자
@@ -44,7 +41,7 @@ export class AwsService {
     await this.s3Client.send(command);
 
     // 업로드된 이미지의 URL을 반환
-    return `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${slugifiedFileName}`;
+    return `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${fileName}`;
   }
 
   /* 이미지 삭제 */

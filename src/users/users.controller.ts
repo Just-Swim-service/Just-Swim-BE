@@ -33,6 +33,7 @@ import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/editUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserType } from './enum/userType.enum';
+import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/editProfileImage.dto';
 
 @ApiTags('Users')
@@ -41,6 +42,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly responseService: ResponseService,
   ) {}
 
   /* kakao 소셜 로그인 (Guard를 통해 접근) */
@@ -281,7 +283,7 @@ export class UsersController {
     let token: string = await this.authService.getToken(userId);
 
     res.cookie('authorization', token);
-    return res.status(HttpStatus.OK).json({ message: '로그인 성공' });
+    return this.responseService.success(res, '로그인 성공');
   }
 
   /* 로그인 이후에 userType을 지정 */
@@ -311,7 +313,7 @@ export class UsersController {
     }
 
     await this.usersService.selectUserType(userId, userType);
-    return res.status(HttpStatus.OK).json({ message: 'userType 지정 완료' });
+    return this.responseService.success(res, 'userType 지정 완료');
   }
 
   /* 나의 프로필 조회 */
@@ -324,7 +326,7 @@ export class UsersController {
     const { userId } = res.locals.user;
     const userProfile = await this.usersService.findUserByPk(userId);
 
-    return res.status(HttpStatus.OK).json(userProfile);
+    return this.responseService.success(res, '프로필 조회 성공', userProfile);
   }
 
   /* 프로필 수정 */
@@ -353,7 +355,7 @@ export class UsersController {
 
     await this.usersService.editUserProfile(userId, editUserDto, file);
 
-    return res.status(HttpStatus.OK).json({ message: '프로필 수정 완료' });
+    return this.responseService.success(res, '프로필 수정 완료');
   }
 
   /* 로그아웃 */
@@ -364,7 +366,7 @@ export class UsersController {
   @ApiBearerAuth('accessToken')
   async logout(@Res() res: Response) {
     res.clearCookie('authorization');
-    return res.status(HttpStatus.OK).json({ message: '로그 아웃 완료' });
+    return this.responseService.success(res, 'logout 완료');
   }
 
   /* 회원 탈퇴 */
@@ -377,6 +379,6 @@ export class UsersController {
     const { userId } = res.locals.user;
     await this.usersService.withdrawUser(userId);
     res.clearCookie('authorization');
-    return res.status(HttpStatus.OK).json({ message: '회원 탈퇴 완료' });
+    return this.responseService.success(res, '회원 탈퇴 완료');
   }
 }

@@ -30,6 +30,7 @@ import {
   getScheduleLecturesByCustomer,
   getScheuldeLecturesByInstructor,
 } from './example/lectureExample';
+import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Lecture')
 @Controller('lecture')
@@ -37,6 +38,7 @@ export class LectureController {
   constructor(
     private readonly lectureService: LectureService,
     private readonly memberService: MemberService,
+    private readonly responseService: ResponseService,
   ) {}
 
   /* 스케줄 - 강의 전체 조회(삭제된 강의는 제외) */
@@ -66,14 +68,22 @@ export class LectureController {
     if (userType === 'instructor') {
       const lectures =
         await this.lectureService.getScheduleLecturesByInstructor(userId);
-      return res.status(HttpStatus.OK).json(lectures);
+      return this.responseService.success(
+        res,
+        '스케줄에 해당하는 강의 조회 성공',
+        lectures,
+      );
     }
 
     // customer 페이지
     if (userType === 'customer') {
       const lectures =
         await this.lectureService.getScheduleLecturesByCustomer(userId);
-      return res.status(HttpStatus.OK).json(lectures);
+      return this.responseService.success(
+        res,
+        '스케줄에 해당하는 강의 조회 성공',
+        lectures,
+      );
     }
   }
 
@@ -104,14 +114,14 @@ export class LectureController {
     if (userType === 'instructor') {
       const lectures =
         await this.lectureService.getAllLecturesByInstructor(userId);
-      return res.status(HttpStatus.OK).json(lectures);
+      return this.responseService.success(res, '강의 전체 조회 성공', lectures);
     }
 
     // customer
     if (userType === 'customer') {
       const lectures =
         await this.lectureService.getAllLecturesByCustomer(userId);
-      return res.status(HttpStatus.OK).json(lectures);
+      return this.responseService.success(res, '강의 전체 조회 성공', lectures);
     }
   }
 
@@ -145,9 +155,9 @@ export class LectureController {
     @Param('lectureId', ParseIntPipe) lectureId: number,
   ) {
     const { userId } = res.locals.user;
-    const result = await this.lectureService.getLectureByPk(userId, lectureId);
+    const lecture = await this.lectureService.getLectureByPk(userId, lectureId);
 
-    return res.status(HttpStatus.OK).json(result);
+    return this.responseService.success(res, '강의 상세 조회 성공', lecture);
   }
 
   /* 강의 수정 */
@@ -167,7 +177,7 @@ export class LectureController {
 
     await this.lectureService.updateLecture(userId, lectureId, editLectureDto);
 
-    return res.status(HttpStatus.OK).json({ message: '강의 수정 성공' });
+    return this.responseService.success(res, '강의 수정 성공');
   }
 
   /* 강의 삭제(소프트 삭제) */
@@ -188,7 +198,7 @@ export class LectureController {
 
     await this.lectureService.softDeleteLecture(userId, lectureId);
 
-    return res.status(HttpStatus.OK).json({ message: '강의 삭제 성공' });
+    return this.responseService.success(res, '강의 삭제 성공');
   }
 
   /* 강의 생성 */
@@ -207,9 +217,10 @@ export class LectureController {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: '강의 생성 권한이 없습니다.' });
+      return this.responseService.unauthorized(
+        res,
+        '강의 생성 권한이 없습니다.',
+      );
     }
 
     const newLecture = await this.lectureService.createLecture(
@@ -218,14 +229,15 @@ export class LectureController {
     );
 
     if (!newLecture) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: '강의 생성 실패' });
+      return this.responseService.error(
+        res,
+        '강의 생성 권한이 없습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-
-    return res
-      .status(HttpStatus.OK)
-      .json({ message: '강의 생성 성공', lectureId: newLecture.lectureId });
+    return this.responseService.success(res, '강의 생성 성공', {
+      lectureId: newLecture.lectureId,
+    });
   }
 
   /* 강의에 해당하는 수강생 목록 */
@@ -258,12 +270,14 @@ export class LectureController {
     const userType = user.userType;
 
     if (userType !== 'instructor') {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: '접근 권한이 없습니다.' });
+      return this.responseService.unauthorized(res, '접근 권한이 없습니다.');
     }
     const memberList =
       await this.memberService.getAllMembersByLectureId(lectureId);
-    return res.status(HttpStatus.OK).json(memberList);
+    return this.responseService.success(
+      res,
+      '강의에 해당하는 수강생 목록 조회 성공',
+      memberList,
+    );
   }
 }

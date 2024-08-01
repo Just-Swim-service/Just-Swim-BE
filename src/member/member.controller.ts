@@ -6,7 +6,6 @@ import {
   ParseIntPipe,
   Res,
   HttpStatus,
-  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -17,6 +16,7 @@ import {
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { allMembersByFeedback } from './example/memberExample';
+import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Member')
 @Controller('member')
@@ -24,6 +24,7 @@ export class MemberController {
   constructor(
     private readonly memberService: MemberService,
     private readonly usersService: UsersService,
+    private readonly reponseService: ResponseService,
   ) {}
 
   /* QR코드를 통한 회원 등록 */
@@ -56,9 +57,10 @@ export class MemberController {
       }
 
       if (isExist.userType !== 'customer') {
-        res.status(HttpStatus.UNAUTHORIZED).json({
-          message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
-        });
+        return this.reponseService.unauthorized(
+          res,
+          '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+        );
       }
 
       if (isExist.userType === 'customer') {
@@ -93,15 +95,16 @@ export class MemberController {
   async getAllMembersByFeedback(@Res() res: Response) {
     const { userId, userType } = res.locals.user;
     if (userType !== 'instructor') {
-      res.status(HttpStatus.UNAUTHORIZED).json({
-        message: 'member 조회 권한이 없습니다.',
-      });
+      return this.reponseService.unauthorized(
+        res,
+        '수강생 조회 권한이 없습니다.',
+      );
     }
 
     const allMembers = await this.memberService.getAllMembersByFeedback(
       parseInt(userId),
     );
 
-    return res.status(HttpStatus.OK).json(allMembers);
+    return this.reponseService.success(res, '수강생 조회 성공', allMembers);
   }
 }

@@ -31,11 +31,15 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FeedbackImageDto } from 'src/image/dto/feedbackImage.dto';
 import { EditFeedbackImageDto } from 'src/image/dto/editFeedbackImage.dto';
+import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Feedback')
 @Controller('feedback')
 export class FeedbackController {
-  constructor(private readonly feedbackService: FeedbackService) {}
+  constructor(
+    private readonly feedbackService: FeedbackService,
+    private readonly responseService: ResponseService,
+  ) {}
 
   /* feedback 전체 조회 */
   @Get()
@@ -64,14 +68,22 @@ export class FeedbackController {
     if (userType === 'instructor') {
       const feedbacks =
         await this.feedbackService.getAllFeedbackByInstructor(userId);
-      return res.status(HttpStatus.OK).json(feedbacks);
+      return this.responseService.success(
+        res,
+        'feedback 전체 조회 성공',
+        feedbacks,
+      );
     }
 
     // customer
     if (userType === 'customer') {
       const feedbacks =
         await this.feedbackService.getAllFeedbackByCustomer(userId);
-      return res.status(HttpStatus.OK).json(feedbacks);
+      return this.responseService.success(
+        res,
+        'feedback 전체 조회 성공',
+        feedbacks,
+      );
     }
   }
 
@@ -105,11 +117,15 @@ export class FeedbackController {
     @Param('feedbackId') feedbackId: number,
   ) {
     const { userId } = res.locals.user;
-    const result = await this.feedbackService.getFeedbackByPk(
+    const feedback = await this.feedbackService.getFeedbackByPk(
       userId,
       feedbackId,
     );
-    return res.status(HttpStatus.OK).json(result);
+    return this.responseService.success(
+      res,
+      'feedback 상세 조회 성공',
+      feedback,
+    );
   }
 
   /* feedback 생성 */
@@ -140,14 +156,17 @@ export class FeedbackController {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: 'feedback 작성 권한이 없습니다.' });
+      return this.responseService.unauthorized(
+        res,
+        'feedback 작성 권한이 없습니다.',
+      );
     }
     if (feedbackDto.feedbackTarget.length === 0) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: 'feedback 대상을 지정해주세요' });
+      return this.responseService.error(
+        res,
+        'feedback 대상을 지정해주세요',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const feedback = await this.feedbackService.createFeedback(
@@ -156,11 +175,15 @@ export class FeedbackController {
       files,
     );
     if (!feedback) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: 'feedback 생성 실패' });
+      return this.responseService.error(
+        res,
+        'feedback 생성 실패',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    return res.status(HttpStatus.OK).json({ message: 'feedback 생성 성공' });
+    return this.responseService.success(res, 'feedback 생성 성공', {
+      feedbackId: feedback.feedbackId,
+    });
   }
 
   /* feedback 수정 */
@@ -195,7 +218,7 @@ export class FeedbackController {
       files,
     );
 
-    return res.status(HttpStatus.OK).json({ message: 'feedback 수정 성공' });
+    return this.responseService.success(res, 'feedback 수정 성공');
   }
 
   /* feedback 삭제(softDelete) */
@@ -216,6 +239,6 @@ export class FeedbackController {
 
     await this.feedbackService.softDeleteFeedback(userId, feedbackId);
 
-    return res.status(HttpStatus.OK).json({ message: 'feedback 삭제 성공' });
+    return this.responseService.success(res, 'feedback 삭제 성공');
   }
 }

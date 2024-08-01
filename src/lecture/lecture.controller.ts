@@ -27,8 +27,8 @@ import {
   lectureDetailByCustomer,
   lectureDetailByInstructor,
   lectureMemberList,
-  lecturesByCustomer,
-  lecturesByInstructor,
+  getScheduleLecturesByCustomer,
+  getScheuldeLecturesByInstructor,
 } from './example/lectureExample';
 import { ResponseService } from 'src/common/response/reponse.service';
 
@@ -52,8 +52,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          lecturesByInstructor,
-          lecturesByCustomer,
+          getScheuldeLecturesByInstructor,
+          getScheduleLecturesByCustomer,
         },
       },
     },
@@ -67,7 +67,7 @@ export class LectureController {
     // instructor 페이지
     if (userType === 'instructor') {
       const lectures =
-        await this.lectureService.getLecturesByInstructor(userId);
+        await this.lectureService.getScheduleLecturesByInstructor(userId);
       return this.responseService.success(
         res,
         '스케줄에 해당하는 강의 조회 성공',
@@ -77,7 +77,8 @@ export class LectureController {
 
     // customer 페이지
     if (userType === 'customer') {
-      const lectures = await this.lectureService.getLecturesByCustomer(userId);
+      const lectures =
+        await this.lectureService.getScheduleLecturesByCustomer(userId);
       return this.responseService.success(
         res,
         '스케줄에 해당하는 강의 조회 성공',
@@ -97,8 +98,8 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          AllLectureByInstructor: lecturesByInstructor,
-          AllLectureByCustomer: lecturesByCustomer,
+          AllLecturesByInstructor: getScheuldeLecturesByInstructor,
+          AllLecturesByCustomer: getScheduleLecturesByCustomer,
         },
       },
     },

@@ -25,8 +25,8 @@ export class LectureService {
   }
 
   /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
-  async getLecturesByInstructor(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getLecturesByInstructor(userId);
+  async getScheduleLecturesByInstructor(userId: number): Promise<Lecture[]> {
+    return await this.lectureRepository.getScheduleLecturesByInstructor(userId);
   }
 
   /* 강사 모든 강의 조회 */
@@ -35,8 +35,8 @@ export class LectureService {
   }
 
   /* 스케줄 - 수강생 본인이 들어가 있는 강의 조회 */
-  async getLecturesByCustomer(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getLecturesByCustomer(userId);
+  async getScheduleLecturesByCustomer(userId: number): Promise<Lecture[]> {
+    return await this.lectureRepository.getScheduleLecturesByCustomer(userId);
   }
 
   /* 수강생 모든 강의 조회 */
@@ -46,27 +46,17 @@ export class LectureService {
 
   /* 강의 상세 조회 */
   async getLectureByPk(userId: number, lectureId: number) {
-    const lecture = await this.lectureRepository.getLectureByPk(lectureId);
-    if (!lecture) {
+    const lecture = await this.lectureRepository.getLectureByPk(
+      lectureId,
+      userId,
+    );
+    if (!lecture[0]) {
       throw new NotFoundException('존재하지 않는 강좌입니다.');
     }
-    const lectureMembers =
-      await this.memberRepository.getAllMembersByLectureId(lectureId);
-
-    // instructor
-    if (lecture.user && lecture.user.userId === userId) {
-      return { lecture, lectureMembers };
+    if (lecture[0].lectureId === null) {
+      throw new UnauthorizedException('강의 접근 권한이 없습니다.');
     }
-    // member
-    if (
-      Array.isArray(lectureMembers) &&
-      lectureMembers.some(
-        (member) => member.user && member.user.userId === userId,
-      )
-    ) {
-      return lecture;
-    }
-    throw new UnauthorizedException('강의 접근 권한이 없습니다.');
+    return lecture;
   }
 
   // 강의 수정
@@ -75,8 +65,8 @@ export class LectureService {
     lectureId: number,
     editLectureDto: EditLectureDto,
   ): Promise<void> {
-    const lecture = await this.lectureRepository.getLectureByPk(lectureId);
-    if (lecture.user && lecture.user.userId !== userId) {
+    const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
+    if (lecture.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }
 
@@ -85,8 +75,8 @@ export class LectureService {
 
   // 강의 삭제(softDelete)
   async softDeleteLecture(userId: number, lectureId: number): Promise<void> {
-    const lecture = await this.lectureRepository.getLectureByPk(lectureId);
-    if (lecture.user && lecture.user.userId !== userId) {
+    const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
+    if (lecture.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }
 

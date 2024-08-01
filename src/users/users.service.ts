@@ -12,6 +12,7 @@ import { InstructorRepository } from 'src/instructor/instructor.repository';
 import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
 import { UserType } from './enum/userType.enum';
+import slugify from 'slugify';
 
 @Injectable()
 export class UsersService {
@@ -77,8 +78,17 @@ export class UsersService {
       }
 
       // 새 이미지 업로드
-      const fileName = `profileImage/${Date.now().toString()}-${file.originalname}`;
-      const ext = path.extname(file.originalname).substring(1);
+      const ext = file.mimetype.split('/')[1];
+      // slugify로 -나 스페이스를 처리
+      const originalNameWithoutExt = file.originalname
+        .split('.')
+        .slice(0, -1)
+        .join('.');
+      const slugifiedName = slugify(originalNameWithoutExt, {
+        lower: true,
+        strict: true,
+      });
+      const fileName = `profileImage/${Date.now().toString()}-${slugifiedName}.${ext}`;
       const profileImageUrl = await this.awsService.uploadImageToS3(
         fileName,
         file,

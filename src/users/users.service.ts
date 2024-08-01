@@ -11,9 +11,6 @@ import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
 import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
-import { LectureRepository } from 'src/lecture/lecture.repository';
-import { MemberRepository } from 'src/member/member.repository';
-import { FeedbackRepository } from 'src/feedback/feedback.repository';
 import { UserType } from './enum/userType.enum';
 
 @Injectable()

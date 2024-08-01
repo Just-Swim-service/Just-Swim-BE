@@ -23,6 +23,7 @@ import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
 import { ResponseService } from './common/response/reponse.service';
+import { ResponseModule } from './common/response/response.module';
 
 @Module({
   imports: [
@@ -55,12 +56,12 @@ import { ResponseService } from './common/response/reponse.service';
     FeedbackModule,
     ImageModule,
     AwsModule,
+    ResponseModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     JwtService,
-    ResponseService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })

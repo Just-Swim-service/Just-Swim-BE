@@ -8,11 +8,14 @@ import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { MemberService } from 'src/member/member.service';
 import { MockMemberRepository } from 'src/member/member.service.spec';
+import { ResponseService } from 'src/common/response/reponse.service';
 
 class MockLectureService {
   getLectures = jest.fn();
-  getLecturesByInstructor = jest.fn();
+  getScheduleLecturesByInstructor = jest.fn();
   getAllLecturesByInstructor = jest.fn();
+  getScheduleLecturesByCustomer = jest.fn();
+  getAllLecturesByCustomer = jest.fn();
   getLectureByPk = jest.fn();
   updateLecture = jest.fn();
   softDeleteLecture = jest.fn();
@@ -23,6 +26,16 @@ class MockMemberService {
   getAllMembersByLectureId = jest.fn();
 }
 
+class MockResponseService {
+  success = jest.fn();
+  error = jest.fn();
+  unauthorized = jest.fn();
+  notFound = jest.fn();
+  conflict = jest.fn();
+  forbidden = jest.fn();
+  internalServerError = jest.fn();
+}
+
 const mockLecture = new MockLectureRepository().mockLecture;
 const mockMember = new MockMemberRepository().mockMember;
 
@@ -30,6 +43,7 @@ describe('LectureController', () => {
   let controller: LectureController;
   let lectureService: MockLectureService;
   let memberService: MockMemberService;
+  let responseService: MockResponseService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,6 +51,7 @@ describe('LectureController', () => {
       providers: [
         { provide: LectureService, useClass: MockLectureService },
         { provide: MemberService, useClass: MockMemberService },
+        { provide: ResponseService, useClass: MockResponseService },
       ],
     }).compile();
 
@@ -45,6 +60,9 @@ describe('LectureController', () => {
       LectureService,
     );
     memberService = module.get<MemberService, MockMemberService>(MemberService);
+    responseService = module.get<ResponseService, MockResponseService>(
+      ResponseService,
+    );
   });
 
   it('should be defined', () => {
@@ -62,14 +80,48 @@ describe('LectureController', () => {
         },
         status: jest.fn().mockReturnThis(),
         json: jest.fn(),
-      };
+      } as any;
 
-      lectureService.getLecturesByInstructor.mockResolvedValue(mockLecture);
+      lectureService.getScheduleLecturesByInstructor.mockResolvedValue([
+        mockLecture,
+      ]);
 
       await controller.getLecturesForSchedule(res as Response);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(mockLecture);
+      expect(
+        lectureService.getScheduleLecturesByInstructor,
+      ).toHaveBeenCalledWith(1);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '스케줄에 해당하는 강의 조회 성공',
+        [mockLecture],
+      );
+    });
+
+    it('customer에 schedule에 해당하는 모든 lecture를 return (삭제 또는 만료된 lecture는 제외된다.)', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 2,
+            userType: 'customer',
+          },
+        },
+      } as any;
+
+      lectureService.getScheduleLecturesByCustomer.mockResolvedValue([
+        mockLecture,
+      ]);
+
+      await controller.getLecturesForSchedule(res as Response);
+
+      expect(lectureService.getScheduleLecturesByCustomer).toHaveBeenCalledWith(
+        2,
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '스케줄에 해당하는 강의 조회 성공',
+        [mockLecture],
+      );
     });
   });
 
@@ -84,14 +136,42 @@ describe('LectureController', () => {
         },
         status: jest.fn().mockReturnThis(),
         json: jest.fn(),
-      };
+      } as any;
 
-      lectureService.getAllLecturesByInstructor.mockResolvedValue(mockLecture);
+      lectureService.getAllLecturesByInstructor.mockResolvedValue([
+        mockLecture,
+      ]);
 
-      await controller.getLecturesForSchedule(res as Response);
+      await controller.getAllLectures(res as Response);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(mockLecture);
+      expect(lectureService.getAllLecturesByInstructor).toHaveBeenCalledWith(1);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 전체 조회 성공',
+        [mockLecture],
+      );
+    });
+
+    it('customer가 가지고 있는 모든 lecture를 return', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 2,
+            userType: 'customer',
+          },
+        },
+      } as any;
+
+      lectureService.getAllLecturesByCustomer.mockResolvedValue([mockLecture]);
+
+      await controller.getAllLectures(res as Response);
+
+      expect(lectureService.getAllLecturesByCustomer).toHaveBeenCalledWith(2);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 전체 조회 성공',
+        [mockLecture],
+      );
     });
   });
 
@@ -106,15 +186,18 @@ describe('LectureController', () => {
         },
         status: jest.fn().mockReturnThis(),
         json: jest.fn(),
-      };
+      } as any;
       const lectureId = 1;
 
-      lectureService.getLectureByPk.mockResolvedValue(mockLecture);
+      lectureService.getLectureByPk.mockResolvedValue([mockLecture]);
 
       await controller.getLectureDetail(res as Response, lectureId);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(mockLecture);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 상세 조회 성공',
+        [mockLecture],
+      );
     });
   });
 
@@ -122,7 +205,7 @@ describe('LectureController', () => {
     it('lectureId에 해당하는 lecture를 edit이 완료될 경우 success return', async () => {
       const req: Partial<Request> = {
         body: { editLectureDto: EditLectureDto },
-      };
+      } as any;
 
       const res: Partial<Response> = {
         locals: {
@@ -133,15 +216,17 @@ describe('LectureController', () => {
         },
         status: jest.fn().mockReturnThis(),
         json: jest.fn(),
-      };
+      } as any;
       const lectureId = 1;
 
       lectureService.updateLecture.mockResolvedValue({ affected: 1 });
 
       await controller.updateLecture(res as Response, lectureId, req.body);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: '강의 수정 성공' });
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 수정 성공',
+      );
     });
   });
 
@@ -156,15 +241,21 @@ describe('LectureController', () => {
         },
         status: jest.fn().mockReturnThis(),
         json: jest.fn(),
-      };
+      } as any;
       const lectureId = 1;
 
-      lectureService.softDeleteLecture.mockResolvedValue({ affected: 1 });
+      lectureService.softDeleteLecture.mockResolvedValue(true);
 
       await controller.softDeleteLecture(res as Response, lectureId);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: '강의 삭제 성공' });
+      expect(lectureService.softDeleteLecture).toHaveBeenCalledWith(
+        1,
+        lectureId,
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 삭제 성공',
+      );
     });
   });
 
@@ -185,12 +276,15 @@ describe('LectureController', () => {
         json: jest.fn(),
       };
 
-      lectureService.createLecture.mockResolvedValue(true);
+      lectureService.createLecture.mockResolvedValue(mockLecture);
 
       await controller.createLecture(res as Response, req.body);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: '강의 생성 성공' });
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 생성 성공',
+        { lectureId: mockLecture.lectureId },
+      );
     });
   });
 
@@ -213,8 +307,11 @@ describe('LectureController', () => {
 
       await controller.getAllMemberByInstructor(res as Response, lectureId);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith([mockMember]);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의에 해당하는 수강생 목록 조회 성공',
+        [mockMember],
+      );
     });
   });
 });

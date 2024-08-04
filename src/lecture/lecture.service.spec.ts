@@ -55,12 +55,21 @@ describe('LectureService', () => {
         {
           provide: LectureRepository,
           useValue: {
-            getLectures: jest.fn().mockResolvedValue(mockLecture),
-            getLecturesByInstructor: jest.fn().mockResolvedValue(mockLecture),
+            getLectures: jest.fn().mockResolvedValue([mockLecture]),
+            getScheduleLecturesByInstructor: jest
+              .fn()
+              .mockResolvedValue([mockLecture]),
             getAllLecturesByInstructor: jest
               .fn()
-              .mockResolvedValue(mockLecture),
-            getLectureByPk: jest.fn().mockResolvedValue(mockLecture),
+              .mockResolvedValue([mockLecture]),
+            getScheduleLecturesByCustomer: jest
+              .fn()
+              .mockResolvedValue([mockLecture]),
+            getAllLecturesByCustomer: jest
+              .fn()
+              .mockResolvedValue([mockLecture]),
+            getLectureByPk: jest.fn().mockResolvedValue([mockLecture]),
+            getLectureForAuth: jest.fn().mockResolvedValue(mockLecture.user),
             updateLecture: jest.fn().mockResolvedValue(mockLecture),
             softDeleteLecture: jest.fn().mockResolvedValue(mockLecture),
             createLecture: jest.fn().mockResolvedValue(mockLecture),
@@ -99,14 +108,14 @@ describe('LectureService', () => {
     });
   });
 
-  describe('getLecturesByInstructor', () => {
+  describe('getScheduleLecturesByInstructor', () => {
     it('userId에 해당하는 삭제 또는 지난 lecture를 제외하고 lecture를 조회하여 return', async () => {
       const userId = 1;
       (
-        lectureRepository.getLecturesByInstructor as jest.Mock
+        lectureRepository.getScheduleLecturesByInstructor as jest.Mock
       ).mockResolvedValue(mockLecture);
 
-      const result = await service.getLecturesByInstructor(userId);
+      const result = await service.getScheduleLecturesByInstructor(userId);
 
       expect(result).toEqual(mockLecture);
     });
@@ -125,6 +134,32 @@ describe('LectureService', () => {
     });
   });
 
+  describe('getScheduleLecturesByCustomer', () => {
+    it('userId에 해당하는 삭제 또는 지난 lecture를 제외하고 lecture를 조회하여 return', async () => {
+      const userId = 1;
+      (
+        lectureRepository.getScheduleLecturesByCustomer as jest.Mock
+      ).mockResolvedValue(mockLecture);
+
+      const result = await service.getScheduleLecturesByCustomer(userId);
+
+      expect(result).toEqual(mockLecture);
+    });
+  });
+
+  describe('getAllLecturesByCustomer', () => {
+    it('userId에 해당하는 모든 lecture를 조회하여 return', async () => {
+      const userId = 1;
+      (
+        lectureRepository.getAllLecturesByCustomer as jest.Mock
+      ).mockResolvedValue(mockLecture);
+
+      const result = await service.getAllLecturesByCustomer(userId);
+
+      expect(result).toEqual(mockLecture);
+    });
+  });
+
   describe('getLectureByPk', () => {
     it('lectureId에 해당하는 lecture의 상세한 정보를 return', async () => {
       const userId = 1;
@@ -132,13 +167,10 @@ describe('LectureService', () => {
 
       const result = await service.getLectureByPk(userId, lectureId);
 
-      expect(result).toEqual({
-        lecture: mockLecture,
-        lectureMembers: [mockMember],
-      });
-      expect(lectureRepository.getLectureByPk).toHaveBeenCalledWith(lectureId);
-      expect(memberRepository.getAllMembersByLectureId).toHaveBeenCalledWith(
+      expect(result).toEqual([mockLecture]);
+      expect(lectureRepository.getLectureByPk).toHaveBeenCalledWith(
         lectureId,
+        userId,
       );
     });
 
@@ -146,7 +178,7 @@ describe('LectureService', () => {
       const userId = 1;
       const lectureId = 999;
 
-      (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue(null);
+      (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue([]);
 
       await expect(service.getLectureByPk(userId, lectureId)).rejects.toThrow(
         NotFoundException,
@@ -157,12 +189,9 @@ describe('LectureService', () => {
       const userId = 999;
       const lectureId = 1;
 
-      (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue(
-        mockLecture,
-      );
-      (
-        memberRepository.getAllMembersByLectureId as jest.Mock
-      ).mockResolvedValue([]);
+      (lectureRepository.getLectureByPk as jest.Mock).mockResolvedValue([
+        { lectureId: null },
+      ]);
 
       await expect(service.getLectureByPk(userId, lectureId)).rejects.toThrow(
         UnauthorizedException,
@@ -240,7 +269,9 @@ describe('LectureService', () => {
         userId,
         lectureDto,
       );
-      expect(QRCode.toDataURL).toHaveBeenCalledWith(`${newLecture.lectureId}`);
+      expect(QRCode.toDataURL).toHaveBeenCalledWith(
+        `${process.env.SERVER_QR_CHECK_URI}?lectureId=${newLecture.lectureId}`,
+      );
       expect(awsService.uploadQRCodeToS3).toHaveBeenCalledWith(
         newLecture.lectureId,
         expect.any(String),

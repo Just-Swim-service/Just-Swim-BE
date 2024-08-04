@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ImageRepository } from './image.repository';
 import { Image } from './entity/image.entity';
-import { QueryRunner } from 'typeorm';
 
 @Injectable()
 export class ImageService {

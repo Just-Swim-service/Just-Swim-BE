@@ -8,8 +8,8 @@ import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { HttpStatus } from '@nestjs/common';
 import { EditUserDto } from './dto/editUser.dto';
+import { ResponseService } from 'src/common/response/reponse.service';
 
 class MockKakaoAuthGuard {
   canActivate = jest.fn().mockReturnValue(true);
@@ -26,6 +26,8 @@ class MockUsersService {
   findUserByPk = jest.fn();
   selectUserType = jest.fn();
   editUserProfile = jest.fn();
+  logout = jest.fn();
+  withdrawUser = jest.fn();
 }
 
 class MockAuthService {
@@ -42,12 +44,23 @@ class MockInstructorService {
   createInstructor = jest.fn();
 }
 
+class MockResponseService {
+  success = jest.fn();
+  error = jest.fn();
+  unauthorized = jest.fn();
+  notFound = jest.fn();
+  conflict = jest.fn();
+  forbidden = jest.fn();
+  internalServerError = jest.fn();
+}
+
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: MockUsersService;
   let authService: MockAuthService;
   let customerService: MockCustomerService;
   let instructorService: MockInstructorService;
+  let responseService: MockResponseService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -81,6 +94,10 @@ describe('UsersController', () => {
           provide: GoogleAuthGuard,
           useClass: MockGoogleAuthGuard,
         },
+        {
+          provide: ResponseService,
+          useClass: MockResponseService,
+        },
       ],
     }).compile();
 
@@ -92,6 +109,9 @@ describe('UsersController', () => {
     );
     instructorService = module.get<InstructorService, MockInstructorService>(
       InstructorService,
+    );
+    responseService = module.get<ResponseService, MockResponseService>(
+      ResponseService,
     );
   });
 
@@ -225,8 +245,10 @@ describe('UsersController', () => {
         res as Response,
       );
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: 'userType 지정 완료' });
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        'userType 지정 완료',
+      );
     });
   });
 
@@ -255,13 +277,24 @@ describe('UsersController', () => {
 
       await controller.findUserProfile(res as Response);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith(mockUserProfile);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '프로필 조회 성공',
+        mockUserProfile,
+      );
     });
   });
 
   describe('editUserProfile', () => {
     it('user 프로필 수정을 진행', async () => {
+      const userId = 1;
+      const body = {
+        name: '홍길동',
+        profileImage: 'new_profile_image_url',
+        birth: '1990.01.01',
+        phoneNumber: '010-1234-5678',
+      };
+
       const file: Express.Multer.File = {
         fieldname: 'profileImage',
         originalname: 'test.png',
@@ -274,7 +307,8 @@ describe('UsersController', () => {
         path: '',
         size: 0,
       };
-      const req: Partial<Request> = { body: { ediUserDto: EditUserDto }, file };
+
+      const req: Partial<Request> = { file };
 
       const res: Partial<Response> = {
         locals: {
@@ -286,12 +320,59 @@ describe('UsersController', () => {
         json: jest.fn(),
       };
 
+      const editUserDto = JSON.stringify(body);
+
       usersService.editUserProfile.mockResolvedValue(true);
 
-      await controller.editUserProfile(file, req.body, res as Response);
+      await controller.editUserProfile(file, editUserDto, res as Response);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: '프로필 수정 완료' });
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '프로필 수정 완료',
+      );
+    });
+  });
+
+  describe('logout', () => {
+    it('clearcookie를 통해 로그아웃 처리', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        clearCookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await controller.logout(res as Response);
+
+      expect(res.clearCookie).toHaveBeenCalledWith('authorization');
+      expect(responseService.success).toHaveBeenCalledWith(res, 'logout 완료');
+    });
+  });
+
+  describe('withdrawUser', () => {
+    it('회원 탈퇴 처리', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+          },
+        },
+        clearCookie: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      await controller.withdrawUser(res as Response);
+
+      expect(res.clearCookie).toHaveBeenCalledWith('authorization');
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '회원 탈퇴 완료',
+      );
     });
   });
 });

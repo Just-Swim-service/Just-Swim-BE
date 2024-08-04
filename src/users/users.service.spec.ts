@@ -63,6 +63,7 @@ describe('UsersService', () => {
             createUser: jest.fn().mockResolvedValue(mockUser),
             selectUserType: jest.fn().mockResolvedValue(mockUser),
             editUserProfile: jest.fn().mockResolvedValue(mockUser),
+            withdrawUser: jest.fn().mockResolvedValue(mockUser),
           },
         },
         {
@@ -234,6 +235,17 @@ describe('UsersService', () => {
         userId,
         editUserDto,
       );
+    });
+  });
+
+  describe('withdrawUser', () => {
+    it('userId에 해당하는 user를 탈퇴', async () => {
+      const userId = 1;
+      jest.spyOn(usersRepository, 'withdrawUser').mockResolvedValue();
+
+      await usersService.withdrawUser(userId);
+
+      expect(usersRepository.withdrawUser).toHaveBeenCalledWith(userId);
     });
   });
 });

@@ -66,38 +66,14 @@ describe('UsersController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
-        {
-          provide: UsersService,
-          useClass: MockUsersService,
-        },
-        {
-          provide: AuthService,
-          useClass: MockAuthService,
-        },
-        {
-          provide: CustomerService,
-          useClass: MockCustomerService,
-        },
-        {
-          provide: InstructorService,
-          useClass: MockInstructorService,
-        },
-        {
-          provide: KakaoAuthGuard,
-          useClass: MockKakaoAuthGuard,
-        },
-        {
-          provide: NaverAuthGuard,
-          useClass: MockNaverAuthGuard,
-        },
-        {
-          provide: GoogleAuthGuard,
-          useClass: MockGoogleAuthGuard,
-        },
-        {
-          provide: ResponseService,
-          useClass: MockResponseService,
-        },
+        { provide: UsersService, useClass: MockUsersService },
+        { provide: AuthService, useClass: MockAuthService },
+        { provide: CustomerService, useClass: MockCustomerService },
+        { provide: InstructorService, useClass: MockInstructorService },
+        { provide: KakaoAuthGuard, useClass: MockKakaoAuthGuard },
+        { provide: NaverAuthGuard, useClass: MockNaverAuthGuard },
+        { provide: GoogleAuthGuard, useClass: MockGoogleAuthGuard },
+        { provide: ResponseService, useClass: MockResponseService },
       ],
     }).compile();
 

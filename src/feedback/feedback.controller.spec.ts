@@ -139,7 +139,9 @@ describe('FeedbackController', () => {
 
       const files: Express.Multer.File[] = [];
 
-      feedbackService.createFeedback.mockResolvedValue({ feedbackId: true });
+      feedbackService.createFeedback.mockResolvedValue({
+        feedbackId: mockFeedback.feedbackId,
+      });
 
       await controller.createFeedback(
         res as Response,
@@ -151,7 +153,7 @@ describe('FeedbackController', () => {
         res,
         'feedback 생성 성공',
         {
-          feedbackId: true,
+          feedbackId: mockFeedback.feedbackId,
         },
       );
     });

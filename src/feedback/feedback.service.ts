@@ -8,7 +8,6 @@ import { Feedback } from './entity/feedback.entity';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
-import { DataSource, QueryRunner } from 'typeorm';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';
@@ -20,7 +19,6 @@ export class FeedbackService {
     private readonly feedbackRepository: FeedbackRepository,
     private readonly feedbackTargetRepository: FeedbackTargetRepository,
     private readonly imageService: ImageService,
-    private readonly dataSource: DataSource,
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
@@ -46,14 +44,17 @@ export class FeedbackService {
       );
     // instructor
     for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].userId === userId) {
+      if (feedback[i].userId === userId || feedback[i].user.userId === userId) {
         return { feedback, feedbackTargetList };
       }
     }
 
     // member
     for (let i = 0; i < feedbackTargetList.length; i++) {
-      if (feedbackTargetList[i].userId === userId) {
+      if (
+        feedbackTargetList[i].userId === userId ||
+        feedbackTargetList[i].user.userId === userId
+      ) {
         return feedback;
       }
     }
@@ -118,10 +119,13 @@ export class FeedbackService {
     if (!feedback) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].userId !== userId) {
-        throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
-      }
+
+    // 피드백 중 사용자 권한 확인
+    const authorizedFeedback = feedback.find(
+      (f) => f.userId === userId || f.user.userId === userId,
+    );
+    if (!authorizedFeedback) {
+      throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
     }
 
     const existingImages =
@@ -186,10 +190,12 @@ export class FeedbackService {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
 
-    for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].userId !== userId) {
-        throw new UnauthorizedException('feedback 삭제 권한이 없습니다.');
-      }
+    // 삭제 중 사용자 권한 확인
+    const authorizedFeedback = feedback.find(
+      (f) => f.userId === userId || f.user.userId === userId,
+    );
+    if (!authorizedFeedback) {
+      throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
     }
 
     // S3에서 이미지 삭제

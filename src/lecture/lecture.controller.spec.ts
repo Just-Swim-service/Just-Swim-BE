@@ -3,7 +3,6 @@ import { LectureController } from './lecture.controller';
 import { LectureService } from './lecture.service';
 import { Request, Response } from 'express';
 import { MockLectureRepository } from './lecture.service.spec';
-import { HttpStatus } from '@nestjs/common';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { MemberService } from 'src/member/member.service';

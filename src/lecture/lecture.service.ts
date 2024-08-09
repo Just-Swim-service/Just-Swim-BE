@@ -7,7 +7,6 @@ import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { EditLectureDto } from './dto/editLecture.dto';
 import { LectureDto } from './dto/lecture.dto';
-import { MemberRepository } from 'src/member/member.repository';
 import * as QRCode from 'qrcode';
 import { AwsService } from 'src/common/aws/aws.service';
 
@@ -16,7 +15,6 @@ export class LectureService {
   constructor(
     private readonly awsService: AwsService,
     private readonly lectureRepository: LectureRepository,
-    private readonly memberRepository: MemberRepository,
   ) {}
 
   /* 강의 전체 조회 */

@@ -4,6 +4,7 @@ import { MockMemberRepository } from './member.service.spec';
 import { MemberService } from './member.service';
 import { UsersService } from 'src/users/users.service';
 import { Response } from 'express';
+import { ResponseService } from 'src/common/response/reponse.service';
 
 class MockMemberService {
   insertMemberFromQR = jest.fn();
@@ -20,12 +21,23 @@ class MockUsersService {
   editUserProfile = jest.fn();
 }
 
+class MockResponseService {
+  success = jest.fn();
+  error = jest.fn();
+  unauthorized = jest.fn();
+  notFound = jest.fn();
+  conflict = jest.fn();
+  forbidden = jest.fn();
+  internalServerError = jest.fn();
+}
+
 const mockMember = new MockMemberRepository().mockMember;
 
 describe('MemberController', () => {
   let controller: MemberController;
   let memberService: MockMemberService;
   let usersService: MockUsersService;
+  let responseService: MockResponseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,12 +45,16 @@ describe('MemberController', () => {
       providers: [
         { provide: MemberService, useClass: MockMemberService },
         { provide: UsersService, useClass: MockUsersService },
+        { provide: ResponseService, useClass: MockResponseService },
       ],
     }).compile();
 
     controller = module.get<MemberController>(MemberController);
     memberService = module.get<MemberService, MockMemberService>(MemberService);
     usersService = module.get<UsersService, MockUsersService>(UsersService);
+    responseService = module.get<ResponseService, MockResponseService>(
+      ResponseService,
+    );
   });
 
   it('should be defined', () => {
@@ -97,10 +113,10 @@ describe('MemberController', () => {
 
     await controller.insertMemberFromQR(1, res as Response);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      message: '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
-    });
+    expect(responseService.unauthorized).toHaveBeenCalledWith(
+      res,
+      '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+    );
   });
 
   it('사용자 타입이 customer일 때 회원을 등록하고 강의 페이지로 리디렉션해야 합니다', async () => {
@@ -118,7 +134,7 @@ describe('MemberController', () => {
     await controller.insertMemberFromQR(1, res as Response);
 
     expect(memberService.insertMemberFromQR).toHaveBeenCalledWith(1, 1);
-    expect(res.redirect).toHaveBeenCalledWith(`/api/lecture/1`);
+    expect(res.redirect).toHaveBeenCalledWith(process.env.HOME_REDIRECT_URI);
   });
 
   it('예기치 않은 오류 발생 시 /error 페이지로 리디렉션해야 합니다', async () => {
@@ -158,8 +174,11 @@ describe('MemberController', () => {
       await controller.getAllMembersByFeedback(res as Response);
 
       expect(memberService.getAllMembersByFeedback).toHaveBeenCalledWith(1);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith([mockMember]);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '수강생 조회 성공',
+        [mockMember],
+      );
     });
   });
 });

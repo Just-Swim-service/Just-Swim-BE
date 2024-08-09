@@ -44,15 +44,10 @@ describe('ImageService', () => {
     it('feedback에 넣을 image를 저장', async () => {
       const feedbackId = 1;
       const fileUrl = 'test_image_url';
-      const queryRunner = {} as QueryRunner;
 
-      await service.createImage(feedbackId, fileUrl, queryRunner);
+      await service.createImage(feedbackId, fileUrl);
 
-      expect(repository.createImage).toHaveBeenCalledWith(
-        feedbackId,
-        fileUrl,
-        queryRunner,
-      );
+      expect(repository.createImage).toHaveBeenCalledWith(feedbackId, fileUrl);
     });
   });
 
@@ -74,13 +69,11 @@ describe('ImageService', () => {
   describe('deleteImagesByFeedbackId', () => {
     it('feedbackId에 해당하는 image 삭제', async () => {
       const feedbackId = 1;
-      const queryRunner = {} as QueryRunner;
 
-      await service.deleteImagesByFeedbackId(feedbackId, queryRunner);
+      await service.deleteImagesByFeedbackId(feedbackId);
 
       expect(repository.deleteImagesByFeedbackId).toHaveBeenCalledWith(
         feedbackId,
-        queryRunner,
       );
     });
   });

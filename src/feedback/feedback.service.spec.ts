@@ -4,12 +4,10 @@ import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
 import { FeedbackTargetRepository } from './feedbackTarget.repository';
 import { FeedbackTarget } from './entity/feedbackTarget.entity';
-import { DataSource, QueryRunnerProviderAlreadyReleasedError } from 'typeorm';
 import { FeedbackType } from './enum/feedbackType.enum';
 import { MockUsersRepository } from 'src/users/users.service.spec';
 import { MockLectureRepository } from 'src/lecture/lecture.service.spec';
 import { AwsService } from 'src/common/aws/aws.service';
-import { FeedbackTargetDto } from './dto/feedbackTarget.dto';
 import { ImageService } from 'src/image/image.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { EditFeedbackDto } from './dto/editFeedback.dto';
@@ -47,21 +45,10 @@ export class MockFeedbackTargetRepository {
   };
 }
 
-class MockDataSource {
-  createQueryRunner = jest.fn(() => ({
-    connect: jest.fn(),
-    startTransaction: jest.fn(),
-    commitTransaction: jest.fn(),
-    rollbackTransaction: jest.fn(),
-    release: jest.fn(),
-  }));
-}
-
 describe('FeedbackService', () => {
   let service: FeedbackService;
   let feedbackRepository: FeedbackRepository;
   let feedbackTargetRepository: FeedbackTargetRepository;
-  let dataSource: DataSource;
   let awsService: AwsService;
   let imageService: ImageService;
 
@@ -93,24 +80,26 @@ describe('FeedbackService', () => {
         {
           provide: FeedbackRepository,
           useValue: {
-            getAllFeedbackByInstructor: jest.fn(),
-            getAllFeedbackByCustomer: jest.fn(),
-            getFeedbackByPk: jest.fn(),
-            createFeedback: jest.fn(),
-            updateFeedback: jest.fn(),
-            softDeleteFeedback: jest.fn(),
+            getAllFeedbackByInstructor: jest
+              .fn()
+              .mockResolvedValue([mockFeedback]),
+            getAllFeedbackByCustomer: jest
+              .fn()
+              .mockResolvedValue([mockFeedback]),
+            getFeedbackByPk: jest.fn().mockResolvedValue([mockFeedback]),
+            createFeedback: jest.fn().mockResolvedValue(mockFeedback),
+            updateFeedback: jest.fn().mockResolvedValue(undefined),
+            softDeleteFeedback: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
           provide: FeedbackTargetRepository,
           useValue: {
-            getFeedbackTargetByFeedbackId: jest.fn(),
-            createFeedbackTarget: jest.fn(),
-            updateFeedbackTarget: jest.fn(),
-            deleteFeedbackTarget: jest.fn(),
+            getFeedbackTargetByFeedbackId: jest
+              .fn()
+              .mockResolvedValue([mockFeedbackTarget]),
           },
         },
-        { provide: DataSource, useClass: MockDataSource },
       ],
     }).compile();
 
@@ -119,7 +108,6 @@ describe('FeedbackService', () => {
     feedbackTargetRepository = module.get<FeedbackTargetRepository>(
       FeedbackTargetRepository,
     );
-    dataSource = module.get<DataSource>(DataSource);
     awsService = module.get<AwsService>(AwsService);
     imageService = module.get<ImageService>(ImageService);
   });
@@ -133,11 +121,11 @@ describe('FeedbackService', () => {
       const userId = 1;
       (
         feedbackRepository.getAllFeedbackByInstructor as jest.Mock
-      ).mockResolvedValue(mockFeedback);
+      ).mockResolvedValue([mockFeedback]);
 
       const result = await service.getAllFeedbackByInstructor(userId);
 
-      expect(result).toEqual(mockFeedback);
+      expect(result).toEqual([mockFeedback]);
     });
   });
 
@@ -146,11 +134,11 @@ describe('FeedbackService', () => {
       const userId = 1;
       (
         feedbackRepository.getAllFeedbackByCustomer as jest.Mock
-      ).mockResolvedValue(mockFeedback);
+      ).mockResolvedValue([mockFeedback]);
 
       const result = await service.getAllFeedbackByCustomer(userId);
 
-      expect(result).toEqual(mockFeedback);
+      expect(result).toEqual([mockFeedback]);
     });
   });
 
@@ -210,37 +198,34 @@ describe('FeedbackService', () => {
         ],
       };
 
-      const newFeedback: Feedback = {
-        ...mockFeedback,
-        feedbackType: FeedbackType.Group,
-        feedbackCreatedAt: new Date(),
-        feedbackUpdatedAt: new Date(),
-      };
+      const files = [
+        {
+          mimetype: 'image/jpeg',
+          originalname: 'test.jpg',
+          buffer: Buffer.from('test'),
+        },
+      ] as unknown as Express.Multer.File[];
+
+      const fileUrl = 's3://bucket/feedback/1/1234567890-test.jpg';
+      (awsService.uploadImageToS3 as jest.Mock).mockResolvedValue(fileUrl);
       (feedbackRepository.createFeedback as jest.Mock).mockResolvedValue(
-        newFeedback,
+        mockFeedback,
       );
 
-      const result = await service.createFeedback(userId, feedbackDto);
+      const result = await service.createFeedback(userId, feedbackDto, files);
 
-      expect(result).toEqual(newFeedback);
-    });
-  });
-
-  describe('createFeedbackTarget', () => {
-    it('feedbackId에 해당하는 feedback을 대상에게 전달하기 위해 feedbackTarget 생성', async () => {
-      const feedbackTargetDto: FeedbackTargetDto[] = [
-        { lectureId: 1, userIds: [2, 3] },
-      ];
-      await service.createFeedbackTarget(
-        mockFeedback.feedbackId,
-        feedbackTargetDto,
+      expect(awsService.uploadImageToS3).toHaveBeenCalledWith(
+        expect.any(String),
+        files[0],
+        'jpeg',
       );
-      expect(
-        feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(mockFeedback.feedbackId, 1, 2, expect.any(Object));
-      expect(
-        feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(mockFeedback.feedbackId, 1, 3, expect.any(Object));
+      expect(feedbackRepository.createFeedback).toHaveBeenCalledWith(
+        userId,
+        feedbackDto,
+        JSON.stringify(feedbackDto.feedbackTarget),
+        JSON.stringify([{ filePath: fileUrl }]),
+      );
+      expect(result).toEqual(mockFeedback);
     });
   });
 
@@ -253,75 +238,78 @@ describe('FeedbackService', () => {
         feedbackLink: 'URL',
         feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
       };
-      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
-        mockFeedback,
+      const files = [
+        {
+          mimetype: 'image/jpeg',
+          originalname: 'test-update.jpg',
+          buffer: Buffer.from('test-update'),
+        },
+      ] as unknown as Express.Multer.File[];
+      const fileUrl = 's3://bucket/feedback/1/1234567890-test-update.jpg';
+      (awsService.uploadImageToS3 as jest.Mock).mockResolvedValue(fileUrl);
+      (awsService.deleteImageFromS3 as jest.Mock).mockResolvedValue(undefined);
+      (imageService.getImagesByFeedbackId as jest.Mock).mockResolvedValue([
+        { imagePath: 'feedback/1/1234567890-test.jpg' },
+      ]);
+      (feedbackRepository.updateFeedback as jest.Mock).mockResolvedValue(
+        undefined,
       );
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([
+        mockFeedback,
+      ]);
 
       await service.updateFeedback(
         mockUser.userId,
         mockFeedback.feedbackId,
         editFeedbackDto,
+        files,
+      );
+      expect(imageService.getImagesByFeedbackId).toHaveBeenCalledWith(
+        mockFeedback.feedbackId,
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        '1/1234567890-test.jpg',
+      );
+      expect(awsService.uploadImageToS3).toHaveBeenCalledWith(
+        expect.any(String),
+        files[0],
+        'jpeg',
       );
       expect(feedbackRepository.updateFeedback).toHaveBeenCalledWith(
         mockFeedback.feedbackId,
         editFeedbackDto,
-        expect.any(Object),
+        JSON.stringify(editFeedbackDto.feedbackTarget),
+        JSON.stringify([{ filePath: fileUrl }]),
       );
     });
   });
 
-  describe('updateFeedbackTarget', () => {
-    it('feedbackId에 해당하는 feedbackTarget 수정', async () => {
-      const feedbackId = 1;
-      const feedbackTargetGroup: FeedbackTargetDto[] = [
-        { lectureId: 1, userIds: [2, 3, 4] },
-      ];
-      await service.updateFeedbackTarget(feedbackId, feedbackTargetGroup);
-      expect(
-        feedbackTargetRepository.deleteFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId, expect.any(Object));
-      expect(
-        feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId, 1, 2, expect.any(Object));
-      expect(
-        feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId, 1, 3, expect.any(Object));
-      expect(
-        feedbackTargetRepository.createFeedbackTarget,
-      ).toHaveBeenCalledWith(feedbackId, 1, 4, expect.any(Object));
-    });
+  describe('softDeleteFeedback', () => {
+    it('feedbackId에 해당하는 feedback softDelete', async () => {
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([
+        mockFeedback,
+      ]);
+      (imageService.getImagesByFeedbackId as jest.Mock).mockResolvedValue([
+        { imagePath: 's3://bucket/feedback/1/1234567890-test.jpg' },
+      ]);
+      (awsService.deleteImageFromS3 as jest.Mock).mockResolvedValue(undefined);
+      (feedbackRepository.softDeleteFeedback as jest.Mock).mockResolvedValue(
+        undefined,
+      );
 
-    describe('softDeleteFeedback', () => {
-      it('feedbackId에 해당하는 feedback softDelete', async () => {
-        (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
-          mockFeedback,
-        );
-
-        await service.softDeleteFeedback(
-          mockUser.userId,
-          mockFeedback.feedbackId,
-        );
-        expect(feedbackRepository.softDeleteFeedback).toHaveBeenCalledWith(
-          mockFeedback.feedbackId,
-          expect.any(Object),
-        );
-      });
-    });
-
-    describe('deleteFeedbackTarget', () => {
-      it('feedbackId에 해당하는 feedbackTarget delete', async () => {
-        const feedbackId = 1;
-        const queryRunner = new MockDataSource().createQueryRunner();
-        jest
-          .spyOn(feedbackTargetRepository, 'deleteFeedbackTarget')
-          .mockResolvedValue(null);
-
-        await service.deleteFeedbackTarget(feedbackId, queryRunner as any);
-
-        expect(
-          feedbackTargetRepository.deleteFeedbackTarget,
-        ).toHaveBeenCalledWith(feedbackId, queryRunner);
-      });
+      await service.softDeleteFeedback(
+        mockUser.userId,
+        mockFeedback.feedbackId,
+      );
+      expect(imageService.getImagesByFeedbackId).toHaveBeenCalledWith(
+        mockFeedback.feedbackId,
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        '1/1234567890-test.jpg',
+      );
+      expect(feedbackRepository.softDeleteFeedback).toHaveBeenCalledWith(
+        mockFeedback.feedbackId,
+      );
     });
   });
 });

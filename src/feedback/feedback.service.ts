@@ -22,39 +22,120 @@ export class FeedbackService {
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
-  async getAllFeedbackByInstructor(userId: number): Promise<Feedback[]> {
-    return await this.feedbackRepository.getAllFeedbackByInstructor(userId);
+  async getAllFeedbackByInstructor(userId: number): Promise<any[]> {
+    const feedbackDatas =
+      await this.feedbackRepository.getAllFeedbackByInstructor(userId);
+
+    // feedbackId를 기준으로 중복된 피드백을 제거, member 정보와 image정보를 배열로 정리
+    const feedbacks = feedbackDatas.reduce((acc, feedback) => {
+      const existingFeedback = acc.find(
+        (f) => f.feedbackId === feedback.feedbackId,
+      );
+
+      if (existingFeedback) {
+        // 이미 해당 강의가 존재하면 member 정보를 추가
+        if (feedback.memberUserId) {
+          existingFeedback.members.push({
+            memberUserId: feedback.memberUserId,
+            memberProfileImage: feedback.memberProfileImage,
+            memberNickname: feedback.memberNickname,
+          });
+        }
+      } else {
+        acc.push({
+          feedbackId: feedback.feedbackId,
+          feedbackType: feedback.feedbackType,
+          feedbackDate: feedback.feedbackDate,
+          feedbackContent: feedback.feedbackContent,
+          lectureTitle: feedback.lectureTitle,
+          members: feedback.memberUserId
+            ? [
+                {
+                  memberUserId: feedback.memberUserId,
+                  memberProfileImage: feedback.memberProfileImage,
+                  memberNickname: feedback.memberNickname,
+                },
+              ]
+            : [],
+        });
+      }
+      return acc;
+    }, []);
+
+    return feedbacks;
   }
 
   /* customer 개인 feedback 전체 조회 */
-  async getAllFeedbackByCustomer(userId: number): Promise<Feedback[]> {
-    return await this.feedbackRepository.getAllFeedbackByCustomer(userId);
+  async getAllFeedbackByCustomer(userId: number): Promise<any[]> {
+    const feedbackDatas =
+      await this.feedbackRepository.getAllFeedbackByCustomer(userId);
+
+    // 강사 정보를 객체로 묶어서 반환
+    const feedbacks = feedbackDatas.map((feedback) => ({
+      feedback: feedback.feedbackId,
+      lectureTitle: feedback.lectureTitle,
+      feedbackContent: feedback.feedbackContent,
+      feedbackDate: feedback.feedbackDate,
+      feedbackType: feedback.feedbackType,
+      instructor: {
+        instructorName: feedback.instructorName,
+        instructorProfileImage: feedback.instructorProfileImage,
+      },
+    }));
+
+    return feedbacks;
   }
 
   /* feedback 상세 조회 */
   async getFeedbackByPk(userId: number, feedbackId: number) {
-    const feedback = await this.feedbackRepository.getFeedbackByPk(feedbackId);
-    if (!feedback) {
+    const feedbackData =
+      await this.feedbackRepository.getFeedbackByPk(feedbackId);
+    if (!feedbackData) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
+    console.log(feedbackData);
+
+    const feedback = feedbackData.reduce((acc, feedback) => {
+      const existingFeedback = acc.find(
+        (f) => f.feedbackId === feedback.feedbackId,
+      );
+
+      if (existingFeedback) {
+        // 이미 해당 강의가 존재하면 image 정보를 추가
+        if (feedback.imagePath) {
+          existingFeedback.images.push({
+            images: feedback.imagePath,
+          });
+        }
+      } else {
+        acc.push({
+          feedbackId: feedback.feedbackId,
+          feedbackContent: feedback.feedbackContent,
+          feedbackDate: feedback.feedbackDate,
+          feedbackType: feedback.feedbackType,
+          instructor: {
+            instructorUserId: feedback.instructorUserId,
+            instructorName: feedback.instructorName,
+            instructorProfileImage: feedback.instructorProfileImage,
+          },
+          images: feedback.imagePath ? [{ imagePath: feedback.imagePath }] : [],
+        });
+      }
+      return acc;
+    }, []);
 
     const feedbackTargetList =
       await this.feedbackTargetRepository.getFeedbackTargetByFeedbackId(
         feedbackId,
       );
     // instructor
-    for (let i = 0; i < feedback.length; i++) {
-      if (feedback[i].userId === userId || feedback[i].user.userId === userId) {
-        return { feedback, feedbackTargetList };
-      }
+    if (feedback[0].instructor.instructorUserId === userId) {
+      return { feedback, feedbackTargetList };
     }
 
     // member
     for (let i = 0; i < feedbackTargetList.length; i++) {
-      if (
-        feedbackTargetList[i].userId === userId ||
-        feedbackTargetList[i].user.userId === userId
-      ) {
+      if (feedbackTargetList[i].memberUserId === userId) {
         return feedback;
       }
     }

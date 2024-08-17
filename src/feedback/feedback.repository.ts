@@ -13,7 +13,7 @@ export class FeedbackRepository {
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
-  async getAllFeedbackByInstructor(userId: number): Promise<Feedback[]> {
+  async getAllFeedbackByInstructor(userId: number): Promise<any[]> {
     const result = await this.feedbackRepository.query(
       'CALL GET_ALL_FEEDBACK_INSTRUCTOR(?)',
       [userId],
@@ -22,7 +22,7 @@ export class FeedbackRepository {
   }
 
   /* customer 개인 feedback 전체 조회 */
-  async getAllFeedbackByCustomer(userId: number): Promise<Feedback[]> {
+  async getAllFeedbackByCustomer(userId: number): Promise<any[]> {
     const result = await this.feedbackRepository.query(
       'CALL GET_ALL_FEEDBACK_CUSTOMER(?)',
       [userId],

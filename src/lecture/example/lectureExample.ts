@@ -11,9 +11,13 @@ export const getScheuldeLecturesByInstructor = {
       lectureQRCode:
         'https://just-swim-bucket.s3.ap-northeast-2.amazonaws.com/qrcodes/1.png',
       lectureEndDate: '2024.10.31',
-      memberUserId: '12',
-      memberProfileImage:
-        'https://ssl.pstatic.net/static/pwe/address/img_profile.png',
+      members: [
+        {
+          memberUserId: '12',
+          memberProfileImage:
+            'https://ssl.pstatic.net/static/pwe/address/img_profile.png',
+        },
+      ],
     },
     {
       lectureId: '30',
@@ -25,8 +29,7 @@ export const getScheuldeLecturesByInstructor = {
       lectureColor: '#F1547C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      memberUserId: null,
-      memberProfileImage: null,
+      members: [],
     },
   ],
 };
@@ -43,8 +46,10 @@ export const getScheduleLecturesByCustomer = {
       lectureColor: '#F1554C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      instructorName: '홍길순',
-      instructorProfileImage: 'image1',
+      instructor: {
+        instructorName: '홍길순',
+        instructorProfileImage: 'image1',
+      },
     },
     {
       lectureId: '30',
@@ -56,8 +61,10 @@ export const getScheduleLecturesByCustomer = {
       lectureColor: '#F1547C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      instructorName: '홍길동',
-      instructorProfileImage: 'image3',
+      instructor: {
+        instructorName: '홍길동',
+        instructorProfileImage: 'image3',
+      },
     },
   ],
 };
@@ -73,11 +80,17 @@ export const lectureDetailByInstructor = {
       lectureColor: '#F1554C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      instructorName: '홍길동',
-      instructorProfileImage: 'image1',
-      memberUserId: '3',
-      memberProfileImage:
-        'http://t1.kakaocdn.net/account_images/default_profile.jpeg.twg.thumb.R640x640',
+      instructor: {
+        instructorName: '홍길동',
+        instructorProfileImage: 'image1',
+      },
+      members: [
+        {
+          memberUserId: '3',
+          memberProfileImage:
+            'http://t1.kakaocdn.net/account_images/default_profile.jpeg.twg.thumb.R640x640',
+        },
+      ],
     },
     {
       lectureTitle: '오후 3반',
@@ -88,12 +101,18 @@ export const lectureDetailByInstructor = {
       lectureColor: '#F1554C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      instructorName: '홍길동',
-      instructorProfileImage:
-        'http://k.kakaocdn.net/dn/d3UHmi/btsH8xClKxG/jGQI0gBeKrlOkneK7KYIbK/img_640x640.jpg',
-      memberUserId: '16',
-      memberProfileImage:
-        'http://k.kakaocdn.net/dn/hBxV7/btsH4B4E3MC/dgeYEzOWL4RO3kNvJPq8OK/img_640x640.jpg',
+      instructor: {
+        instructorName: '홍길동',
+        instructorProfileImage:
+          'http://k.kakaocdn.net/dn/d3UHmi/btsH8xClKxG/jGQI0gBeKrlOkneK7KYIbK/img_640x640.jpg',
+      },
+      members: [
+        {
+          memberUserId: '16',
+          memberProfileImage:
+            'http://k.kakaocdn.net/dn/hBxV7/btsH4B4E3MC/dgeYEzOWL4RO3kNvJPq8OK/img_640x640.jpg',
+        },
+      ],
     },
   ],
 };
@@ -109,8 +128,11 @@ export const lectureDetailByCustomer = {
       lectureColor: '#F1554C',
       lectureQRCode: 'QR 코드',
       lectureEndDate: '2024.10.31',
-      instructorName: '홍길동',
-      instructorProfileImage: 'image1',
+      instructor: {
+        instructorName: '홍길동',
+        instructorProfileImage: 'image1',
+      },
+      members: [],
     },
   ],
 };

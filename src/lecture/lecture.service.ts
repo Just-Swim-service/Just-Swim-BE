@@ -71,12 +71,12 @@ export class LectureService {
   }
 
   /* 강사 모든 강의 조회 */
-  async getAllLecturesByInstructor(userId: number): Promise<Lecture[]> {
-    const lectures =
+  async getAllLecturesByInstructor(userId: number): Promise<any[]> {
+    const lectureDatas =
       await this.lectureRepository.getAllLecturesByInstructor(userId);
 
     // lectureId를 기준으로 중복된 강의를 제거, member 정보를 배열로 정리
-    const groupedLectures = lectures.reduce((acc, lecture) => {
+    const lectures = lectureDatas.reduce((acc, lecture) => {
       const existingLecture = acc.find(
         (l) => l.lectureId === lecture.lectureId,
       );
@@ -114,7 +114,7 @@ export class LectureService {
       return acc;
     }, []);
 
-    return groupedLectures;
+    return lectures;
   }
 
   /* 스케줄 - 수강생 본인이 들어가 있는 강의 조회 */
@@ -124,7 +124,15 @@ export class LectureService {
 
     // 강사 정보를 객체로 묶어서 반환
     const lectures = lectureDatas.map((lecture) => ({
-      ...lecture,
+      lectureId: lecture.lectureId,
+      lectureTitle: lecture.lectureTitle,
+      lectureContent: lecture.lectureContent,
+      lectureTime: lecture.lectureTime,
+      lectureDays: lecture.lectureDays,
+      lectureLocation: lecture.lectureLocation,
+      lectureColor: lecture.lectureColor,
+      lectureQRCode: lecture.lectureQRCode,
+      lectureEndDate: lecture.lectureEndDate,
       instructor: {
         instructorName: lecture.instructorName,
         instructorProfileImage: lecture.instructorProfileImage,
@@ -141,7 +149,15 @@ export class LectureService {
 
     // 강사 정보를 객체로 묶어서 반환
     const lectures = lectureDatas.map((lecture) => ({
-      ...lecture,
+      lectureId: lecture.lectureId,
+      lectureTitle: lecture.lectureTitle,
+      lectureContent: lecture.lectureContent,
+      lectureTime: lecture.lectureTime,
+      lectureDays: lecture.lectureDays,
+      lectureLocation: lecture.lectureLocation,
+      lectureColor: lecture.lectureColor,
+      lectureQRCode: lecture.lectureQRCode,
+      lectureEndDate: lecture.lectureEndDate,
       instructor: {
         instructorName: lecture.instructorName,
         instructorProfileImage: lecture.instructorProfileImage,

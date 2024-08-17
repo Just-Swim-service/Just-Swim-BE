@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -23,38 +24,194 @@ export class LectureService {
   }
 
   /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
-  async getScheduleLecturesByInstructor(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getScheduleLecturesByInstructor(userId);
+  async getScheduleLecturesByInstructor(userId: number): Promise<any[]> {
+    const lectures =
+      await this.lectureRepository.getScheduleLecturesByInstructor(userId);
+
+    // lectureId를 기준으로 중복된 강의를 제거, member 정보를 배열로 정리
+    const groupedLectures = lectures.reduce((acc, lecture) => {
+      const existingLecture = acc.find(
+        (l) => l.lectureId === lecture.lectureId,
+      );
+
+      if (existingLecture) {
+        // 이미 해당 강의가 존재하면 member 정보만 추가
+        if (lecture.memberUserId) {
+          existingLecture.members.push({
+            memberUserId: lecture.memberUserId,
+            memberProfileImage: lecture.memberProfileImage,
+          });
+        }
+      } else {
+        acc.push({
+          lectureId: lecture.lectureId,
+          lectureTitle: lecture.lectureTitle,
+          lectureContent: lecture.lectureContent,
+          lectureTime: lecture.lectureTime,
+          lectureDays: lecture.lectureDays,
+          lectureLocation: lecture.lectureLocation,
+          lectureColor: lecture.lectureColor,
+          lectureQRCode: lecture.lectureQRCode,
+          lectureEndDate: lecture.lectureEndDate,
+          members: lecture.memberUserId
+            ? [
+                {
+                  memberUserId: lecture.memberUserId,
+                  memberProfileImage: lecture.memberProfileImage,
+                },
+              ]
+            : [],
+        });
+      }
+
+      return acc;
+    }, []);
+
+    return groupedLectures;
   }
 
   /* 강사 모든 강의 조회 */
   async getAllLecturesByInstructor(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getAllLecturesByInstructor(userId);
+    const lectures =
+      await this.lectureRepository.getAllLecturesByInstructor(userId);
+
+    // lectureId를 기준으로 중복된 강의를 제거, member 정보를 배열로 정리
+    const groupedLectures = lectures.reduce((acc, lecture) => {
+      const existingLecture = acc.find(
+        (l) => l.lectureId === lecture.lectureId,
+      );
+
+      if (existingLecture) {
+        // 이미 해당 강의가 존재하면 member 정보만 추가
+        if (lecture.memberUserId) {
+          existingLecture.members.push({
+            memberUserId: lecture.memberUserId,
+            memberProfileImage: lecture.memberProfileImage,
+          });
+        }
+      } else {
+        acc.push({
+          lectureId: lecture.lectureId,
+          lectureTitle: lecture.lectureTitle,
+          lectureContent: lecture.lectureContent,
+          lectureTime: lecture.lectureTime,
+          lectureDays: lecture.lectureDays,
+          lectureLocation: lecture.lectureLocation,
+          lectureColor: lecture.lectureColor,
+          lectureQRCode: lecture.lectureQRCode,
+          lectureEndDate: lecture.lectureEndDate,
+          members: lecture.memberUserId
+            ? [
+                {
+                  memberUserId: lecture.memberUserId,
+                  memberProfileImage: lecture.memberProfileImage,
+                },
+              ]
+            : [],
+        });
+      }
+
+      return acc;
+    }, []);
+
+    return groupedLectures;
   }
 
   /* 스케줄 - 수강생 본인이 들어가 있는 강의 조회 */
-  async getScheduleLecturesByCustomer(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getScheduleLecturesByCustomer(userId);
+  async getScheduleLecturesByCustomer(userId: number): Promise<any[]> {
+    const lectureDatas =
+      await this.lectureRepository.getScheduleLecturesByCustomer(userId);
+
+    // 강사 정보를 객체로 묶어서 반환
+    const lectures = lectureDatas.map((lecture) => ({
+      ...lecture,
+      instructor: {
+        instructorName: lecture.instructorName,
+        instructorProfileImage: lecture.instructorProfileImage,
+      },
+    }));
+
+    return lectures;
   }
 
   /* 수강생 모든 강의 조회 */
-  async getAllLecturesByCustomer(userId: number): Promise<Lecture[]> {
-    return await this.lectureRepository.getAllLecturesByCustomer(userId);
+  async getAllLecturesByCustomer(userId: number): Promise<any[]> {
+    const lectureDatas =
+      await this.lectureRepository.getAllLecturesByCustomer(userId);
+
+    // 강사 정보를 객체로 묶어서 반환
+    const lectures = lectureDatas.map((lecture) => ({
+      ...lecture,
+      instructor: {
+        instructorName: lecture.instructorName,
+        instructorProfileImage: lecture.instructorProfileImage,
+      },
+    }));
+
+    return lectures;
   }
 
   /* 강의 상세 조회 */
   async getLectureByPk(userId: number, lectureId: number) {
-    const lecture = await this.lectureRepository.getLectureByPk(
+    const lectureData = await this.lectureRepository.getLectureByPk(
       lectureId,
       userId,
     );
-    if (!lecture[0]) {
+    if (!lectureData[0]) {
       throw new NotFoundException('존재하지 않는 강좌입니다.');
     }
-    if (lecture[0].lectureId === null) {
+    if (lectureData[0].lectureId === null) {
       throw new UnauthorizedException('강의 접근 권한이 없습니다.');
     }
-    return lecture;
+
+    // 중복 강의 정보를 제거하고 멤버 정보를 그룹화
+    const lecture = lectureData.reduce((acc, current) => {
+      const existingLecture = acc.find(
+        (l) => l.lectureId === current.lectureId,
+      );
+
+      if (!existingLecture) {
+        // 기존에 해당 강의가 없으면 새롭게 추가
+        acc.push({
+          lectureId: current.lectureId,
+          lectureTitle: current.lectureTitle,
+          lectureContent: current.lectureContent,
+          lectureTime: current.lectureTime,
+          lectureDays: current.lectureDays,
+          lectureLocation: current.lectureLocation,
+          lectureColor: current.lectureColor,
+          lectureQRCode: current.lectureQRCode,
+          lectureEndDate: current.lectureEndDate,
+          instructor: {
+            instructorName: current.instructorName,
+            instructorProfileImage: current.instructorProfileImage,
+          },
+          members: current.memberUserId
+            ? [
+                {
+                  memberUserId: current.memberUserId,
+                  memberProfileImage: current.memberProfileImage,
+                },
+              ]
+            : [],
+        });
+      } else {
+        // 기존 강의가 있으면 멤버 추가 (중복 멤버는 제외)
+        if (
+          current.memberUserId &&
+          !existingLecture.members.some(
+            (m) => m.userId === current.memberUserId,
+          )
+        ) {
+          existingLecture.members.push({
+            memberUserId: current.memberUserId,
+            memberProfileImage: current.memberProfileImage,
+          });
+        }
+      }
+      return acc;
+    }, []);
+    return lecture[0];
   }
 
   // 강의 수정

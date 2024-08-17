@@ -19,7 +19,7 @@ export class LectureRepository {
   }
 
   /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
-  async getScheduleLecturesByInstructor(userId: number): Promise<Lecture[]> {
+  async getScheduleLecturesByInstructor(userId: number): Promise<any[]> {
     const result = await this.lectureRepository.query(
       'CALL GET_SCHEDULE_LECTURES_BY_INSTRUCTOR(?)',
       [userId],
@@ -28,7 +28,7 @@ export class LectureRepository {
   }
 
   /* 강사 모든 강의 조회 */
-  async getAllLecturesByInstructor(userId: number): Promise<Lecture[]> {
+  async getAllLecturesByInstructor(userId: number): Promise<any[]> {
     const result = await this.lectureRepository.query(
       'CALL GET_ALL_LECTURES_INSTRUCTOR(?)',
       [userId],
@@ -37,7 +37,7 @@ export class LectureRepository {
   }
 
   /* 수강생 강의 조회 */
-  async getScheduleLecturesByCustomer(userId: number): Promise<Lecture[]> {
+  async getScheduleLecturesByCustomer(userId: number): Promise<any[]> {
     const result = await this.lectureRepository.query(
       'CALL GET_SCHEDULE_LECTURES_BY_CUSTOMER(?)',
       [userId],
@@ -46,7 +46,7 @@ export class LectureRepository {
   }
 
   /* 수강생 모든 강의 조회 */
-  async getAllLecturesByCustomer(userId: number): Promise<Lecture[]> {
+  async getAllLecturesByCustomer(userId: number): Promise<any[]> {
     const result = await this.lectureRepository.query(
       'CALL GET_ALL_LECTURES_CUSTOMER(?)',
       [userId],
@@ -55,7 +55,7 @@ export class LectureRepository {
   }
 
   /* 강의 상세 조회 */
-  async getLectureByPk(lectureId: number, userId: number) {
+  async getLectureByPk(lectureId: number, userId: number): Promise<any> {
     const result = await this.lectureRepository.query(
       'CALL GET_LECTURE_BY_PK(?, ?)',
       [lectureId, userId],

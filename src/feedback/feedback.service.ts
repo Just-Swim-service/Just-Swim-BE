@@ -93,7 +93,6 @@ export class FeedbackService {
     if (!feedbackData) {
       throw new NotFoundException('존재하지 않는 피드백입니다.');
     }
-    console.log(feedbackData);
 
     const feedback = feedbackData.reduce((acc, feedback) => {
       const existingFeedback = acc.find(
@@ -203,7 +202,7 @@ export class FeedbackService {
 
     // 피드백 중 사용자 권한 확인
     const authorizedFeedback = feedback.find(
-      (f) => f.userId === userId || f.user.userId === userId,
+      (f) => f.instructorUserId === userId,
     );
     if (!authorizedFeedback) {
       throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
@@ -273,7 +272,7 @@ export class FeedbackService {
 
     // 삭제 중 사용자 권한 확인
     const authorizedFeedback = feedback.find(
-      (f) => f.userId === userId || f.user.userId === userId,
+      (f) => f.instructorUserId === userId,
     );
     if (!authorizedFeedback) {
       throw new UnauthorizedException('feedback 수정 권한이 없습니다.');

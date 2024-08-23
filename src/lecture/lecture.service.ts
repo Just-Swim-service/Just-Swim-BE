@@ -83,10 +83,10 @@ export class LectureService {
 
       if (existingLecture) {
         // 이미 해당 강의가 존재하면 member 정보만 추가
-        if (lecture.memberUserId) {
+        if (lecture.userId) {
           existingLecture.members.push({
-            memberUserId: lecture.memberUserId,
-            memberProfileImage: lecture.memberProfileImage,
+            userId: lecture.userId,
+            profileImage: lecture.profileImage,
           });
         }
       } else {
@@ -100,11 +100,11 @@ export class LectureService {
           lectureColor: lecture.lectureColor,
           lectureQRCode: lecture.lectureQRCode,
           lectureEndDate: lecture.lectureEndDate,
-          members: lecture.memberUserId
+          members: lecture.userId
             ? [
                 {
-                  memberUserId: lecture.memberUserId,
-                  memberProfileImage: lecture.memberProfileImage,
+                  userId: lecture.userId,
+                  profileImage: lecture.profileImage,
                 },
               ]
             : [],
@@ -159,8 +159,8 @@ export class LectureService {
       lectureQRCode: lecture.lectureQRCode,
       lectureEndDate: lecture.lectureEndDate,
       instructor: {
-        instructorName: lecture.instructorName,
-        instructorProfileImage: lecture.instructorProfileImage,
+        name: lecture.name,
+        profileImage: lecture.profileImage,
       },
     }));
 

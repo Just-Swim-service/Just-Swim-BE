@@ -228,7 +228,6 @@ export class FeedbackService {
       await Promise.all(
         existingImages.map(async (image) => {
           const url = new URL(image.imagePath);
-          console.log(url.pathname);
           const fileName = url.pathname.split('/').slice(-3).join('/');
           await this.awsService.deleteImageFromS3(fileName);
         }),

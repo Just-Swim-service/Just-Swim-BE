@@ -16,5 +16,5 @@ export class EditFeedbackImageDto {
     description: '피드백 수정 데이터',
     type: EditFeedbackDto,
   })
-  editFeedbackDto: EditFeedbackDto;
+  editFeedbackDto?: EditFeedbackDto;
 }

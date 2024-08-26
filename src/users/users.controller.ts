@@ -346,16 +346,20 @@ export class UsersController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async editUserProfile(
-    @UploadedFile() file: Express.Multer.File,
     @Body('editUserDto') body: any,
     @Res() res: Response,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const editUserDto = JSON.parse(body);
     const { userId } = res.locals.user;
 
-    await this.usersService.editUserProfile(userId, editUserDto, file);
+    const result = await this.usersService.editUserProfile(
+      userId,
+      editUserDto,
+      file,
+    );
 
-    return this.responseService.success(res, '프로필 수정 완료');
+    return this.responseService.success(res, '프로필 수정 완료', result);
   }
 
   /* 로그아웃 */

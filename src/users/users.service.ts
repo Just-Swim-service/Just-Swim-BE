@@ -13,6 +13,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
 import { UserType } from './enum/userType.enum';
 import slugify from 'slugify';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,7 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly customerRepository: CustomerRepository,
     private readonly instructorRepository: InstructorRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   /* email, provider를 이용해서 user 조회 */
@@ -66,7 +68,7 @@ export class UsersService {
     userId: number,
     editUserDto: EditUserDto,
     file?: Express.Multer.File,
-  ): Promise<void> {
+  ) {
     const user = await this.usersRepository.findUserByPk(userId);
 
     // profileImage를 수정할 경우
@@ -89,12 +91,14 @@ export class UsersService {
         strict: true,
       });
       const fileName = `profileImage/${Date.now().toString()}-${slugifiedName}.${ext}`;
-      const profileImageUrl = await this.awsService.uploadImageToS3(
-        fileName,
-        file,
-        ext,
-      );
+
+      // presignedUrl 생성
+      const presignedUrl = await this.awsService.getPresignedUrl(fileName, ext);
+      const profileImageUrl = `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${fileName}`;
+
       editUserDto.profileImage = profileImageUrl;
+      await this.usersRepository.editUserProfile(userId, editUserDto);
+      return presignedUrl;
     }
     await this.usersRepository.editUserProfile(userId, editUserDto);
   }

@@ -16,5 +16,5 @@ export class EditProfileImageDto {
     description: '프로필 수정 데이터',
     type: EditUserDto,
   })
-  editUserDto: EditUserDto;
+  editUserDto?: EditUserDto;
 }

@@ -81,6 +81,8 @@ export class UsersController {
     let cleanedNumber: string = phone_number.replace(/\D/g, '');
     let phoneNumber: string = `010-${cleanedNumber.substring(4, 8)}-${cleanedNumber.substring(8, 13)}`;
 
+    const host = req.headers.host;
+
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
@@ -98,7 +100,13 @@ export class UsersController {
       // }
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      if (host.includes('localhost')) {
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      } else {
+        res.redirect(
+          process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+        );
+      }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {

@@ -139,7 +139,8 @@ export class FeedbackController {
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: '이미지 업로드',
+    description:
+      'presignedUrl이 response에 담겨 이동합니다. 받은 presignedUrl 경로를 통해 body의 Binary에 추가해서 담아주시면 s3에 저장됩니다.',
     type: FeedbackImageDto,
   })
   @ApiResponse({ status: 200, description: 'feedback 생성 성공' })
@@ -150,7 +151,7 @@ export class FeedbackController {
   async createFeedback(
     @Res() res: Response,
     @Body('feedbackDto') body: any,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
     const feedbackDto = JSON.parse(body);
     const { userId, userType } = res.locals.user;
@@ -169,11 +170,15 @@ export class FeedbackController {
       );
     }
 
+    const presignedUrls =
+      await this.feedbackService.generateFeedbackPresignedUrls(userId, files);
+
     const feedback = await this.feedbackService.createFeedback(
       userId,
       feedbackDto,
-      files,
+      presignedUrls,
     );
+
     if (!feedback) {
       return this.responseService.error(
         res,
@@ -183,6 +188,7 @@ export class FeedbackController {
     }
     return this.responseService.success(res, 'feedback 생성 성공', {
       feedbackId: feedback.feedbackId,
+      presignedUrls,
     });
   }
 
@@ -195,7 +201,8 @@ export class FeedbackController {
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: '이미지 업로드',
+    description:
+      'presignedUrl이 response에 담겨 이동합니다. 받은 presignedUrl 경로를 통해 body의 Binary에 추가해서 담아주시면 s3에 저장됩니다.',
     type: EditFeedbackImageDto,
   })
   @ApiResponse({ status: 200, description: 'feedback 수정 성공' })
@@ -206,19 +213,28 @@ export class FeedbackController {
     @Res() res: Response,
     @Param('feedbackId') feedbackId: number,
     @Body('editFeedbackDto') body: any,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
     const editFeedbackDto = JSON.parse(body);
     const { userId } = res.locals.user;
+
+    // presigned URL 생성
+    const presignedUrls =
+      await this.feedbackService.generateFeedbackPresignedUrls(userId, files);
+
+    // 파일 이름 추출
+    const fileNames = presignedUrls.map((urlObj) => urlObj.fileName);
 
     await this.feedbackService.updateFeedback(
       userId,
       feedbackId,
       editFeedbackDto,
-      files,
+      fileNames,
     );
 
-    return this.responseService.success(res, 'feedback 수정 성공');
+    return this.responseService.success(res, 'feedback 수정 성공', {
+      presignedUrls,
+    });
   }
 
   /* feedback 삭제(softDelete) */

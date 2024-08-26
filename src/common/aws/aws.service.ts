@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -70,5 +71,18 @@ export class AwsService {
     await this.s3Client.send(command);
 
     return `https://${this.configService.get<string>('AWS_S3_BUCKET_NAME')}.s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${fileName}`;
+  }
+
+  /* presigned url */
+  async getPresignedUrl(fileName: string, ext: string): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
+      Key: fileName,
+      ContentType: `image/${ext}`,
+    });
+
+    const presignedUrl = await getSignedUrl(this.s3Client, command);
+
+    return presignedUrl;
   }
 }

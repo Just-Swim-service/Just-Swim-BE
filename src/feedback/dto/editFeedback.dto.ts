@@ -19,7 +19,7 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsEnum(FeedbackType)
-  readonly feedbackType: FeedbackType;
+  readonly feedbackType?: FeedbackType;
 
   @ApiProperty({
     example: '2024.04.22',
@@ -28,7 +28,7 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsString()
-  readonly feedbackDate: string;
+  readonly feedbackDate?: string;
 
   @ApiProperty({
     example: 'URL',
@@ -37,7 +37,7 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsString()
-  readonly feedbackLink: string;
+  readonly feedbackLink?: string;
 
   @ApiProperty({
     example:
@@ -47,7 +47,7 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsString()
-  readonly feedbackContent: string;
+  readonly feedbackContent?: string;
 
   @ApiProperty({
     example: [{ lectureId: 1, userIds: [2, 3] }],
@@ -58,5 +58,5 @@ export class EditFeedbackDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FeedbackTargetDto)
-  readonly feedbackTarget: FeedbackTargetDto[];
+  readonly feedbackTarget?: FeedbackTargetDto[];
 }

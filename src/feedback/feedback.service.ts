@@ -227,7 +227,9 @@ export class FeedbackService {
     if (existingImages && existingImages.length > 0) {
       await Promise.all(
         existingImages.map(async (image) => {
-          const fileName = image.imagePath.split('/').slice(-2).join('/');
+          const url = new URL(image.imagePath);
+          console.log(url.pathname);
+          const fileName = url.pathname.split('/').slice(-3).join('/');
           await this.awsService.deleteImageFromS3(fileName);
         }),
       );
@@ -279,7 +281,8 @@ export class FeedbackService {
     if (existingImages && existingImages.length > 0) {
       await Promise.all(
         existingImages.map((image) => {
-          const fileName = image.imagePath.split('/').slice(-2).join('/');
+          const url = new URL(image.imagePath);
+          const fileName = url.pathname.split('/').slice(-3).join('/');
           this.awsService.deleteImageFromS3(fileName);
         }),
       );

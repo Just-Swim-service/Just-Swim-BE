@@ -223,13 +223,12 @@ export class FeedbackController {
       await this.feedbackService.generateFeedbackPresignedUrls(userId, files);
 
     // 파일 이름 추출
-    const fileNames = presignedUrls.map((urlObj) => urlObj.fileName);
 
     await this.feedbackService.updateFeedback(
       userId,
       feedbackId,
       editFeedbackDto,
-      fileNames,
+      presignedUrls,
     );
 
     return this.responseService.success(res, 'feedback 수정 성공', {

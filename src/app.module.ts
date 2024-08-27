@@ -90,6 +90,10 @@ export class AppModule implements NestModule {
       { path: 'feedback', method: RequestMethod.GET },
       { path: 'feedback/:feedbackId', method: RequestMethod.GET },
       { path: 'feedback', method: RequestMethod.POST },
+      {
+        path: 'feedback/feedbackImage/presignedUrl',
+        method: RequestMethod.POST,
+      },
       { path: 'feedback/:feedbackId', method: RequestMethod.PATCH },
       { path: 'feedback/:feedbackId', method: RequestMethod.DELETE },
     );

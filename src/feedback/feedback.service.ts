@@ -12,6 +12,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';
 import { ConfigService } from '@nestjs/config';
+import { FeedbackImageDto } from 'src/image/dto/feedbackImage.dto';
 
 @Injectable()
 export class FeedbackService {
@@ -146,15 +147,12 @@ export class FeedbackService {
   /* feedback 이미지 업로드를 위한 presignedUrl 생성 */
   async generateFeedbackPresignedUrls(
     userId: number,
-    files: Express.Multer.File[],
+    feedbackImageDto: FeedbackImageDto,
   ): Promise<any[]> {
     const presignedUrls = await Promise.all(
-      files.map(async (file) => {
-        const ext = file.mimetype.split('/')[1];
-        const originalNameWithoutExt = file.originalname
-          .split('.')
-          .slice(0, -1)
-          .join('.');
+      feedbackImageDto.files.map(async (file) => {
+        const ext = file.split('.').pop(); // 확장자 추출
+        const originalNameWithoutExt = file.split('.').slice(0, -1).join('.'); // 확장자를 제외한 이름
         const slugifiedName = slugify(originalNameWithoutExt, {
           lower: true,
           strict: true,
@@ -178,14 +176,18 @@ export class FeedbackService {
   async createFeedback(
     userId: number,
     feedbackDto: FeedbackDto,
-    presignedUrls?: any[],
   ): Promise<Feedback> {
     // image
-    const filesJsonArray = presignedUrls.map((urlObj) => {
-      return {
-        filePath: `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${urlObj.fileName}`,
-      };
-    });
+    let filesJsonArray = [];
+
+    if (feedbackDto.feedbackImage && feedbackDto.feedbackImage.length > 0) {
+      filesJsonArray = feedbackDto.feedbackImage.map((imageUrl) => {
+        return {
+          filePath: imageUrl,
+        };
+      });
+    }
+
     const filesJson = JSON.stringify(filesJsonArray);
 
     // feedbackTarget을 db에 넣을 수 있게 변경
@@ -207,7 +209,6 @@ export class FeedbackService {
     userId: number,
     feedbackId: number,
     editFeedbackDto: EditFeedbackDto,
-    presignedUrls?: any[],
   ): Promise<void> {
     const feedback = await this.feedbackRepository.getFeedbackByPk(feedbackId);
     if (!feedback) {
@@ -234,12 +235,19 @@ export class FeedbackService {
       );
     }
 
+    let filesJsonArray = [];
+
     // s3에 저장된 새로운 이미지들의 URL 생성
-    const filesJsonArray = presignedUrls.map((urlObj) => {
-      return {
-        filePath: `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${urlObj.fileName}`,
-      };
-    });
+    if (
+      editFeedbackDto.feedbackImage &&
+      editFeedbackDto.feedbackImage.length > 0
+    ) {
+      filesJsonArray = editFeedbackDto.feedbackImage.map((imageUrl) => {
+        return {
+          filePath: imageUrl,
+        };
+      });
+    }
     const filesJson =
       filesJsonArray.length > 0 ? JSON.stringify(filesJsonArray) : null;
 

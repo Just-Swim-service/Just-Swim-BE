@@ -59,4 +59,14 @@ export class EditFeedbackDto {
   @ValidateNested({ each: true })
   @Type(() => FeedbackTargetDto)
   readonly feedbackTarget?: FeedbackTargetDto[];
+
+  @ApiProperty({
+    example: ['이미지 주소 1.png', '이미지 주소 2.png'],
+    description:
+      'presigned url을 통해 저장한 이미지의 주소를 배열 형태로 받는다.',
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  readonly feedbackImage?: string[];
 }

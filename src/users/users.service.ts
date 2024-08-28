@@ -14,6 +14,7 @@ import * as path from 'path';
 import { UserType } from './enum/userType.enum';
 import slugify from 'slugify';
 import { ConfigService } from '@nestjs/config';
+import { EditProfileImageDto } from 'src/image/dto/editProfileImage.dto';
 
 @Injectable()
 export class UsersService {
@@ -63,42 +64,41 @@ export class UsersService {
     }
   }
 
-  /* user 프로필 수정 */
-  async editUserProfile(
+  /* profileImage 업로드를 위한 presigned url 생성 */
+  async generateProfileImagePresignedUrl(
     userId: number,
-    editUserDto: EditUserDto,
-    file?: Express.Multer.File,
-  ) {
+    editProfileImageDto: EditProfileImageDto,
+  ): Promise<string> {
+    const ext = editProfileImageDto.profileImage.split('.').pop();
+    const originalNameWithoutExt = editProfileImageDto.profileImage
+      .split('.')
+      .slice(0, -1)
+      .join('.'); // 확장자를 제외한 이름
+    const slugifiedName = slugify(originalNameWithoutExt, {
+      lower: true,
+      strict: true,
+    });
+    const fileName = `profileImage/${Date.now().toString()}-${slugifiedName}.${ext}`;
+
+    // presignedUrl 생성
+    const presignedUrl = await this.awsService.getPresignedUrl(fileName, ext);
+
+    return presignedUrl;
+  }
+
+  /* user 프로필 수정 */
+  async editUserProfile(userId: number, editUserDto: EditUserDto) {
     const user = await this.usersRepository.findUserByPk(userId);
 
     // profileImage를 수정할 경우
-    if (file) {
-      // 기존 프로필 이미지가 있다면 삭제
-      if (user.profileImage) {
+    if (editUserDto.profileImage) {
+      // 기존 프로필 이미지가 있다면 삭제 준비
+      const exProfileImage = user.profileImage ? user.profileImage : null;
+
+      if (exProfileImage) {
         const fileName = user.profileImage.split('/').slice(-2).join('/');
         await this.awsService.deleteImageFromS3(fileName);
       }
-
-      // 새 이미지 업로드
-      const ext = file.mimetype.split('/')[1];
-      // slugify로 -나 스페이스를 처리
-      const originalNameWithoutExt = file.originalname
-        .split('.')
-        .slice(0, -1)
-        .join('.');
-      const slugifiedName = slugify(originalNameWithoutExt, {
-        lower: true,
-        strict: true,
-      });
-      const fileName = `profileImage/${Date.now().toString()}-${slugifiedName}.${ext}`;
-
-      // presignedUrl 생성
-      const presignedUrl = await this.awsService.getPresignedUrl(fileName, ext);
-      const profileImageUrl = `https://s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${fileName}`;
-
-      editUserDto.profileImage = profileImageUrl;
-      await this.usersRepository.editUserProfile(userId, editUserDto);
-      return presignedUrl;
     }
     await this.usersRepository.editUserProfile(userId, editUserDto);
   }

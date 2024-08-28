@@ -9,7 +9,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  readonly name: string;
+  readonly name?: string;
 
   @ApiProperty({
     example: 'URL',
@@ -18,7 +18,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  profileImage: string;
+  profileImage?: string;
 
   @ApiProperty({
     example: '1995.09.13',
@@ -27,7 +27,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  readonly birth: string;
+  readonly birth?: string;
 
   @ApiProperty({
     example: '010-1234-1234',
@@ -36,5 +36,5 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  readonly phoneNumber: string;
+  readonly phoneNumber?: string;
 }

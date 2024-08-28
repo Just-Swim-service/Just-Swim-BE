@@ -74,6 +74,7 @@ export class AppModule implements NestModule {
       { path: 'user/myProfile', method: RequestMethod.GET },
       { path: 'user/logout', method: RequestMethod.POST },
       { path: 'user/withdraw', method: RequestMethod.DELETE },
+      { path: 'user/profileImage/presignedUrl', method: RequestMethod.POST },
       // Lecture
       { path: 'lecture', method: RequestMethod.POST },
       { path: 'lecture/schedule', method: RequestMethod.GET },

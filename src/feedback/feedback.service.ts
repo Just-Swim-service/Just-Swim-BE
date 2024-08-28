@@ -223,18 +223,6 @@ export class FeedbackService {
       throw new UnauthorizedException('feedback 수정 권한이 없습니다.');
     }
 
-    const existingImages =
-      await this.imageService.getImagesByFeedbackId(feedbackId);
-    if (existingImages && existingImages.length > 0) {
-      await Promise.all(
-        existingImages.map(async (image) => {
-          const url = new URL(image.imagePath);
-          const fileName = url.pathname.split('/').slice(-3).join('/');
-          await this.awsService.deleteImageFromS3(fileName);
-        }),
-      );
-    }
-
     let filesJsonArray = [];
 
     // s3에 저장된 새로운 이미지들의 URL 생성
@@ -247,7 +235,20 @@ export class FeedbackService {
           filePath: imageUrl,
         };
       });
+
+      const existingImages =
+        await this.imageService.getImagesByFeedbackId(feedbackId);
+      if (existingImages && existingImages.length > 0) {
+        await Promise.all(
+          existingImages.map(async (image) => {
+            const url = new URL(image.imagePath);
+            const fileName = url.pathname.split('/').slice(-3).join('/');
+            await this.awsService.deleteImageFromS3(fileName);
+          }),
+        );
+      }
     }
+
     const filesJson =
       filesJsonArray.length > 0 ? JSON.stringify(filesJsonArray) : null;
 

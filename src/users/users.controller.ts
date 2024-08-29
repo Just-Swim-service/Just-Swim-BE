@@ -100,7 +100,7 @@ export class UsersController {
       // }
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost')) {
+      if (host.includes('localhost:3000')) {
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       } else {
         res.redirect(
@@ -121,7 +121,7 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost')) {
+      if (host.includes('localhost:3000')) {
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       } else {
         res.redirect(
@@ -184,7 +184,7 @@ export class UsersController {
       // }
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost')) {
+      if (host.includes('localhost:3000')) {
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       } else {
         res.redirect(
@@ -205,7 +205,7 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost')) {
+      if (host.includes('localhost:3000')) {
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       } else {
         res.redirect(
@@ -262,7 +262,7 @@ export class UsersController {
       // }
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost')) {
+      if (host.includes('localhost:3000')) {
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       } else {
         res.redirect(
@@ -281,7 +281,7 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost')) {
+      if (host.includes('localhost:3000')) {
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
       } else {
         res.redirect(

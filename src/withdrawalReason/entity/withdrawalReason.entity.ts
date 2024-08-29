@@ -16,7 +16,7 @@ export class WithdrawalReason {
   @ManyToOne(() => Users, (user) => user.withdrawalReason)
   user: Users;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   withdrawalReasonContent: string;
 
   @CreateDateColumn({ type: 'timestamp' })

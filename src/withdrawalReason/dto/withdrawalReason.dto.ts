@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class WithdrawalReasonDto {
   @ApiProperty({
     example: '기능이 유용하지 않아요',
     description: '탈퇴 사유',
-    required: true,
+    required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   readonly withdrawalReasonContent: string;
 }

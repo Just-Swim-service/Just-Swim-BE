@@ -35,6 +35,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UserType } from './enum/userType.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/editProfileImage.dto';
+import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
 
 @ApiTags('Users')
 @Controller()
@@ -413,13 +414,20 @@ export class UsersController {
 
   /* 회원 탈퇴 */
   @Delete('user/withdraw')
-  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiOperation({
+    summary: '회원 탈퇴',
+    description: '회원 탈퇴 시 사유를 저장하게 된다.',
+  })
+  @ApiBody({ description: '탈퇴 사유', type: WithdrawalReasonDto })
   @ApiResponse({ status: 200, description: '회원 탈퇴 완료' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
-  async withdrawUser(@Res() res: Response) {
+  async withdrawUser(
+    @Res() res: Response,
+    @Body() withdrawalReasonDto: WithdrawalReasonDto,
+  ) {
     const { userId } = res.locals.user;
-    await this.usersService.withdrawUser(userId);
+    await this.usersService.withdrawUser(userId, withdrawalReasonDto);
     res.clearCookie('authorization');
     return this.responseService.success(res, '회원 탈퇴 완료');
   }

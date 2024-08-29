@@ -14,6 +14,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserType } from '../enum/userType.enum';
+import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
 
 @Entity('users')
 export class Users {
@@ -67,4 +68,10 @@ export class Users {
 
   @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.user)
   feedbackTarget: FeedbackTarget[];
+
+  @OneToMany(
+    () => WithdrawalReason,
+    (withdrawalReason) => withdrawalReason.user,
+  )
+  withdrawalReason: WithdrawalReason[];
 }

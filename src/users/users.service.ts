@@ -13,6 +13,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
 import { UserType } from './enum/userType.enum';
 import slugify from 'slugify';
+import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
 
 @Injectable()
 export class UsersService {
@@ -100,7 +101,10 @@ export class UsersService {
   }
 
   /* user 탈퇴 */
-  async withdrawUser(userId: number): Promise<void> {
-    await this.usersRepository.withdrawUser(userId);
+  async withdrawUser(
+    userId: number,
+    withdrawalReasonDto: WithdrawalReasonDto,
+  ): Promise<void> {
+    await this.usersRepository.withdrawUser(userId, withdrawalReasonDto);
   }
 }

@@ -3,7 +3,7 @@ import { LectureController } from './lecture.controller';
 import { LectureService } from './lecture.service';
 import { Request, Response } from 'express';
 import { MockLectureRepository } from './lecture.service.spec';
-import { EditLectureDto } from './dto/editLecture.dto';
+import { EditLectureDto } from './dto/edit-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { MemberService } from 'src/member/member.service';
 import { MockMemberRepository } from 'src/member/member.service.spec';

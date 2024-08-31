@@ -23,7 +23,7 @@ import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
 import { ResponseModule } from './common/response/response.module';
-import { WithdrawalReasonModule } from './withdrawalReason/withdrawalReason.module';
+import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.module';
 
 @Module({
   imports: [

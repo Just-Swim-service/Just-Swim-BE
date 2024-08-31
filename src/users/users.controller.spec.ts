@@ -8,7 +8,7 @@ import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { EditUserDto } from './dto/editUser.dto';
+import { EditUserDto } from './dto/edit-user.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
 import { MockUsersRepository } from './users.service.spec';

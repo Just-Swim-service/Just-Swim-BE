@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
-import { EditUserDto } from 'src/users/dto/editUser.dto';
+import { EditUserDto } from 'src/users/dto/edit-user.dto';
 
 export class EditProfileImageDto {
   @ApiProperty({

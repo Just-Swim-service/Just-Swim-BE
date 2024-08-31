@@ -6,8 +6,8 @@ import {
 import { FeedbackRepository } from './feedback.repository';
 import { Feedback } from './entity/feedback.entity';
 import { FeedbackDto } from './dto/feedback.dto';
-import { EditFeedbackDto } from './dto/editFeedback.dto';
-import { FeedbackTargetRepository } from './feedbackTarget.repository';
+import { EditFeedbackDto } from './dto/edit-feedback.dto';
+import { FeedbackTargetRepository } from './feedback-target.repository';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';

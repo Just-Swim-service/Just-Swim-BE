@@ -15,7 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
-import { allMembersByFeedback } from './example/memberExample';
+import { allMembersByFeedback } from './example/member-example';
 import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Member')

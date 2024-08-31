@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.entity';
 import { Repository } from 'typeorm';
 import { UsersDto } from './dto/users.dto';
-import { EditUserDto } from './dto/editUser.dto';
-import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
+import { EditUserDto } from './dto/edit-user.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
 @Injectable()
 export class UsersRepository {

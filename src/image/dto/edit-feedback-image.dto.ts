@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
-import { EditFeedbackDto } from 'src/feedback/dto/editFeedback.dto';
+import { EditFeedbackDto } from 'src/feedback/dto/edit-feedback.dto';
 
 export class EditFeedbackImageDto {
   @ApiProperty({

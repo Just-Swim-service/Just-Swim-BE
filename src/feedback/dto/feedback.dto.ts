@@ -7,9 +7,9 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { FeedbackType } from '../enum/feedbackType.enum';
+import { FeedbackType } from '../enum/feedback-type.enum';
 import { Type } from 'class-transformer';
-import { FeedbackTargetDto } from './feedbackTarget.dto';
+import { FeedbackTargetDto } from './feedback-target.dto';
 
 export class FeedbackDto {
   @ApiProperty({

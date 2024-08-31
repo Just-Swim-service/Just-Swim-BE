@@ -27,10 +27,10 @@ import {
   feedbackDetailByInstructor,
   feedbacksByCustomer,
   feedbacksByInstructor,
-} from './example/feedbackExample';
+} from './example/feedback-example';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { FeedbackImageDto } from 'src/image/dto/feedbackImage.dto';
-import { EditFeedbackImageDto } from 'src/image/dto/editFeedbackImage.dto';
+import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
+import { EditFeedbackImageDto } from 'src/image/dto/edit-feedback-image.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Feedback')

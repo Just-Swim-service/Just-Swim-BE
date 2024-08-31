@@ -8,7 +8,7 @@ import { MockCustomerRepository } from 'src/customer/customer.service.spec';
 import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
 import { NotFoundException } from '@nestjs/common';
 import { AwsService } from 'src/common/aws/aws.service';
-import { UserType } from './enum/userType.enum';
+import { UserType } from './enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
 import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
 

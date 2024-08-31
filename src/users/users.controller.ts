@@ -30,9 +30,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
-import { EditUserDto } from './dto/editUser.dto';
+import { EditUserDto } from './dto/edit-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UserType } from './enum/userType.enum';
+import { UserType } from './enum/user-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
 import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';

@@ -13,7 +13,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserType } from '../enum/userType.enum';
+import { UserType } from '../enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
 
 @Entity('users')

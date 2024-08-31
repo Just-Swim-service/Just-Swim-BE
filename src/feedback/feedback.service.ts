@@ -103,7 +103,7 @@ export class FeedbackService {
         // 이미 해당 강의가 존재하면 image 정보를 추가
         if (feedback.imagePath) {
           existingFeedback.images.push({
-            images: feedback.imagePath,
+            imagePath: feedback.imagePath,
           });
         }
       } else {
@@ -112,6 +112,8 @@ export class FeedbackService {
           feedbackContent: feedback.feedbackContent,
           feedbackDate: feedback.feedbackDate,
           feedbackType: feedback.feedbackType,
+          feedbackLink: feedback.feedbackLink,
+          feedbackCreatedAt: feedback.feedbackCreatedAt,
           instructor: {
             instructorUserId: feedback.instructorUserId,
             instructorName: feedback.instructorName,

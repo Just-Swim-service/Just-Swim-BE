@@ -205,8 +205,8 @@ export class LectureService {
           members: current.memberUserId
             ? [
                 {
-                  memberUserId: current.memberUserId,
-                  memberProfileImage: current.memberProfileImage,
+                  userId: current.memberUserId,
+                  profileImage: current.memberProfileImage,
                 },
               ]
             : [],
@@ -220,8 +220,8 @@ export class LectureService {
           )
         ) {
           existingLecture.members.push({
-            memberUserId: current.memberUserId,
-            memberProfileImage: current.memberProfileImage,
+            userId: current.memberUserId,
+            profileImage: current.memberProfileImage,
           });
         }
       }

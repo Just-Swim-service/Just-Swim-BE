@@ -13,7 +13,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
 import { UserType } from './enum/user-type.enum';
 import slugify from 'slugify';
-import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
 @Injectable()
 export class UsersService {

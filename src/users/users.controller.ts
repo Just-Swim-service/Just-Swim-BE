@@ -35,7 +35,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UserType } from './enum/user-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
-import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
 @ApiTags('Users')
 @Controller()

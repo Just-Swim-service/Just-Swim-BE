@@ -14,7 +14,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserType } from '../enum/user-type.enum';
-import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
+import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
 
 @Entity('users')
 export class Users {

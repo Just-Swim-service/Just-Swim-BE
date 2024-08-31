@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FeedbackTarget } from './entity/feedbackTarget.entity';
+import { FeedbackTarget } from './entity/feedback-target.entity';
 import { QueryRunner, Repository } from 'typeorm';
 
 @Injectable()

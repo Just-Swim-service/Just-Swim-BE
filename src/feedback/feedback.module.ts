@@ -4,8 +4,8 @@ import { FeedbackService } from './feedback.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
-import { FeedbackTarget } from './entity/feedbackTarget.entity';
-import { FeedbackTargetRepository } from './feedbackTarget.repository';
+import { FeedbackTarget } from './entity/feedback-target.entity';
+import { FeedbackTargetRepository } from './feedback-target.repository';
 import { AwsModule } from 'src/common/aws/aws.module';
 import { ImageModule } from 'src/image/image.module';
 

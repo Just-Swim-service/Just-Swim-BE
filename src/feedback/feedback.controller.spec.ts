@@ -4,8 +4,8 @@ import { MockFeedbackRepository } from './feedback.service.spec';
 import { FeedbackService } from './feedback.service';
 import { Request, Response } from 'express';
 import { HttpStatus } from '@nestjs/common';
-import { EditFeedbackDto } from './dto/editFeedback.dto';
-import { FeedbackType } from './enum/feedbackType.enum';
+import { EditFeedbackDto } from './dto/edit-feedback.dto';
+import { FeedbackType } from './enum/feedback-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 
 class MockFeedbackService {

@@ -2,15 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FeedbackService } from './feedback.service';
 import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
-import { FeedbackTargetRepository } from './feedbackTarget.repository';
-import { FeedbackTarget } from './entity/feedbackTarget.entity';
-import { FeedbackType } from './enum/feedbackType.enum';
+import { FeedbackTargetRepository } from './feedback-target.repository';
+import { FeedbackTarget } from './entity/feedback-target.entity';
+import { FeedbackType } from './enum/feedback-type.enum';
 import { MockUsersRepository } from 'src/users/users.service.spec';
 import { MockLectureRepository } from 'src/lecture/lecture.service.spec';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { EditFeedbackDto } from './dto/editFeedback.dto';
+import { EditFeedbackDto } from './dto/edit-feedback.dto';
 
 const mockUser = new MockUsersRepository().mockUser;
 

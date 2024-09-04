@@ -1,6 +1,6 @@
 import { Customer } from 'src/customer/entity/customer.entity';
 import { Feedback } from 'src/feedback/entity/feedback.entity';
-import { FeedbackTarget } from 'src/feedback/entity/feedbackTarget.entity';
+import { FeedbackTarget } from 'src/feedback/entity/feedback-target.entity';
 import { Instructor } from 'src/instructor/entity/instructor.entity';
 import { Lecture } from 'src/lecture/entity/lecture.entity';
 import { Member } from 'src/member/entity/member.entity';
@@ -13,7 +13,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserType } from '../enum/userType.enum';
+import { UserType } from '../enum/user-type.enum';
+import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
 
 @Entity('users')
 export class Users {
@@ -67,4 +68,10 @@ export class Users {
 
   @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.user)
   feedbackTarget: FeedbackTarget[];
+
+  @OneToMany(
+    () => WithdrawalReason,
+    (withdrawalReason) => withdrawalReason.user,
+  )
+  withdrawalReason: WithdrawalReason[];
 }

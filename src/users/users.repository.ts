@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.entity';
 import { Repository } from 'typeorm';
 import { UsersDto } from './dto/users.dto';
-import { EditUserDto } from './dto/editUser.dto';
+import { EditUserDto } from './dto/edit-user.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -79,7 +80,14 @@ export class UsersRepository {
   }
 
   /* user(instructor) 탈퇴 */
-  async withdrawUser(userId: number): Promise<void> {
-    await this.usersRepository.query('CALL WITHDRAW_USER(?)', [userId]);
+  async withdrawUser(
+    userId: number,
+    withdrawalReasonDto: WithdrawalReasonDto,
+  ): Promise<void> {
+    const withdrawalReasonContent = withdrawalReasonDto.withdrawalReasonContent;
+    await this.usersRepository.query('CALL WITHDRAW_USER(?, ?)', [
+      userId,
+      withdrawalReasonContent,
+    ]);
   }
 }

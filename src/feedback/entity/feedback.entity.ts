@@ -10,9 +10,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { FeedbackTarget } from './feedbackTarget.entity';
+import { FeedbackTarget } from './feedback-target.entity';
 import { Image } from 'src/image/entity/image.entity';
-import { FeedbackType } from '../enum/feedbackType.enum';
+import { FeedbackType } from '../enum/feedback-type.enum';
 
 @Entity('feedback')
 export class Feedback {

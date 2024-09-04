@@ -30,11 +30,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
-import { EditUserDto } from './dto/editUser.dto';
+import { EditUserDto } from './dto/edit-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UserType } from './enum/userType.enum';
+import { UserType } from './enum/user-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
-import { EditProfileImageDto } from 'src/image/dto/editProfileImage.dto';
+import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
 @ApiTags('Users')
 @Controller()
@@ -81,6 +82,8 @@ export class UsersController {
     let cleanedNumber: string = phone_number.replace(/\D/g, '');
     let phoneNumber: string = `010-${cleanedNumber.substring(4, 8)}-${cleanedNumber.substring(8, 13)}`;
 
+    const host = req.headers.host;
+
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
@@ -99,6 +102,13 @@ export class UsersController {
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // if (host.includes('localhost:3000')) {
+      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // } else {
+      //   res.redirect(
+      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+      //   );
+      // }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
@@ -114,6 +124,13 @@ export class UsersController {
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // if (host.includes('localhost:3000')) {
+      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // } else {
+      //   res.redirect(
+      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+      //   );
+      // }
     }
   }
 
@@ -151,6 +168,8 @@ export class UsersController {
     // phoneNumber
     let phoneNumber: string = profile.mobile;
 
+    const host = req.headers.host;
+
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
@@ -169,6 +188,13 @@ export class UsersController {
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // if (host.includes('localhost:3000')) {
+      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // } else {
+      //   res.redirect(
+      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+      //   );
+      // }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
@@ -184,6 +210,13 @@ export class UsersController {
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // if (host.includes('localhost:3000')) {
+      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      // } else {
+      //   res.redirect(
+      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+      //   );
+      // }
     }
   }
 
@@ -215,6 +248,8 @@ export class UsersController {
     let email: string = profile._json.email;
     let profileImage: string = profile._json.picture;
 
+    const host = req.headers.host;
+
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
@@ -232,7 +267,13 @@ export class UsersController {
       // }
       const token = await this.authService.getToken(exUser.userId);
       const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      if (host.includes('localhost:3000')) {
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      } else {
+        res.redirect(
+          process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+        );
+      }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
@@ -245,7 +286,13 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      if (host.includes('localhost:3000')) {
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      } else {
+        res.redirect(
+          process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
+        );
+      }
     }
   }
 
@@ -393,13 +440,20 @@ export class UsersController {
 
   /* 회원 탈퇴 */
   @Delete('user/withdraw')
-  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiOperation({
+    summary: '회원 탈퇴',
+    description: '회원 탈퇴 시 사유를 저장하게 된다.',
+  })
+  @ApiBody({ description: '탈퇴 사유', type: WithdrawalReasonDto })
   @ApiResponse({ status: 200, description: '회원 탈퇴 완료' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
-  async withdrawUser(@Res() res: Response) {
+  async withdrawUser(
+    @Res() res: Response,
+    @Body() withdrawalReasonDto: WithdrawalReasonDto,
+  ) {
     const { userId } = res.locals.user;
-    await this.usersService.withdrawUser(userId);
+    await this.usersService.withdrawUser(userId, withdrawalReasonDto);
     res.clearCookie('authorization');
     return this.responseService.success(res, '회원 탈퇴 완료');
   }

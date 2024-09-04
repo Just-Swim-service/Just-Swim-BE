@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
-import { EditLectureDto } from './dto/editLecture.dto';
+import { EditLectureDto } from './dto/edit-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import * as QRCode from 'qrcode';
 import { AwsService } from 'src/common/aws/aws.service';
@@ -205,8 +205,8 @@ export class LectureService {
           members: current.memberUserId
             ? [
                 {
-                  memberUserId: current.memberUserId,
-                  memberProfileImage: current.memberProfileImage,
+                  userId: current.memberUserId,
+                  profileImage: current.memberProfileImage,
                 },
               ]
             : [],
@@ -220,8 +220,8 @@ export class LectureService {
           )
         ) {
           existingLecture.members.push({
-            memberUserId: current.memberUserId,
-            memberProfileImage: current.memberProfileImage,
+            userId: current.memberUserId,
+            profileImage: current.memberProfileImage,
           });
         }
       }

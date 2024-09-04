@@ -22,8 +22,8 @@ import { HttpExceptionFilter } from './common/response/http-exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
-import { ResponseService } from './common/response/reponse.service';
 import { ResponseModule } from './common/response/response.module';
+import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.module';
 
 @Module({
   imports: [
@@ -57,6 +57,7 @@ import { ResponseModule } from './common/response/response.module';
     ImageModule,
     AwsModule,
     ResponseModule,
+    WithdrawalReasonModule,
   ],
   controllers: [AppController],
   providers: [

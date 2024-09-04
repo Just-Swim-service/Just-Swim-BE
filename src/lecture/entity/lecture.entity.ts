@@ -1,4 +1,4 @@
-import { FeedbackTarget } from 'src/feedback/entity/feedbackTarget.entity';
+import { FeedbackTarget } from 'src/feedback/entity/feedback-target.entity';
 import { Member } from 'src/member/entity/member.entity';
 import { Users } from 'src/users/entity/users.entity';
 import {

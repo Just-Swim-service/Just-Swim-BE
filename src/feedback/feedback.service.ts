@@ -6,8 +6,8 @@ import {
 import { FeedbackRepository } from './feedback.repository';
 import { Feedback } from './entity/feedback.entity';
 import { FeedbackDto } from './dto/feedback.dto';
-import { EditFeedbackDto } from './dto/editFeedback.dto';
-import { FeedbackTargetRepository } from './feedbackTarget.repository';
+import { EditFeedbackDto } from './dto/edit-feedback.dto';
+import { FeedbackTargetRepository } from './feedback-target.repository';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';
@@ -106,7 +106,7 @@ export class FeedbackService {
         // 이미 해당 강의가 존재하면 image 정보를 추가
         if (feedback.imagePath) {
           existingFeedback.images.push({
-            images: feedback.imagePath,
+            imagePath: feedback.imagePath,
           });
         }
       } else {
@@ -115,6 +115,8 @@ export class FeedbackService {
           feedbackContent: feedback.feedbackContent,
           feedbackDate: feedback.feedbackDate,
           feedbackType: feedback.feedbackType,
+          feedbackLink: feedback.feedbackLink,
+          feedbackCreatedAt: feedback.feedbackCreatedAt,
           instructor: {
             instructorUserId: feedback.instructorUserId,
             instructorName: feedback.instructorName,

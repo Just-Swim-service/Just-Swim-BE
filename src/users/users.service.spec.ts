@@ -8,7 +8,9 @@ import { MockCustomerRepository } from 'src/customer/customer.service.spec';
 import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
 import { NotFoundException } from '@nestjs/common';
 import { AwsService } from 'src/common/aws/aws.service';
-import { UserType } from './enum/userType.enum';
+import { UserType } from './enum/user-type.enum';
+import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
+import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
 
 export class MockUsersRepository {
   readonly mockUser: Users = {
@@ -29,6 +31,7 @@ export class MockUsersRepository {
     lecture: [],
     feedback: [],
     feedbackTarget: [],
+    withdrawalReason: [],
   };
 }
 
@@ -144,6 +147,7 @@ describe('UsersService', () => {
         lecture: [],
         feedback: [],
         feedbackTarget: [],
+        withdrawalReason: [],
       };
       (usersRepository.createUser as jest.Mock).mockResolvedValue(newUser);
 
@@ -241,11 +245,25 @@ describe('UsersService', () => {
   describe('withdrawUser', () => {
     it('userId에 해당하는 user를 탈퇴', async () => {
       const userId = 1;
+
+      const withdrawalReason: WithdrawalReason = {
+        withdrawalReasonId: 1,
+        withdrawalReasonContent: '기능이 유용하지 않아요.',
+        user: mockUser,
+        withdrawalReasonCreatedAt: new Date(),
+        withdrawalReasonUpdatedAt: new Date(),
+      };
+      const withdrawalReasonDto: WithdrawalReasonDto = {
+        withdrawalReasonContent: withdrawalReason.withdrawalReasonContent,
+      };
       jest.spyOn(usersRepository, 'withdrawUser').mockResolvedValue();
 
-      await usersService.withdrawUser(userId);
+      await usersService.withdrawUser(userId, withdrawalReasonDto);
 
-      expect(usersRepository.withdrawUser).toHaveBeenCalledWith(userId);
+      expect(usersRepository.withdrawUser).toHaveBeenCalledWith(
+        userId,
+        withdrawalReasonDto,
+      );
     });
   });
 });

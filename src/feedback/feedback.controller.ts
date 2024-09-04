@@ -24,11 +24,11 @@ import {
   feedbackDetailByInstructor,
   feedbacksByCustomer,
   feedbacksByInstructor,
-} from './example/feedbackExample';
-import { FeedbackImageDto } from 'src/image/dto/feedbackImage.dto';
+} from './example/feedback-example';
+import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { FeedbackDto } from './dto/feedback.dto';
-import { EditFeedbackDto } from './dto/editFeedback.dto';
+import { EditFeedbackDto } from './dto/edit-feedback.dto';
 
 @ApiTags('Feedback')
 @Controller('feedback')

@@ -86,8 +86,8 @@ export const lectureDetailByInstructor = {
       },
       members: [
         {
-          memberUserId: '3',
-          memberProfileImage:
+          userId: '3',
+          profileImage:
             'http://t1.kakaocdn.net/account_images/default_profile.jpeg.twg.thumb.R640x640',
         },
       ],
@@ -108,8 +108,8 @@ export const lectureDetailByInstructor = {
       },
       members: [
         {
-          memberUserId: '16',
-          memberProfileImage:
+          userId: '16',
+          profileImage:
             'http://k.kakaocdn.net/dn/hBxV7/btsH4B4E3MC/dgeYEzOWL4RO3kNvJPq8OK/img_640x640.jpg',
         },
       ],

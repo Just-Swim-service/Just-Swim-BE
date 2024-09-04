@@ -6,8 +6,8 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { FeedbackType } from '../enum/feedbackType.enum';
-import { FeedbackTargetDto } from './feedbackTarget.dto';
+import { FeedbackType } from '../enum/feedback-type.enum';
+import { FeedbackTargetDto } from './feedback-target.dto';
 import { Type } from 'class-transformer';
 
 export class EditFeedbackDto {

@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LectureService } from './lecture.service';
-import { EditLectureDto } from './dto/editLecture.dto';
+import { EditLectureDto } from './dto/edit-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import {
   ApiBearerAuth,
@@ -29,7 +29,7 @@ import {
   lectureMemberList,
   getScheduleLecturesByCustomer,
   getScheuldeLecturesByInstructor,
-} from './example/lectureExample';
+} from './example/lecture-example';
 import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Lecture')

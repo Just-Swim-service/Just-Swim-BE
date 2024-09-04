@@ -8,8 +8,11 @@ import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { EditUserDto } from './dto/editUser.dto';
+import { EditUserDto } from './dto/edit-user.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
+import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
+import { MockUsersRepository } from './users.service.spec';
+import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
 
 class MockKakaoAuthGuard {
   canActivate = jest.fn().mockReturnValue(true);
@@ -62,6 +65,8 @@ describe('UsersController', () => {
   let instructorService: MockInstructorService;
   let responseService: MockResponseService;
 
+  const mockUser = new MockUsersRepository().mockUser;
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -113,6 +118,9 @@ describe('UsersController', () => {
             },
           },
         },
+        headers: {
+          host: 'localhost:3000',
+        },
       };
 
       const res: Partial<Response> = {
@@ -145,6 +153,9 @@ describe('UsersController', () => {
           birthday: '09-13',
           mobile: '010-1234-5678',
         },
+        headers: {
+          host: 'localhost:3000',
+        },
       };
 
       const res: Partial<Response> = {
@@ -175,6 +186,9 @@ describe('UsersController', () => {
             email: 'test@google.com',
             picture: null,
           },
+        },
+        headers: {
+          host: 'localhost:3000',
         },
       };
 
@@ -342,7 +356,18 @@ describe('UsersController', () => {
         json: jest.fn(),
       };
 
-      await controller.withdrawUser(res as Response);
+      const withdrawalReason: WithdrawalReason = {
+        withdrawalReasonId: 1,
+        withdrawalReasonContent: '기능이 유용하지 않아요.',
+        user: mockUser,
+        withdrawalReasonCreatedAt: new Date(),
+        withdrawalReasonUpdatedAt: new Date(),
+      };
+      const withdrawalReasonDto: WithdrawalReasonDto = {
+        withdrawalReasonContent: withdrawalReason.withdrawalReasonContent,
+      };
+
+      await controller.withdrawUser(res as Response, withdrawalReasonDto);
 
       expect(res.clearCookie).toHaveBeenCalledWith('authorization');
       expect(responseService.success).toHaveBeenCalledWith(

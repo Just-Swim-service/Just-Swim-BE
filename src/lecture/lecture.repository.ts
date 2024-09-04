@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lecture } from './entity/lecture.entity';
-import { EditLectureDto } from './dto/editLecture.dto';
+import { EditLectureDto } from './dto/edit-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 
 @Injectable()

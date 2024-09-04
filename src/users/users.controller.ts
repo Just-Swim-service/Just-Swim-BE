@@ -376,33 +376,55 @@ export class UsersController {
     return this.responseService.success(res, '프로필 조회 성공', userProfile);
   }
 
+  /* profileImage presigned url */
+  @Post('user/profileImage/presignedUrl')
+  @ApiOperation({
+    summary: 'profileImage에 대해서 presigned url을 보내준다.',
+    description: 'profileImage 저장 요청 시 presigned url을 보내준다.',
+  })
+  @ApiBearerAuth('accessToken')
+  async getPresignedUrlForProfileImage(
+    @Res() res: Response,
+    @Body() editProfileImageDto: EditProfileImageDto,
+  ) {
+    const { userId } = res.locals.user;
+
+    const presignedUrl =
+      await this.usersService.generateProfileImagePresignedUrl(
+        userId,
+        editProfileImageDto,
+      );
+
+    this.responseService.success(
+      res,
+      'profileImage presigned url 생성 완료',
+      presignedUrl,
+    );
+  }
+
   /* 프로필 수정 */
   @Patch('user/edit')
-  @UseInterceptors(FileInterceptor('profileImage'))
   @ApiOperation({
     summary: '유저 프로필 수정',
     description: 'user의 프로필 수정을 한다.',
   })
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: '프로필 이미지 업로드',
-    type: EditProfileImageDto,
+    description: '프로필 수정에 필요한 정보를 받는다.',
+    type: EditUserDto,
   })
   @ApiResponse({ status: 200, description: '프로필 수정 완료' })
   @ApiResponse({ status: 400, description: '프로필을 수정할 수 없습니다.' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async editUserProfile(
-    @UploadedFile() file: Express.Multer.File,
-    @Body('editUserDto') body: any,
+    @Body() editUserDto: EditUserDto,
     @Res() res: Response,
   ) {
-    const editUserDto = JSON.parse(body);
     const { userId } = res.locals.user;
 
-    await this.usersService.editUserProfile(userId, editUserDto, file);
+    const result = await this.usersService.editUserProfile(userId, editUserDto);
 
-    return this.responseService.success(res, '프로필 수정 완료');
+    return this.responseService.success(res, '프로필 수정 완료', result);
   }
 
   /* 로그아웃 */

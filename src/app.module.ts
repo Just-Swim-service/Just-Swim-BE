@@ -75,6 +75,7 @@ export class AppModule implements NestModule {
       { path: 'user/myProfile', method: RequestMethod.GET },
       { path: 'user/logout', method: RequestMethod.POST },
       { path: 'user/withdraw', method: RequestMethod.DELETE },
+      { path: 'user/profileImage/presignedUrl', method: RequestMethod.POST },
       // Lecture
       { path: 'lecture', method: RequestMethod.POST },
       { path: 'lecture/schedule', method: RequestMethod.GET },
@@ -91,6 +92,10 @@ export class AppModule implements NestModule {
       { path: 'feedback', method: RequestMethod.GET },
       { path: 'feedback/:feedbackId', method: RequestMethod.GET },
       { path: 'feedback', method: RequestMethod.POST },
+      {
+        path: 'feedback/feedbackImage/presignedUrl',
+        method: RequestMethod.POST,
+      },
       { path: 'feedback/:feedbackId', method: RequestMethod.PATCH },
       { path: 'feedback/:feedbackId', method: RequestMethod.DELETE },
     );

@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
-import { EditUserDto } from 'src/users/dto/edit-user.dto';
 
 export class EditProfileImageDto {
   @ApiProperty({
@@ -11,10 +10,4 @@ export class EditProfileImageDto {
   })
   @IsOptional()
   readonly profileImage?: string;
-
-  @ApiProperty({
-    description: '프로필 수정 데이터',
-    type: EditUserDto,
-  })
-  editUserDto: EditUserDto;
 }

@@ -8,14 +8,11 @@ import {
   Patch,
   Post,
   Res,
-  UploadedFiles,
-  UseInterceptors,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -28,10 +25,10 @@ import {
   feedbacksByCustomer,
   feedbacksByInstructor,
 } from './example/feedback-example';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
-import { EditFeedbackImageDto } from 'src/image/dto/edit-feedback-image.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
+import { FeedbackDto } from './dto/feedback.dto';
+import { EditFeedbackDto } from './dto/edit-feedback.dto';
 
 @ApiTags('Feedback')
 @Controller('feedback')
@@ -130,29 +127,22 @@ export class FeedbackController {
 
   /* feedback 생성 */
   @Post()
-  @UseInterceptors(FilesInterceptor('files', 4))
   @ApiOperation({
     summary: 'feedback을 생성 한다',
     description: `수강생을 선택하여 feedback을 남긴다. 
     feedback 이미지는 files로 넘겨주시고 4개까지만 가능합니다.
     feedbackTarget은 lectureId:userId,userId 이런 형태로 넘겨주시면 됩니다.`,
   })
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: '이미지 업로드',
-    type: FeedbackImageDto,
+    description: 'feedback 정보와 image 주소를 받는다.',
+    type: FeedbackDto,
   })
   @ApiResponse({ status: 200, description: 'feedback 생성 성공' })
   @ApiResponse({ status: 400, description: 'feedback 생성 실패' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
-  async createFeedback(
-    @Res() res: Response,
-    @Body('feedbackDto') body: any,
-    @UploadedFiles() files: Express.Multer.File[],
-  ) {
-    const feedbackDto = JSON.parse(body);
+  async createFeedback(@Res() res: Response, @Body() feedbackDto: FeedbackDto) {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
@@ -172,8 +162,8 @@ export class FeedbackController {
     const feedback = await this.feedbackService.createFeedback(
       userId,
       feedbackDto,
-      files,
     );
+
     if (!feedback) {
       return this.responseService.error(
         res,
@@ -188,15 +178,14 @@ export class FeedbackController {
 
   /* feedback 수정 */
   @Patch(':feedbackId')
-  @UseInterceptors(FilesInterceptor('files', 4))
   @ApiOperation({
     summary: '작성했던 feedback을 수정한다.',
     description: 'instructor가 본인이 작성한 feedback을 수정한다.',
   })
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: '이미지 업로드',
-    type: EditFeedbackImageDto,
+    description:
+      '피드백 정보와 수정된 이미지 주소 배열을 받습니다. 기존 presigned URL 사용은 FE에서 처리됩니다.',
+    type: EditFeedbackDto,
   })
   @ApiResponse({ status: 200, description: 'feedback 수정 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
@@ -205,17 +194,16 @@ export class FeedbackController {
   async updateFeedback(
     @Res() res: Response,
     @Param('feedbackId') feedbackId: number,
-    @Body('editFeedbackDto') body: any,
-    @UploadedFiles() files: Express.Multer.File[],
+    @Body() editFeedbackDto: EditFeedbackDto,
   ) {
-    const editFeedbackDto = JSON.parse(body);
     const { userId } = res.locals.user;
+
+    // 파일 이름 추출
 
     await this.feedbackService.updateFeedback(
       userId,
       feedbackId,
       editFeedbackDto,
-      files,
     );
 
     return this.responseService.success(res, 'feedback 수정 성공');
@@ -240,5 +228,34 @@ export class FeedbackController {
     await this.feedbackService.softDeleteFeedback(userId, feedbackId);
 
     return this.responseService.success(res, 'feedback 삭제 성공');
+  }
+
+  /* feedback 이미지 presigned url */
+  @Post('feedbackImage/presignedUrl')
+  @ApiOperation({
+    summary: 'feedback 이미지 관련 presigned url을 보내준다.',
+    description: 'feedback 이미지 저장 요청 시 presigned url을 보내준다.',
+  })
+  @ApiBearerAuth('accessToken')
+  async getPresignedUrlsForFeedback(
+    @Res() res: Response,
+    @Body() feedbackImageDto: FeedbackImageDto,
+  ) {
+    const { userId, userType } = res.locals.user;
+
+    if (userType !== 'instructor') {
+      return this.responseService.unauthorized(
+        res,
+        'feedback 이미지 저장 권한이 없습니다.',
+      );
+    }
+
+    const presignedUrls =
+      await this.feedbackService.generateFeedbackPresignedUrls(
+        userId,
+        feedbackImageDto,
+      );
+
+    this.responseService.success(res, 'presigned url 제공 성공', presignedUrls);
   }
 }

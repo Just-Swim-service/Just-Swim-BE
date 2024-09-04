@@ -12,7 +12,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';
 import { ConfigService } from '@nestjs/config';
-import { FeedbackImageDto } from 'src/image/dto/feedbackImage.dto';
+import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
 
 @Injectable()
 export class FeedbackService {

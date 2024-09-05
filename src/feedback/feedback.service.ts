@@ -11,7 +11,6 @@ import { FeedbackTargetRepository } from './feedback-target.repository';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';
-import { ConfigService } from '@nestjs/config';
 import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
 
 @Injectable()
@@ -21,7 +20,6 @@ export class FeedbackService {
     private readonly feedbackRepository: FeedbackRepository,
     private readonly feedbackTargetRepository: FeedbackTargetRepository,
     private readonly imageService: ImageService,
-    private readonly configService: ConfigService,
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */

@@ -9,8 +9,8 @@ import { MockInstructorRepository } from 'src/instructor/instructor.service.spec
 import { NotFoundException } from '@nestjs/common';
 import { AwsService } from 'src/common/aws/aws.service';
 import { UserType } from './enum/user-type.enum';
-import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
-import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
+import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
 export class MockUsersRepository {
   readonly mockUser: Users = {
@@ -224,16 +224,11 @@ describe('UsersService', () => {
         .mockResolvedValue('new_profile_image_url');
       jest.spyOn(awsService, 'deleteImageFromS3').mockResolvedValue();
 
-      await usersService.editUserProfile(userId, editUserDto, file);
+      await usersService.editUserProfile(userId, editUserDto);
 
       expect(usersRepository.findUserByPk).toHaveBeenCalledWith(userId);
       expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
         'old_profile_image_url',
-      );
-      expect(awsService.uploadImageToS3).toHaveBeenCalledWith(
-        expect.any(String),
-        file,
-        ext,
       );
       expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
         userId,

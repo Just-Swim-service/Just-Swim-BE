@@ -4,7 +4,7 @@ import * as jwt from 'jsonwebtoken';
 import { UsersService } from 'src/users/users.service';
 import { Users } from 'src/users/entity/users.entity';
 import { MyLogger } from 'src/common/logger/logger.service';
-import { UserType } from 'src/users/enum/userType.enum';
+import { UserType } from 'src/users/enum/user-type.enum';
 
 jest.mock('jsonwebtoken');
 
@@ -68,6 +68,7 @@ describe('AuthService', () => {
         lecture: [],
         feedback: [],
         feedbackTarget: [],
+        withdrawalReason: [],
       };
       (usersService.findUserByEmail as jest.Mock).mockResolvedValue(exUser);
 
@@ -123,6 +124,7 @@ describe('AuthService', () => {
         lecture: [],
         feedback: [],
         feedbackTarget: [],
+        withdrawalReason: [],
       };
       (usersService.createUser as jest.Mock).mockResolvedValue(newUser);
 

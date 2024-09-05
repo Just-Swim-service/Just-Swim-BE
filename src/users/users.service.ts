@@ -13,7 +13,6 @@ import { AwsService } from 'src/common/aws/aws.service';
 import * as path from 'path';
 import { UserType } from './enum/user-type.enum';
 import slugify from 'slugify';
-import { ConfigService } from '@nestjs/config';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
 import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 
@@ -24,7 +23,6 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly customerRepository: CustomerRepository,
     private readonly instructorRepository: InstructorRepository,
-    private readonly configService: ConfigService,
   ) {}
 
   /* email, provider를 이용해서 user 조회 */

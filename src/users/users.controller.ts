@@ -422,9 +422,9 @@ export class UsersController {
   ) {
     const { userId } = res.locals.user;
 
-    const result = await this.usersService.editUserProfile(userId, editUserDto);
+    await this.usersService.editUserProfile(userId, editUserDto);
 
-    return this.responseService.success(res, '프로필 수정 완료', result);
+    return this.responseService.success(res, '프로필 수정 완료');
   }
 
   /* 로그아웃 */

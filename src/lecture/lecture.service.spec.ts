@@ -113,11 +113,24 @@ describe('LectureService', () => {
       const userId = 1;
       (
         lectureRepository.getScheduleLecturesByInstructor as jest.Mock
-      ).mockResolvedValue(mockLecture);
+      ).mockResolvedValue([mockLecture]);
 
       const result = await service.getScheduleLecturesByInstructor(userId);
 
-      expect(result).toEqual(mockLecture);
+      expect(result).toEqual([
+        expect.objectContaining({
+          lectureId: mockLecture.lectureId,
+          lectureTitle: mockLecture.lectureTitle,
+          lectureContent: mockLecture.lectureContent,
+          lectureTime: mockLecture.lectureTime,
+          lectureDays: mockLecture.lectureDays,
+          lectureLocation: mockLecture.lectureLocation,
+          lectureColor: mockLecture.lectureColor,
+          lectureQRCode: mockLecture.lectureQRCode,
+          lectureEndDate: mockLecture.lectureEndDate,
+          members: [],
+        }),
+      ]);
     });
   });
 
@@ -126,11 +139,24 @@ describe('LectureService', () => {
       const userId = 1;
       (
         lectureRepository.getAllLecturesByInstructor as jest.Mock
-      ).mockResolvedValue(mockLecture);
+      ).mockResolvedValue([mockLecture]);
 
       const result = await service.getAllLecturesByInstructor(userId);
 
-      expect(result).toEqual(mockLecture);
+      expect(result).toEqual([
+        expect.objectContaining({
+          lectureId: mockLecture.lectureId,
+          lectureTitle: mockLecture.lectureTitle,
+          lectureContent: mockLecture.lectureContent,
+          lectureTime: mockLecture.lectureTime,
+          lectureDays: mockLecture.lectureDays,
+          lectureLocation: mockLecture.lectureLocation,
+          lectureColor: mockLecture.lectureColor,
+          lectureQRCode: mockLecture.lectureQRCode,
+          lectureEndDate: mockLecture.lectureEndDate,
+          members: [],
+        }),
+      ]);
     });
   });
 
@@ -139,11 +165,27 @@ describe('LectureService', () => {
       const userId = 1;
       (
         lectureRepository.getScheduleLecturesByCustomer as jest.Mock
-      ).mockResolvedValue(mockLecture);
+      ).mockResolvedValue([mockLecture]);
 
       const result = await service.getScheduleLecturesByCustomer(userId);
 
-      expect(result).toEqual(mockLecture);
+      expect(result).toEqual([
+        expect.objectContaining({
+          lectureId: mockLecture.lectureId,
+          lectureTitle: mockLecture.lectureTitle,
+          lectureContent: mockLecture.lectureContent,
+          lectureTime: mockLecture.lectureTime,
+          lectureDays: mockLecture.lectureDays,
+          lectureLocation: mockLecture.lectureLocation,
+          lectureColor: mockLecture.lectureColor,
+          lectureQRCode: mockLecture.lectureQRCode,
+          lectureEndDate: mockLecture.lectureEndDate,
+          instructor: {
+            instructorName: undefined,
+            instructorProfileImage: undefined,
+          },
+        }),
+      ]);
     });
   });
 
@@ -152,11 +194,27 @@ describe('LectureService', () => {
       const userId = 1;
       (
         lectureRepository.getAllLecturesByCustomer as jest.Mock
-      ).mockResolvedValue(mockLecture);
+      ).mockResolvedValue([mockLecture]);
 
       const result = await service.getAllLecturesByCustomer(userId);
 
-      expect(result).toEqual(mockLecture);
+      expect(result).toEqual([
+        expect.objectContaining({
+          lectureId: mockLecture.lectureId,
+          lectureTitle: mockLecture.lectureTitle,
+          lectureContent: mockLecture.lectureContent,
+          lectureTime: mockLecture.lectureTime,
+          lectureDays: mockLecture.lectureDays,
+          lectureLocation: mockLecture.lectureLocation,
+          lectureColor: mockLecture.lectureColor,
+          lectureQRCode: mockLecture.lectureQRCode,
+          lectureEndDate: mockLecture.lectureEndDate,
+          instructor: {
+            name: undefined,
+            profileImage: undefined,
+          },
+        }),
+      ]);
     });
   });
 
@@ -165,9 +223,55 @@ describe('LectureService', () => {
       const userId = 1;
       const lectureId = 1;
 
+      // Mock data for the lecture
+      const mockLectureData = [
+        {
+          lectureId: 1,
+          lectureTitle: 'Sample Lecture',
+          lectureContent: 'Sample Content',
+          lectureTime: '10:00-12:00',
+          lectureDays: '월수금',
+          lectureLocation: 'Sample Location',
+          lectureColor: '#FFFFFF',
+          lectureQRCode: 'sample_qr_code',
+          lectureEndDate: '2024.12.31',
+          instructorName: 'Sample Instructor',
+          instructorProfileImage: 'instructor_image_url',
+          memberUserId: 2,
+          memberProfileImage: 'member_image_url',
+        },
+      ];
+
+      jest
+        .spyOn(lectureRepository, 'getLectureByPk')
+        .mockResolvedValue(mockLectureData);
+
       const result = await service.getLectureByPk(userId, lectureId);
 
-      expect(result).toEqual([mockLecture]);
+      // Expected lecture object
+      const expectedLecture = {
+        lectureId: 1,
+        lectureTitle: 'Sample Lecture',
+        lectureContent: 'Sample Content',
+        lectureTime: '10:00-12:00',
+        lectureDays: '월수금',
+        lectureLocation: 'Sample Location',
+        lectureColor: '#FFFFFF',
+        lectureQRCode: 'sample_qr_code',
+        lectureEndDate: '2024.12.31',
+        instructor: {
+          instructorName: 'Sample Instructor',
+          instructorProfileImage: 'instructor_image_url',
+        },
+        members: [
+          {
+            userId: 2,
+            profileImage: 'member_image_url',
+          },
+        ],
+      };
+
+      expect(result).toEqual(expectedLecture);
       expect(lectureRepository.getLectureByPk).toHaveBeenCalledWith(
         lectureId,
         userId,

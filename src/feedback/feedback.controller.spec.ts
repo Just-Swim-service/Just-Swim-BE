@@ -7,6 +7,7 @@ import { HttpStatus } from '@nestjs/common';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 import { FeedbackType } from './enum/feedback-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
+import { FeedbackDto } from './dto/feedback.dto';
 
 class MockFeedbackService {
   getAllFeedbackByInstructor = jest.fn();
@@ -114,7 +115,7 @@ describe('FeedbackController', () => {
 
   describe('createFeedback', () => {
     it('instructor가 member에 해당하는 customer에게 feedback을 남긴다.', async () => {
-      const body = {
+      const feedbackDto: FeedbackDto = {
         feedbackType: FeedbackType.Group,
         feedbackDate: '2024.04.22',
         feedbackLink: 'URL',
@@ -143,11 +144,7 @@ describe('FeedbackController', () => {
         feedbackId: mockFeedback.feedbackId,
       });
 
-      await controller.createFeedback(
-        res as Response,
-        JSON.stringify(body),
-        files,
-      );
+      await controller.createFeedback(res as Response, feedbackDto);
 
       expect(responseService.success).toHaveBeenCalledWith(
         res,
@@ -161,7 +158,7 @@ describe('FeedbackController', () => {
 
   describe('updateFeedback', () => {
     it('instructor가 feedbackId에 해당하는 feedback을 수정', async () => {
-      const body = {
+      const editFeedbackDto: EditFeedbackDto = {
         feedbackType: FeedbackType.Group,
         feedbackDate: '2024.04.22',
         feedbackLink: 'URL',
@@ -193,8 +190,7 @@ describe('FeedbackController', () => {
       await controller.updateFeedback(
         res as Response,
         feedbackId,
-        JSON.stringify(body),
-        files,
+        editFeedbackDto,
       );
 
       expect(responseService.success).toHaveBeenCalledWith(

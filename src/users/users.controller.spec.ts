@@ -8,11 +8,11 @@ import { NaverAuthGuard } from 'src/auth/guard/naver.guard';
 import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { EditUserDto } from './dto/edit-user.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
-import { WithdrawalReasonDto } from 'src/withdrawalReason/dto/withdrawalReason.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
 import { MockUsersRepository } from './users.service.spec';
-import { WithdrawalReason } from 'src/withdrawalReason/entity/withdrawalReason.entity';
+import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
+import { EditUserDto } from './dto/edit-user.dto';
 
 class MockKakaoAuthGuard {
   canActivate = jest.fn().mockReturnValue(true);
@@ -278,27 +278,12 @@ describe('UsersController', () => {
   describe('editUserProfile', () => {
     it('user 프로필 수정을 진행', async () => {
       const userId = 1;
-      const body = {
+      const editUserDto: EditUserDto = {
         name: '홍길동',
         profileImage: 'new_profile_image_url',
         birth: '1990.01.01',
         phoneNumber: '010-1234-5678',
       };
-
-      const file: Express.Multer.File = {
-        fieldname: 'profileImage',
-        originalname: 'test.png',
-        encoding: '7bit',
-        mimetype: 'image/png',
-        buffer: Buffer.from(''),
-        stream: null,
-        destination: '',
-        filename: '',
-        path: '',
-        size: 0,
-      };
-
-      const req: Partial<Request> = { file };
 
       const res: Partial<Response> = {
         locals: {
@@ -310,11 +295,9 @@ describe('UsersController', () => {
         json: jest.fn(),
       };
 
-      const editUserDto = JSON.stringify(body);
-
       usersService.editUserProfile.mockResolvedValue(true);
 
-      await controller.editUserProfile(file, editUserDto, res as Response);
+      await controller.editUserProfile(editUserDto, res as Response);
 
       expect(responseService.success).toHaveBeenCalledWith(
         res,

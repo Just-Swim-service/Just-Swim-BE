@@ -75,6 +75,7 @@ describe('FeedbackService', () => {
             uploadImageToS3: jest.fn(),
             deleteImageFromS3: jest.fn(),
             uploadQRCodeToS3: jest.fn(),
+            getPresignedUrl: jest.fn(),
           },
         },
         {
@@ -86,7 +87,7 @@ describe('FeedbackService', () => {
             getAllFeedbackByCustomer: jest
               .fn()
               .mockResolvedValue([mockFeedback]),
-            getFeedbackByPk: jest.fn().mockResolvedValue([mockFeedback]),
+            getFeedbackByPk: jest.fn(),
             createFeedback: jest.fn().mockResolvedValue(mockFeedback),
             updateFeedback: jest.fn().mockResolvedValue(undefined),
             softDeleteFeedback: jest.fn().mockResolvedValue(undefined),
@@ -125,7 +126,16 @@ describe('FeedbackService', () => {
 
       const result = await service.getAllFeedbackByInstructor(userId);
 
-      expect(result).toEqual([mockFeedback]);
+      expect(result).toEqual([
+        expect.objectContaining({
+          feedbackId: mockFeedback.feedbackId,
+          feedbackType: mockFeedback.feedbackType,
+          feedbackDate: mockFeedback.feedbackDate,
+          feedbackContent: mockFeedback.feedbackContent,
+          lectureTitle: undefined,
+          members: [],
+        }),
+      ]);
     });
   });
 
@@ -138,12 +148,45 @@ describe('FeedbackService', () => {
 
       const result = await service.getAllFeedbackByCustomer(userId);
 
-      expect(result).toEqual([mockFeedback]);
+      expect(result).toEqual([
+        expect.objectContaining({
+          feedback: mockFeedback.feedbackId,
+          lectureTitle: undefined,
+          feedbackContent: mockFeedback.feedbackContent,
+          feedbackDate: mockFeedback.feedbackDate,
+          feedbackType: mockFeedback.feedbackType,
+          instructor: {
+            instructorName: undefined,
+            instructorProfileImage: undefined,
+          },
+        }),
+      ]);
     });
   });
 
   describe('getFeedbackByPk', () => {
     it('feedbackId에 해당하는 feedback을 상세 조회해서 return', async () => {
+      const mockFeedback = {
+        feedbackId: 1,
+        feedbackContent: 'Great lecture!',
+        feedbackDate: '2024-09-05',
+        feedbackType: 'positive',
+        feedbackLink: 'http://example.com/feedback/1',
+        feedbackCreatedAt: '2024-09-05T08:56:43.366Z',
+        instructorUserId: 1,
+        instructorName: 'John Doe',
+        instructorProfileImage: 'http://example.com/instructor.jpg',
+        images: [],
+      };
+
+      const mockFeedbackTarget = {
+        feedbackTargetId: 1,
+        targetType: 'lecture',
+        targetId: 1,
+        targetTitle: 'Advanced Programming',
+        targetDescription: 'A lecture on advanced programming techniques',
+      };
+
       (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([
         mockFeedback,
       ]);
@@ -156,7 +199,22 @@ describe('FeedbackService', () => {
         mockFeedback.feedbackId,
       );
       expect(result).toEqual({
-        feedback: [mockFeedback],
+        feedback: [
+          expect.objectContaining({
+            feedbackId: mockFeedback.feedbackId,
+            feedbackContent: mockFeedback.feedbackContent,
+            feedbackDate: mockFeedback.feedbackDate,
+            feedbackType: mockFeedback.feedbackType,
+            feedbackLink: mockFeedback.feedbackLink,
+            feedbackCreatedAt: mockFeedback.feedbackCreatedAt,
+            instructor: {
+              instructorUserId: mockFeedback.instructorUserId,
+              instructorName: mockFeedback.instructorName,
+              instructorProfileImage: mockFeedback.instructorProfileImage,
+            },
+            images: mockFeedback.images,
+          }),
+        ],
         feedbackTargetList: [mockFeedbackTarget],
       });
     });
@@ -167,19 +225,46 @@ describe('FeedbackService', () => {
         NotFoundException,
       );
     });
+  });
 
-    it('접근 권한이 없는 user일 경우 UnauthorizedException 발생', async () => {
-      const anotherUser = { userId: 2 };
-      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
-        mockFeedback,
+  describe('generateFeedbackPresignedUrls', () => {
+    it('이미지 저장을 위해 FE에게 presigned url을 return', async () => {
+      const userId = 1;
+      const feedbackImageDto = {
+        files: ['test-image.jpg', 'example-image.png'],
+      };
+
+      const mockPresignedUrls = [
+        'https://s3.amazonaws.com/bucket/test-image-1.jpg',
+        'https://s3.amazonaws.com/bucket/test-image-2.png',
+      ];
+      jest
+        .spyOn(awsService, 'getPresignedUrl')
+        .mockResolvedValueOnce(mockPresignedUrls[0])
+        .mockResolvedValueOnce(mockPresignedUrls[1]);
+
+      const result = await service.generateFeedbackPresignedUrls(
+        userId,
+        feedbackImageDto,
       );
-      (
-        feedbackTargetRepository.getFeedbackTargetByFeedbackId as jest.Mock
-      ).mockResolvedValue([mockFeedbackTarget]);
 
-      await expect(
-        service.getFeedbackByPk(anotherUser.userId, mockFeedback.feedbackId),
-      ).rejects.toThrow(UnauthorizedException);
+      expect(awsService.getPresignedUrl).toHaveBeenCalledTimes(2);
+      expect(result).toEqual(
+        expect.arrayContaining([
+          {
+            presignedUrl: mockPresignedUrls[0],
+            fileName: expect.stringMatching(
+              `feedback/${userId}/\\d+-test-image.jpg`,
+            ),
+          },
+          {
+            presignedUrl: mockPresignedUrls[1],
+            fileName: expect.stringMatching(
+              `feedback/${userId}/\\d+-example-image.png`,
+            ),
+          },
+        ]),
+      );
     });
   });
 
@@ -196,34 +281,16 @@ describe('FeedbackService', () => {
           { lectureId: 1, userIds: [2, 3] },
           { lectureId: 2, userIds: [4, 5, 13] },
         ],
+        feedbackImage: ['https://example.com/test.jpg'],
       };
 
-      const files = [
-        {
-          mimetype: 'image/jpeg',
-          originalname: 'test.jpg',
-          buffer: Buffer.from('test'),
-        },
-      ] as unknown as Express.Multer.File[];
+      const result = await service.createFeedback(userId, feedbackDto);
 
-      const fileUrl = 's3://bucket/feedback/1/1234567890-test.jpg';
-      (awsService.uploadImageToS3 as jest.Mock).mockResolvedValue(fileUrl);
-      (feedbackRepository.createFeedback as jest.Mock).mockResolvedValue(
-        mockFeedback,
-      );
-
-      const result = await service.createFeedback(userId, feedbackDto, files);
-
-      expect(awsService.uploadImageToS3).toHaveBeenCalledWith(
-        expect.any(String),
-        files[0],
-        'jpeg',
-      );
       expect(feedbackRepository.createFeedback).toHaveBeenCalledWith(
         userId,
         feedbackDto,
         JSON.stringify(feedbackDto.feedbackTarget),
-        JSON.stringify([{ filePath: fileUrl }]),
+        JSON.stringify([{ filePath: feedbackDto.feedbackImage[0] }]),
       );
       expect(result).toEqual(mockFeedback);
     });
@@ -237,55 +304,68 @@ describe('FeedbackService', () => {
         feedbackDate: '2024-04-23',
         feedbackLink: 'URL',
         feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
+        feedbackImage: ['https://example.com/updated.jpg'],
       };
-      const files = [
-        {
-          mimetype: 'image/jpeg',
-          originalname: 'test-update.jpg',
-          buffer: Buffer.from('test-update'),
-        },
-      ] as unknown as Express.Multer.File[];
-      const fileUrl = 's3://bucket/feedback/1/1234567890-test-update.jpg';
-      (awsService.uploadImageToS3 as jest.Mock).mockResolvedValue(fileUrl);
-      (awsService.deleteImageFromS3 as jest.Mock).mockResolvedValue(undefined);
-      (imageService.getImagesByFeedbackId as jest.Mock).mockResolvedValue([
-        { imagePath: 'feedback/1/1234567890-test.jpg' },
-      ]);
-      (feedbackRepository.updateFeedback as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+
+      const mockFeedback = {
+        feedbackId: 1,
+        instructorUserId: 1,
+        feedbackType: FeedbackType.Personal,
+        feedbackContent:
+          '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
+        feedbackLink: 'URL',
+        feedbackDate: '2024.04.22',
+        feedbackCreatedAt: new Date(),
+        feedbackUpdatedAt: new Date(),
+        feedbackDeletedAt: null,
+        feedbackTarget: [],
+        image: [],
+      };
+
       (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([
         mockFeedback,
+      ]);
+      (imageService.getImagesByFeedbackId as jest.Mock).mockResolvedValue([
+        { imagePath: 's3://bucket/feedback/1/1234567890-test.jpg' },
       ]);
 
       await service.updateFeedback(
         mockUser.userId,
         mockFeedback.feedbackId,
         editFeedbackDto,
-        files,
       );
       expect(imageService.getImagesByFeedbackId).toHaveBeenCalledWith(
         mockFeedback.feedbackId,
       );
       expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
-        '1/1234567890-test.jpg',
-      );
-      expect(awsService.uploadImageToS3).toHaveBeenCalledWith(
-        expect.any(String),
-        files[0],
-        'jpeg',
+        'feedback/1/1234567890-test.jpg',
       );
       expect(feedbackRepository.updateFeedback).toHaveBeenCalledWith(
         mockFeedback.feedbackId,
         editFeedbackDto,
         JSON.stringify(editFeedbackDto.feedbackTarget),
-        JSON.stringify([{ filePath: fileUrl }]),
+        JSON.stringify([{ filePath: 'https://example.com/updated.jpg' }]),
       );
     });
   });
 
   describe('softDeleteFeedback', () => {
     it('feedbackId에 해당하는 feedback softDelete', async () => {
+      const mockFeedback = {
+        feedbackId: 1,
+        instructorUserId: 1,
+        feedbackType: FeedbackType.Personal,
+        feedbackContent:
+          '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
+        feedbackLink: 'URL',
+        feedbackDate: '2024.04.22',
+        feedbackCreatedAt: new Date(),
+        feedbackUpdatedAt: new Date(),
+        feedbackDeletedAt: null,
+        feedbackTarget: [],
+        image: [],
+      };
+
       (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([
         mockFeedback,
       ]);
@@ -305,7 +385,7 @@ describe('FeedbackService', () => {
         mockFeedback.feedbackId,
       );
       expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
-        '1/1234567890-test.jpg',
+        'feedback/1/1234567890-test.jpg',
       );
       expect(feedbackRepository.softDeleteFeedback).toHaveBeenCalledWith(
         mockFeedback.feedbackId,

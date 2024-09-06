@@ -38,10 +38,10 @@ export class MemberRepository {
   }
 
   /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 */
-  async getMemberInfo(userId: number) {
+  async getMemberInfo(memberUserId: number, instructorUserId: number) {
     const result = await this.memberRepository.query(
-      'CALL GET_MEMBER_INFO(?)',
-      [userId],
+      'CALL GET_MEMBER_INFO(?, ?)',
+      [memberUserId, instructorUserId],
     );
 
     return result[0];

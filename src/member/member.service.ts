@@ -22,8 +22,11 @@ export class MemberService {
   }
 
   /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 */
-  async getMemberInfo(memberUserId: number) {
-    const memberData = await this.memberRepository.getMemberInfo(memberUserId);
+  async getMemberInfo(memberUserId: number, instructorUserId: number) {
+    const memberData = await this.memberRepository.getMemberInfo(
+      memberUserId,
+      instructorUserId,
+    );
 
     if (!memberData || memberData.length === 0) {
       throw new NotFoundException('수강생 정보를 찾을 수 없습니다.');

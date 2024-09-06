@@ -138,8 +138,12 @@ export class MemberController {
     @Param('memberUserId') memberUserId: number,
   ) {
     const { userId } = res.locals.user;
+    const instructorUserId = userId;
 
-    const memberInfo = await this.memberService.getMemberInfo(memberUserId);
+    const memberInfo = await this.memberService.getMemberInfo(
+      memberUserId,
+      instructorUserId,
+    );
 
     this.reponseService.success(res, '수강생 정보 조회 성공', memberInfo);
   }

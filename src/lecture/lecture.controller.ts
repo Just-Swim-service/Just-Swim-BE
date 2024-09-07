@@ -29,6 +29,7 @@ import {
   lectureMemberList,
   getScheduleLecturesByCustomer,
   getScheuldeLecturesByInstructor,
+  getAllLecturesByInstructor,
 } from './example/lecture-example';
 import { ResponseService } from 'src/common/response/reponse.service';
 
@@ -98,7 +99,7 @@ export class LectureController {
     content: {
       'application/json': {
         examples: {
-          AllLecturesByInstructor: getScheuldeLecturesByInstructor,
+          AllLecturesByInstructor: getAllLecturesByInstructor,
           AllLecturesByCustomer: getScheduleLecturesByCustomer,
         },
       },

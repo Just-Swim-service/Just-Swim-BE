@@ -6,16 +6,18 @@ import {
   ParseIntPipe,
   Res,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
-import { allMembersByFeedback } from './example/member-example';
+import { allMembersByFeedback, memberInfo } from './example/member-example';
 import { ResponseService } from 'src/common/response/reponse.service';
 
 @ApiTags('Member')
@@ -57,7 +59,7 @@ export class MemberController {
       }
 
       if (isExist.userType !== 'customer') {
-        return this.reponseService.unauthorized(
+        this.reponseService.unauthorized(
           res,
           '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
         );
@@ -105,6 +107,44 @@ export class MemberController {
       parseInt(userId),
     );
 
-    return this.reponseService.success(res, '수강생 조회 성공', allMembers);
+    this.reponseService.success(res, '수강생 조회 성공', allMembers);
+  }
+
+  /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 */
+  @Get(':memberUserId')
+  @ApiOperation({
+    summary: '수강생의 강의에 대한 정보 조회',
+    description:
+      'instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회',
+  })
+  @ApiParam({
+    name: 'memberUserId',
+    type: 'number',
+    description: '조회할 수강생의 userId',
+  })
+  @ApiResponse({
+    status: 200,
+    content: {
+      'application/json': {
+        example: memberInfo,
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '수강생 조회 권한이 없습니다.' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async getMemberInfo(
+    @Res() res: Response,
+    @Param('memberUserId') memberUserId: number,
+  ) {
+    const { userId } = res.locals.user;
+    const instructorUserId = userId;
+
+    const memberInfo = await this.memberService.getMemberInfo(
+      memberUserId,
+      instructorUserId,
+    );
+
+    this.reponseService.success(res, '수강생 정보 조회 성공', memberInfo);
   }
 }

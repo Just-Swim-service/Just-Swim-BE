@@ -78,7 +78,7 @@ export class LectureService {
     // lectureId를 기준으로 중복된 강의를 제거, member 정보를 배열로 정리
     const lectures = lectureDatas.reduce((acc, lecture) => {
       const existingLecture = acc.find(
-        (l) => l.lectureId === lecture.lectureId,
+        (l: any) => l.lectureId === lecture.lectureId,
       );
 
       if (existingLecture) {
@@ -86,6 +86,7 @@ export class LectureService {
         if (lecture.userId) {
           existingLecture.members.push({
             userId: lecture.userId,
+            name: lecture.name,
             profileImage: lecture.profileImage,
           });
         }
@@ -104,6 +105,7 @@ export class LectureService {
             ? [
                 {
                   userId: lecture.userId,
+                  name: lecture.name,
                   profileImage: lecture.profileImage,
                 },
               ]

@@ -75,10 +75,12 @@ export class AwsService {
 
   /* presigned url */
   async getPresignedUrl(fileName: string, ext: string): Promise<string> {
+    const contentType = ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+
     const command = new PutObjectCommand({
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
       Key: fileName,
-      ContentType: `image/${ext}`,
+      ContentType: contentType,
     });
 
     const presignedUrl = await getSignedUrl(this.s3Client, command);

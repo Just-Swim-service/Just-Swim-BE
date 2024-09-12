@@ -67,6 +67,7 @@ export class MemberService {
           lectureTitle: item.lectureTitle,
           lectureContent: item.lectureContent,
           lectureLocation: item.lectureLocation,
+          lectureColor: item.lectureColor,
           lectureDays: item.lectureDays,
           lectureTime: item.lectureTime,
         };

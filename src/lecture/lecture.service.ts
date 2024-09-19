@@ -39,6 +39,7 @@ export class LectureService {
         if (lecture.memberUserId) {
           existingLecture.members.push({
             memberUserId: lecture.memberUserId,
+            memberName: lecture.memberName,
             memberProfileImage: lecture.memberProfileImage,
           });
         }
@@ -57,6 +58,7 @@ export class LectureService {
             ? [
                 {
                   memberUserId: lecture.memberUserId,
+                  memberName: lecture.memberName,
                   memberProfileImage: lecture.memberProfileImage,
                 },
               ]

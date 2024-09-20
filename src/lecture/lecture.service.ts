@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -210,6 +209,7 @@ export class LectureService {
             ? [
                 {
                   userId: current.memberUserId,
+                  name: current.memberName,
                   profileImage: current.memberProfileImage,
                 },
               ]
@@ -225,6 +225,7 @@ export class LectureService {
         ) {
           existingLecture.members.push({
             userId: current.memberUserId,
+            name: current.memberName,
             profileImage: current.memberProfileImage,
           });
         }

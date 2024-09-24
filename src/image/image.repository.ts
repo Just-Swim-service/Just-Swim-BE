@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Image } from './entity/image.entity';
-import { QueryRunner, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ImageRepository {

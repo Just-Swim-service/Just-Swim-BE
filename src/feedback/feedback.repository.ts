@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Feedback } from './entity/feedback.entity';
-import { QueryRunner, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { FeedbackDto } from './dto/feedback.dto';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 

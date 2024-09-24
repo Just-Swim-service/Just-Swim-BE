@@ -10,7 +10,6 @@ import { EditUserDto } from './dto/edit-user.dto';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
 import { AwsService } from 'src/common/aws/aws.service';
-import * as path from 'path';
 import { UserType } from './enum/user-type.enum';
 import slugify from 'slugify';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';

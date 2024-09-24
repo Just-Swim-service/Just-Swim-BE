@@ -9,9 +9,7 @@ import {
   Post,
   Req,
   Res,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Request, Response } from 'express';
@@ -22,7 +20,6 @@ import { GoogleAuthGuard } from 'src/auth/guard/google.guard';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -31,7 +28,6 @@ import {
 } from '@nestjs/swagger';
 import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/edit-user.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UserType } from './enum/user-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
@@ -330,7 +326,7 @@ export class UsersController {
     let token: string = await this.authService.getToken(userId);
 
     res.cookie('authorization', token);
-    return this.responseService.success(res, '로그인 성공');
+    this.responseService.success(res, '로그인 성공');
   }
 
   /* 로그인 이후에 userType을 지정 */
@@ -360,7 +356,7 @@ export class UsersController {
     }
 
     await this.usersService.selectUserType(userId, userType);
-    return this.responseService.success(res, 'userType 지정 완료');
+    this.responseService.success(res, 'userType 지정 완료');
   }
 
   /* 나의 프로필 조회 */
@@ -373,7 +369,7 @@ export class UsersController {
     const { userId } = res.locals.user;
     const userProfile = await this.usersService.findUserByPk(userId);
 
-    return this.responseService.success(res, '프로필 조회 성공', userProfile);
+    this.responseService.success(res, '프로필 조회 성공', userProfile);
   }
 
   /* profileImage presigned url */
@@ -424,7 +420,7 @@ export class UsersController {
 
     await this.usersService.editUserProfile(userId, editUserDto);
 
-    return this.responseService.success(res, '프로필 수정 완료');
+    this.responseService.success(res, '프로필 수정 완료');
   }
 
   /* 로그아웃 */
@@ -435,7 +431,7 @@ export class UsersController {
   @ApiBearerAuth('accessToken')
   async logout(@Res() res: Response) {
     res.clearCookie('authorization');
-    return this.responseService.success(res, 'logout 완료');
+    this.responseService.success(res, 'logout 완료');
   }
 
   /* 회원 탈퇴 */
@@ -455,6 +451,6 @@ export class UsersController {
     const { userId } = res.locals.user;
     await this.usersService.withdrawUser(userId, withdrawalReasonDto);
     res.clearCookie('authorization');
-    return this.responseService.success(res, '회원 탈퇴 완료');
+    this.responseService.success(res, '회원 탈퇴 완료');
   }
 }

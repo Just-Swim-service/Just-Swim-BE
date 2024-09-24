@@ -69,7 +69,7 @@ export class LectureController {
     if (userType === 'instructor') {
       const lectures =
         await this.lectureService.getScheduleLecturesByInstructor(userId);
-      return this.responseService.success(
+      this.responseService.success(
         res,
         '스케줄에 해당하는 강의 조회 성공',
         lectures,
@@ -80,7 +80,7 @@ export class LectureController {
     if (userType === 'customer') {
       const lectures =
         await this.lectureService.getScheduleLecturesByCustomer(userId);
-      return this.responseService.success(
+      this.responseService.success(
         res,
         '스케줄에 해당하는 강의 조회 성공',
         lectures,
@@ -115,14 +115,14 @@ export class LectureController {
     if (userType === 'instructor') {
       const lectures =
         await this.lectureService.getAllLecturesByInstructor(userId);
-      return this.responseService.success(res, '강의 전체 조회 성공', lectures);
+      this.responseService.success(res, '강의 전체 조회 성공', lectures);
     }
 
     // customer
     if (userType === 'customer') {
       const lectures =
         await this.lectureService.getAllLecturesByCustomer(userId);
-      return this.responseService.success(res, '강의 전체 조회 성공', lectures);
+      this.responseService.success(res, '강의 전체 조회 성공', lectures);
     }
   }
 
@@ -158,7 +158,7 @@ export class LectureController {
     const { userId } = res.locals.user;
     const lecture = await this.lectureService.getLectureByPk(userId, lectureId);
 
-    return this.responseService.success(res, '강의 상세 조회 성공', lecture);
+    this.responseService.success(res, '강의 상세 조회 성공', lecture);
   }
 
   /* 강의 수정 */
@@ -178,7 +178,7 @@ export class LectureController {
 
     await this.lectureService.updateLecture(userId, lectureId, editLectureDto);
 
-    return this.responseService.success(res, '강의 수정 성공');
+    this.responseService.success(res, '강의 수정 성공');
   }
 
   /* 강의 삭제(소프트 삭제) */
@@ -199,7 +199,7 @@ export class LectureController {
 
     await this.lectureService.softDeleteLecture(userId, lectureId);
 
-    return this.responseService.success(res, '강의 삭제 성공');
+    this.responseService.success(res, '강의 삭제 성공');
   }
 
   /* 강의 생성 */
@@ -218,10 +218,7 @@ export class LectureController {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
-      return this.responseService.unauthorized(
-        res,
-        '강의 생성 권한이 없습니다.',
-      );
+      this.responseService.unauthorized(res, '강의 생성 권한이 없습니다.');
     }
 
     const newLecture = await this.lectureService.createLecture(
@@ -236,7 +233,7 @@ export class LectureController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.responseService.success(res, '강의 생성 성공', {
+    this.responseService.success(res, '강의 생성 성공', {
       lectureId: newLecture.lectureId,
     });
   }
@@ -275,7 +272,7 @@ export class LectureController {
     }
     const memberList =
       await this.memberService.getAllMembersByLectureId(lectureId);
-    return this.responseService.success(
+    this.responseService.success(
       res,
       '강의에 해당하는 수강생 목록 조회 성공',
       memberList,

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CustomerRepository } from './customer.repository';
 import { Customer } from './entity/customer.entity';
 

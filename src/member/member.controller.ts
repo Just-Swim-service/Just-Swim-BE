@@ -44,30 +44,28 @@ export class MemberController {
     @Res() res: Response,
   ) {
     try {
-      const { userId } = res.locals.user;
-
-      const isExist = await this.usersService.findUserByPk(parseInt(userId));
+      const user = res.locals.user;
 
       // user 정보가 없을 경우 가입 경로로 redirect
-      if (!isExist) {
+      if (!user) {
         return res.redirect('/signup');
       }
 
       // userType이 null 일 경우 userType 지정으로 redirect
-      if (isExist.userType === null) {
+      if (user.userType === null) {
         return res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
       }
 
-      if (isExist.userType !== 'customer') {
+      if (user.userType !== 'customer') {
         this.reponseService.unauthorized(
           res,
           '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
         );
       }
 
-      if (isExist.userType === 'customer') {
+      if (user.userType === 'customer') {
         await this.memberService.insertMemberFromQR(
-          parseInt(userId),
+          parseInt(user.userId),
           lectureId,
         );
         return res.redirect(process.env.HOME_REDIRECT_URI);

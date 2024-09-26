@@ -372,7 +372,7 @@ export class UsersController {
     this.responseService.success(res, '프로필 조회 성공', userProfile);
   }
 
-  /* profileImage presigned url */
+  /* 프로필 이미지 presigned URL 요청 */
   @Post('user/profileImage/presignedUrl')
   @ApiOperation({
     summary: 'profileImage에 대해서 presigned url을 보내준다.',

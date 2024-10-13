@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Instructor } from './entity/instructor.entity';
 import { InstructorRepository } from './instructor.repository';
 

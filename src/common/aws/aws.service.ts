@@ -81,6 +81,7 @@ export class AwsService {
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
       Key: fileName,
       ContentType: contentType,
+      ACL: 'public-read-write',
     });
 
     const presignedUrl = await getSignedUrl(this.s3Client, command);

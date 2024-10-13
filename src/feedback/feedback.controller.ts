@@ -65,22 +65,14 @@ export class FeedbackController {
     if (userType === 'instructor') {
       const feedbacks =
         await this.feedbackService.getAllFeedbackByInstructor(userId);
-      return this.responseService.success(
-        res,
-        'feedback 전체 조회 성공',
-        feedbacks,
-      );
+      this.responseService.success(res, 'feedback 전체 조회 성공', feedbacks);
     }
 
     // customer
     if (userType === 'customer') {
       const feedbacks =
         await this.feedbackService.getAllFeedbackByCustomer(userId);
-      return this.responseService.success(
-        res,
-        'feedback 전체 조회 성공',
-        feedbacks,
-      );
+      this.responseService.success(res, 'feedback 전체 조회 성공', feedbacks);
     }
   }
 
@@ -118,11 +110,7 @@ export class FeedbackController {
       userId,
       feedbackId,
     );
-    return this.responseService.success(
-      res,
-      'feedback 상세 조회 성공',
-      feedback,
-    );
+    this.responseService.success(res, 'feedback 상세 조회 성공', feedback);
   }
 
   /* feedback 생성 */
@@ -146,10 +134,7 @@ export class FeedbackController {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
-      return this.responseService.unauthorized(
-        res,
-        'feedback 작성 권한이 없습니다.',
-      );
+      this.responseService.unauthorized(res, 'feedback 작성 권한이 없습니다.');
     }
     if (feedbackDto.feedbackTarget.length === 0) {
       return this.responseService.error(
@@ -165,13 +150,13 @@ export class FeedbackController {
     );
 
     if (!feedback) {
-      return this.responseService.error(
+      this.responseService.error(
         res,
         'feedback 생성 실패',
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.responseService.success(res, 'feedback 생성 성공', {
+    this.responseService.success(res, 'feedback 생성 성공', {
       feedbackId: feedback.feedbackId,
     });
   }
@@ -206,7 +191,7 @@ export class FeedbackController {
       editFeedbackDto,
     );
 
-    return this.responseService.success(res, 'feedback 수정 성공');
+    this.responseService.success(res, 'feedback 수정 성공');
   }
 
   /* feedback 삭제(softDelete) */
@@ -227,7 +212,7 @@ export class FeedbackController {
 
     await this.feedbackService.softDeleteFeedback(userId, feedbackId);
 
-    return this.responseService.success(res, 'feedback 삭제 성공');
+    this.responseService.success(res, 'feedback 삭제 성공');
   }
 
   /* feedback 이미지 presigned url */
@@ -244,7 +229,7 @@ export class FeedbackController {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
-      return this.responseService.unauthorized(
+      this.responseService.unauthorized(
         res,
         'feedback 이미지 저장 권한이 없습니다.',
       );

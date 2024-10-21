@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # .env 파일 복사
-# COPY .env .env
+COPY .env .env
 
 # FROM에서 설정한 이미지 위에서 스크립트 혹은 명령을 실행
 RUN npm run build
@@ -25,7 +25,7 @@ ARG NODE_ENV=production
 # 환경변수 설정
 ENV NODE_ENV=${NODE_ENV}
 # Copy the built files from the build stage
-# COPY --from=build /usr/src/app/.env ./.env
+COPY --from=build /usr/src/app/.env ./.env
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/package*.json ./

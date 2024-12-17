@@ -90,6 +90,10 @@ export class LectureService {
             name: lecture.name,
             profileImage: lecture.profileImage,
           });
+          existingLecture.instructor = {
+            instructorName: lecture.instructorName,
+            instructorProfileImage: lecture.instructorProfileImage,
+          };
         }
       } else {
         acc.push({
@@ -111,6 +115,12 @@ export class LectureService {
                 },
               ]
             : [],
+          instructor: lecture.userId
+            ? {
+                instructorName: lecture.instructorName,
+                instructorProfileImage: lecture.instructorProfileImage,
+              }
+            : {},
         });
       }
 

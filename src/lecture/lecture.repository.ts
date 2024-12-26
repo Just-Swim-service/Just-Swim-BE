@@ -20,38 +20,110 @@ export class LectureRepository {
 
   /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
   async getScheduleLecturesByInstructor(userId: number): Promise<any[]> {
-    const result = await this.lectureRepository.query(
-      'CALL GET_SCHEDULE_LECTURES_BY_INSTRUCTOR(?)',
-      [userId],
-    );
-    return result[0];
+    return await this.lectureRepository
+      .createQueryBuilder('lecture')
+      .leftJoinAndSelect('lecture.members', 'member')
+      .leftJoinAndSelect('member.user', 'user')
+      .select([
+        'lecture.lectureId as lectureId',
+        'lecture.lectureTitle as lectureTitle',
+        'lecture.lectureContent as lectureContent',
+        'lecture.lectureTime as lectureTime',
+        'lecture.lectureDays as lectureDays',
+        'lecture.lectureLocation as lectureLocation',
+        'lecture.lectureColor as lectureColor',
+        'lecture.lectureQRCode as lectureQRCode',
+        'lecture.lectureEndDate as lectureEndDate',
+        'user.userId as memberUserId',
+        'user.name as memberName',
+        'user.profileImage as memberProfileImage',
+      ])
+      .where('lecture.user.userId = :userId', { userId })
+      .andWhere('lecture.lectureDeletedAt IS NULL')
+      .orderBy('lecture.lectureId', 'ASC')
+      .addOrderBy('user.userId', 'ASC')
+      .getRawMany();
   }
 
   /* 강사 모든 강의 조회 */
   async getAllLecturesByInstructor(userId: number): Promise<any[]> {
-    const result = await this.lectureRepository.query(
-      'CALL GET_ALL_LECTURES_INSTRUCTOR(?)',
-      [userId],
-    );
-    return result[0];
+    return await this.lectureRepository
+      .createQueryBuilder('lecture')
+      .leftJoinAndSelect('lecture.members', 'member')
+      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect('lecture.user', 'instructor')
+      .select([
+        'lecture.lectureId as lectureId',
+        'lecture.lectureTitle as lectureTitle',
+        'lecture.lectureContent as lectureContent',
+        'lecture.lectureTime as lectureTime',
+        'lecture.lectureDays as lectureDays',
+        'lecture.lectureLocation as lectureLocation',
+        'lecture.lectureColor as lectureColor',
+        'lecture.lectureQRCode as lectureQRCode',
+        'lecture.lectureEndDate as lectureEndDate',
+        'user.userId as userId',
+        'user.name as name',
+        'user.profileImage as profileImage',
+        'instructor.name as instructorName',
+        'instructor.profileImage as instructorProfileImage',
+      ])
+      .where('lecture.user.userId = :userId', { userId })
+      .orderBy('lecture.lectureId', 'ASC')
+      .addOrderBy('user.userId', 'ASC')
+      .getRawMany();
   }
 
   /* 수강생 강의 조회 */
   async getScheduleLecturesByCustomer(userId: number): Promise<any[]> {
-    const result = await this.lectureRepository.query(
-      'CALL GET_SCHEDULE_LECTURES_BY_CUSTOMER(?)',
-      [userId],
-    );
-    return result[0];
+    return await this.lectureRepository
+      .createQueryBuilder('lecture')
+      .leftJoinAndSelect('lecture.members', 'member')
+      .leftJoinAndSelect('member.user', 'user')
+      .select([
+        'lecture.lectureId as lectureId',
+        'lecture.lectureTitle as lectureTitle',
+        'lecture.lectureContent as lectureContent',
+        'lecture.lectureTime as lectureTime',
+        'lecture.lectureDays as lectureDays',
+        'lecture.lectureLocation as lectureLocation',
+        'lecture.lectureColor as lectureColor',
+        'lecture.lectureQRCode as lectureQRCode',
+        'lecture.lectureEndDate as lectureEndDate',
+        'user.userId as memberUserId',
+        'user.name as memberName',
+        'user.profileImage as memberProfileImage',
+      ])
+      .where('member.user.userId = :userId', { userId })
+      .andWhere('lecture.lectureDeletedAt IS NULL')
+      .orderBy('lecture.lectureId', 'ASC')
+      .addOrderBy('user.userId', 'ASC')
+      .getRawMany();
   }
 
   /* 수강생 모든 강의 조회 */
   async getAllLecturesByCustomer(userId: number): Promise<any[]> {
-    const result = await this.lectureRepository.query(
-      'CALL GET_ALL_LECTURES_CUSTOMER(?)',
-      [userId],
-    );
-    return result[0];
+    return await this.lectureRepository
+      .createQueryBuilder('lecture')
+      .leftJoinAndSelect('lecture.members', 'member')
+      .leftJoinAndSelect('lecture.user', 'instructor')
+      .select([
+        'lecture.lectureId as lectureId',
+        'lecture.lectureTitle as lectureTitle',
+        'lecture.lectureContent as lectureContent',
+        'lecture.lectureTime as lectureTime',
+        'lecture.lectureDays as lectureDays',
+        'lecture.lectureLocation as lectureLocation',
+        'lecture.lectureColor as lectureColor',
+        'lecture.lectureQRCode as lectureQRCode',
+        'lecture.lectureEndDate as lectureEndDate',
+        'instructor.name as name',
+        'instructor.profileImage as profileImage',
+      ])
+      .where('member.user.userId = :userId', { userId })
+      .andWhere('lecture.lectureDeletedAt IS NULL')
+      .groupBy('lecture.lectureId')
+      .getRawMany();
   }
 
   /* 강의 상세 조회 */
@@ -79,10 +151,9 @@ export class LectureRepository {
       lectureEndDate,
     } = editLectureDto;
 
-    await this.lectureRepository.query(
-      'CALL UPDATE_LECTURE(?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        lectureId,
+    await this.lectureRepository.update(
+      { lectureId },
+      {
         lectureTitle,
         lectureContent,
         lectureTime,
@@ -91,15 +162,16 @@ export class LectureRepository {
         lectureQRCode,
         lectureLocation,
         lectureEndDate,
-      ],
+      },
     );
   }
 
   /* 강의 삭제(softDelete) */
   async softDeleteLecture(lectureId: number): Promise<void> {
-    await this.lectureRepository.query('CALL SOFT_DELETE_LECTURE(?)', [
-      lectureId,
-    ]);
+    await this.lectureRepository.update(
+      { lectureId },
+      { lectureDeletedAt: new Date() },
+    );
   }
 
   /* 강의 생성 */
@@ -107,47 +179,27 @@ export class LectureRepository {
     userId: number,
     lectureDto: LectureDto,
   ): Promise<Lecture> {
-    const {
-      lectureTitle,
-      lectureContent,
-      lectureTime,
-      lectureDays,
-      lectureColor,
-      lectureLocation,
-      lectureQRCode,
-      lectureEndDate,
-    } = lectureDto;
-    const result = await this.lectureRepository.query(
-      'CALL CREATE_LECTURE(?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        userId,
-        lectureTitle,
-        lectureContent,
-        lectureTime,
-        lectureDays,
-        lectureColor,
-        lectureLocation,
-        lectureQRCode,
-        lectureEndDate,
-      ],
-    );
-    return result[0][0];
+    const newLecture = this.lectureRepository.create({
+      lectureTitle: lectureDto.lectureTitle,
+      lectureContent: lectureDto.lectureContent,
+      lectureTime: lectureDto.lectureTime,
+      lectureDays: lectureDto.lectureDays,
+      lectureColor: lectureDto.lectureColor,
+      lectureLocation: lectureDto.lectureLocation,
+      lectureQRCode: lectureDto.lectureQRCode,
+      lectureEndDate: lectureDto.lectureEndDate,
+    });
+
+    return await this.lectureRepository.save(newLecture);
   }
 
   /* 강의 QR 코드 생성 */
   async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
-    await this.lectureRepository.query('CALL SAVE_QR_CODE(?, ?)', [
-      lectureId,
-      lectureQRCode,
-    ]);
+    await this.lectureRepository.update({ lectureId }, { lectureQRCode });
   }
 
   /* 강의 권한 확인을 위한 조회 */
-  async getLectureForAuth(lectureId: number) {
-    const result = await this.lectureRepository.query(
-      'CALL GET_LECTURE_FOR_AUTH(?)',
-      [lectureId],
-    );
-    return result[0][0];
+  async getLectureForAuth(lectureId: number): Promise<Lecture> {
+    return await this.lectureRepository.findOne({ where: { lectureId } });
   }
 }

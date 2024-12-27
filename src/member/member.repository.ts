@@ -70,8 +70,8 @@ export class MemberRepository {
         'member.memberNickname AS nickName',
         'user.profileImage AS profileImage',
       ])
-      .where('lecture.user.userId = :userId', { userId })
-      .groupBy('member.user.userId')
+      .where('lecture.userId = :userId', { userId })
+      .groupBy('member.userId')
       .getRawMany();
   }
 
@@ -128,7 +128,7 @@ export class MemberRepository {
         'image.imageId AS imageId',
         'image.imagePath AS imagePath',
       ])
-      .where('member.user.userId')
+      .where('member.userId')
       .getRawMany();
   }
 }

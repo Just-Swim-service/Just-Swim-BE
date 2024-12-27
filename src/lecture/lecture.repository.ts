@@ -38,7 +38,7 @@ export class LectureRepository {
         'user.name as memberName',
         'user.profileImage as memberProfileImage',
       ])
-      .where('lecture.user.userId = :userId', { userId })
+      .where('lecture.userId = :userId', { userId })
       .andWhere('lecture.lectureDeletedAt IS NULL')
       .orderBy('lecture.lectureId', 'ASC')
       .addOrderBy('user.userId', 'ASC')
@@ -68,7 +68,7 @@ export class LectureRepository {
         'instructor.name as instructorName',
         'instructor.profileImage as instructorProfileImage',
       ])
-      .where('lecture.user.userId = :userId', { userId })
+      .where('lecture.userId = :userId', { userId })
       .orderBy('lecture.lectureId', 'ASC')
       .addOrderBy('user.userId', 'ASC')
       .getRawMany();
@@ -94,7 +94,7 @@ export class LectureRepository {
         'user.name as memberName',
         'user.profileImage as memberProfileImage',
       ])
-      .where('member.user.userId = :userId', { userId })
+      .where('member.userId = :userId', { userId })
       .andWhere('lecture.lectureDeletedAt IS NULL')
       .orderBy('lecture.lectureId', 'ASC')
       .addOrderBy('user.userId', 'ASC')
@@ -120,7 +120,7 @@ export class LectureRepository {
         'instructor.name as name',
         'instructor.profileImage as profileImage',
       ])
-      .where('member.user.userId = :userId', { userId })
+      .where('member.userId = :userId', { userId })
       .andWhere('lecture.lectureDeletedAt IS NULL')
       .groupBy('lecture.lectureId')
       .getRawMany();

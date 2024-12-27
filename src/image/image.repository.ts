@@ -12,30 +12,27 @@ export class ImageRepository {
 
   // feedback에 따라 image 경로 저장
   async createImage(feedbackId: number, imagePath: string) {
-    return await this.imageRepository.query('CALL CREATE_IMAGE(?, ?)', [
-      feedbackId,
+    const newImage = this.imageRepository.create({
+      feedback: { feedbackId },
       imagePath,
-    ]);
+    });
+    return await this.imageRepository.save(newImage);
   }
 
   // feedback image 조회
-  async getImagesByFeedbackId(feedbackId: number) {
-    const result = await this.imageRepository.query(
-      'CALL GET_IMAGES_BY_FEEDBACKID(?)',
-      [feedbackId],
-    );
-    return result[0];
+  async getImagesByFeedbackId(feedbackId: number): Promise<Image[]> {
+    return await this.imageRepository.find({
+      where: { feedback: { feedbackId } },
+    });
   }
 
   // image 삭제
   async deleteImage(imageId: number) {
-    return await this.imageRepository.query('CALL DELETE_IMAGE(?)', [imageId]);
+    await this.imageRepository.delete({ imageId });
   }
 
   // feedbackId에 해당하는 image 삭제
   async deleteImagesByFeedbackId(feedbackId: number): Promise<void> {
-    await this.imageRepository.query('CALL DELETE_IMAGES_BY_FEEDBACKID(?)', [
-      feedbackId,
-    ]);
+    await this.imageRepository.delete({ feedback: { feedbackId } });
   }
 }

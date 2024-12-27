@@ -26,7 +26,7 @@ export class Feedback {
   @OneToMany(() => FeedbackTarget, (feedbackTarget) => feedbackTarget.feedback)
   feedbackTarget: FeedbackTarget[];
 
-  @OneToMany(() => Image, (image) => image.feedbackId)
+  @OneToMany(() => Image, (image) => image.feedback)
   image: Image[];
 
   @Column({ type: 'enum', enum: FeedbackType })

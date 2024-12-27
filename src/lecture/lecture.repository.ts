@@ -180,6 +180,7 @@ export class LectureRepository {
     lectureDto: LectureDto,
   ): Promise<Lecture> {
     const newLecture = this.lectureRepository.create({
+      user: { userId },
       lectureTitle: lectureDto.lectureTitle,
       lectureContent: lectureDto.lectureContent,
       lectureTime: lectureDto.lectureTime,

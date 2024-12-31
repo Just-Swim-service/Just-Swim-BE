@@ -16,7 +16,7 @@ export class FeedbackRepository {
   async getAllFeedbackByInstructor(userId: number): Promise<any[]> {
     return await this.feedbackRepository
       .createQueryBuilder('feedback')
-      .leftJoin('feedback.feedbackTargets', 'feedbackTarget')
+      .leftJoin('feedback.feedbackTarget', 'feedbackTarget')
       .leftJoin('member', 'member', 'member.userId = feedbackTarget.userId')
       .leftJoin('lecture', 'lecture', 'lecture.lectureId = member.lectureId')
       .leftJoin('users', 'user', 'user.userId = feedbackTarget.userId')
@@ -75,7 +75,7 @@ export class FeedbackRepository {
     return await this.feedbackRepository
       .createQueryBuilder('feedback')
       .leftJoin('feedback.user', 'instructor')
-      .leftJoin('feedback.images', 'image')
+      .leftJoin('feedback.image', 'image')
       .select([
         'feedback.userId AS instructorUserId',
         'feedback.feedbackId AS feedbackId',

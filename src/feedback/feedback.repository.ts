@@ -14,33 +14,97 @@ export class FeedbackRepository {
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
   async getAllFeedbackByInstructor(userId: number): Promise<any[]> {
-    const result = await this.feedbackRepository.query(
-      'CALL GET_ALL_FEEDBACK_INSTRUCTOR(?)',
-      [userId],
-    );
-    return result[0];
+    return await this.feedbackRepository
+      .createQueryBuilder('feedback')
+      .leftJoin('feedback.feedbackTarget', 'feedbackTarget')
+      .leftJoin('member', 'member', 'member.userId = feedbackTarget.userId')
+      .leftJoin('lecture', 'lecture', 'lecture.lectureId = member.lectureId')
+      .leftJoin('users', 'user', 'user.userId = feedbackTarget.userId')
+      .select([
+        'feedback.feedbackId AS feedbackId',
+        'feedback.feedbackType AS feedbackType',
+        'feedback.feedbackDate AS feedbackDate',
+        'feedback.feedbackContent AS feedbackContent',
+        'feedbackTarget.userId AS memberUserId',
+        'member.memberNickname AS memberNickname',
+        'lecture.lectureTitle AS lectureTitle',
+        'user.profileImage AS memberProfileImage',
+      ])
+      .where('feedback.userId = :userId', { userId })
+      .andWhere('feedback.feedbackDeletedAt IS NULL')
+      .groupBy('feedback.feedbackId, feedbackTarget.userId')
+      .orderBy('feedback.feedbackId', 'ASC')
+      .addOrderBy('feedbackTarget.userId', 'ASC')
+      .getRawMany();
   }
 
   /* customer 개인 feedback 전체 조회 */
   async getAllFeedbackByCustomer(userId: number): Promise<any[]> {
-    const result = await this.feedbackRepository.query(
-      'CALL GET_ALL_FEEDBACK_CUSTOMER(?)',
-      [userId],
-    );
-    return result[0];
+    return await this.feedbackRepository
+      .createQueryBuilder('feedbackTarget')
+      .leftJoin('feedbackTarget.feedback', 'feedback')
+      .leftJoin('feedbackTarget.lecture', 'lecture')
+      .leftJoin('lecture.user', 'instructor')
+      .select([
+        'feedback.feedbackId AS feedbackId',
+        'lecture.lectureTitle AS lectureTitle',
+        'feedback.feedbackContent AS feedbackContent',
+        'feedback.feedbackDate AS feedbackDate',
+        'feedback.feedbackType AS feedbackType',
+        'instructor.profileImage AS instructorProfileImage',
+        'instructor.name AS instructorName',
+      ])
+      .where('feedbackTarget.userId = :userId', { userId })
+      .andWhere('feedback.feedbackDeletedAt IS NULL')
+      .groupBy(
+        `
+        feedback.feedbackId,
+        lecture.lectureTitle,
+        feedback.feedbackContent,
+        feedback.feedbackDate,
+        feedback.feedbackType,
+        instructor.profileImage,
+        instructor.name
+      `,
+      )
+      .getRawMany();
   }
 
   /* feedback 상세 조회 */
   async getFeedbackByPk(feedbackId: number) {
-    const result = await this.feedbackRepository.query(
-      'CALL GET_FEEDBACK_BY_PK(?)',
-      [feedbackId],
-    );
-
-    if (result[0].length === 0) {
-      return undefined;
-    }
-    return result[0];
+    return await this.feedbackRepository
+      .createQueryBuilder('feedback')
+      .leftJoin('feedback.user', 'instructor')
+      .leftJoin('feedback.image', 'image')
+      .select([
+        'feedback.userId AS instructorUserId',
+        'feedback.feedbackId AS feedbackId',
+        'feedback.feedbackType AS feedbackType',
+        'feedback.feedbackDate AS feedbackDate',
+        'feedback.feedbackContent AS feedbackContent',
+        'feedback.feedbackLink AS feedbackLink',
+        'feedback.feedbackCreatedAt AS feedbackCreatedAt',
+        'instructor.name AS instructorName',
+        'instructor.profileImage AS instructorProfileImage',
+        'image.imagePath AS imagePath',
+      ])
+      .where('feedback.feedbackId = :feedbackId', { feedbackId })
+      .andWhere('feedback.feedbackDeletedAt IS NULL')
+      .groupBy(
+        `
+        feedback.feedbackId,
+        feedback.userId,
+        feedback.feedbackType,
+        feedback.feedbackDate,
+        feedback.feedbackContent,
+        feedback.feedbackLink,
+        feedback.feedbackCreatedAt,
+        instructor.name,
+        instructor.profileImage,
+        image.imagePath
+      `,
+      )
+      .getRawMany();
   }
 
   /* feedback 생성 */

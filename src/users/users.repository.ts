@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { UsersDto } from './dto/users.dto';
 import { EditUserDto } from './dto/edit-user.dto';
 import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
+import { UserType } from './enum/user-type.enum';
+import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
 
 @Injectable()
 export class UsersRepository {
@@ -17,51 +19,33 @@ export class UsersRepository {
     email: string,
     provider: string,
   ): Promise<Users | undefined> {
-    const result = await this.usersRepository.query(
-      `CALL FIND_USER_BY_EMAIL(?, ?)`,
-      [email, provider],
-    );
-
-    // 데이터가 존재하면 첫번째 데이터를 반환
-    // 이 조건문이 없으니 신규 유저 생성시 생성이 되지 않음
-    if (result.length > 0) {
-      return result[0][0];
-    }
+    return await this.usersRepository.findOne({
+      where: { email, provider },
+    });
   }
 
   /* user 생성 */
   async createUser(userData: UsersDto): Promise<Users> {
-    const result = await this.usersRepository.query(
-      `CALL CREATE_USER(?, ?, ?, ?, ?, ?)`,
-      [
-        userData.email,
-        userData.profileImage,
-        userData.name,
-        userData.provider,
-        userData.birth,
-        userData.phoneNumber,
-      ],
-    );
+    const newUser = this.usersRepository.create({
+      email: userData.email,
+      profileImage: userData.profileImage,
+      name: userData.name,
+      phoneNumber: userData.phoneNumber,
+      provider: userData.provider,
+      birth: userData.birth,
+    });
 
-    // userId를 반환
-    return result[0][0];
+    return await this.usersRepository.save(newUser);
   }
 
   /* userId를 이용해서 user 조회 */
   async findUserByPk(userId: number): Promise<Users> {
-    const result = await this.usersRepository.query(`CALL FIND_USER_BY_PK(?)`, [
-      userId,
-    ]);
-    return result[0][0];
+    return await this.usersRepository.findOne({ where: { userId } });
   }
 
   /* userType을 지정 */
-  async selectUserType(userId: number, userType: string): Promise<void> {
-    const result = await this.usersRepository.query(
-      `CALL SELECT_USER_TYPE(?, ?)`,
-      [userId, userType],
-    );
-    return result;
+  async selectUserType(userId: number, userType: UserType): Promise<void> {
+    await this.usersRepository.update({ userId }, { userType });
   }
 
   /* user 프로필 수정 */
@@ -70,13 +54,10 @@ export class UsersRepository {
     editUserDto: EditUserDto,
   ): Promise<void> {
     const { name, profileImage, birth, phoneNumber } = editUserDto;
-    await this.usersRepository.query(`CALL EDIT_USER_PROFILE(?, ?, ?, ?, ?)`, [
-      userId,
-      name,
-      profileImage,
-      birth,
-      phoneNumber,
-    ]);
+    await this.usersRepository.update(
+      { userId },
+      { name, profileImage, birth, phoneNumber },
+    );
   }
 
   /* user(instructor) 탈퇴 */
@@ -85,9 +66,29 @@ export class UsersRepository {
     withdrawalReasonDto: WithdrawalReasonDto,
   ): Promise<void> {
     const withdrawalReasonContent = withdrawalReasonDto.withdrawalReasonContent;
-    await this.usersRepository.query('CALL WITHDRAW_USER(?, ?)', [
-      userId,
-      withdrawalReasonContent,
-    ]);
+
+    await this.usersRepository.manager.transaction(
+      async (entityManager: EntityManager) => {
+        await entityManager.update(
+          Users,
+          { userId },
+          {
+            email: null,
+            userType: null,
+            provider: null,
+            name: null,
+            profileImage: null,
+            birth: null,
+            phoneNumber: null,
+            userDeletedAt: new Date(),
+          },
+        );
+
+        await entityManager.insert(WithdrawalReason, {
+          user: { userId },
+          withdrawalReasonContent,
+        });
+      },
+    );
   }
 }

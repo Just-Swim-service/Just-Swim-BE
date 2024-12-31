@@ -12,18 +12,15 @@ export class CustomerRepository {
 
   /* userType을 customer로 지정할 경우 customer 정보 생성 */
   async createCustomer(userId: number): Promise<Customer> {
-    const result = await this.customerRepository.query(
-      `CALL CREATE_CUSTOMER(?)`,
-      [userId],
-    );
-    return result;
+    const newCustomer = this.customerRepository.create({ user: { userId } });
+
+    return await this.customerRepository.save(newCustomer);
   }
 
   /* customer의 정보 조회 */
   async findCustomerByUserId(userId: number): Promise<Customer> {
-    return await this.customerRepository.query(
-      `CALL FIND_CUSTOMER_BY_USERID(?)`,
-      [userId],
-    );
+    return await this.customerRepository.findOne({
+      where: { user: { userId } },
+    });
   }
 }

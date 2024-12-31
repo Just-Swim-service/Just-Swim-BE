@@ -32,7 +32,6 @@ export class MemberService {
       throw new NotFoundException('수강생 정보를 찾을 수 없습니다.');
     }
 
-    // 사용자 정보를 구조화
     const memberInfo = {
       userId: '',
       profileImage: '',
@@ -44,25 +43,25 @@ export class MemberService {
       feedback: [],
     };
 
-    // 강의 및 피드백 정보 정리
+    const lecturesMap = new Map();
+    const feedbackMap = new Map();
+
     memberData.forEach((item: any) => {
-      // 사용자 정보 설정
+      // 사용자 정보는 한 번만 설정
       if (!memberInfo.userId) {
-        memberInfo.userId = item.userId;
-        memberInfo.profileImage = item.profileImage;
-        memberInfo.name = item.name;
-        memberInfo.birth = item.birth;
-        memberInfo.email = item.email;
-        memberInfo.phoneNumber = item.phoneNumber;
+        Object.assign(memberInfo, {
+          userId: item.userId,
+          profileImage: item.profileImage,
+          name: item.name,
+          birth: item.birth,
+          email: item.email,
+          phoneNumber: item.phoneNumber,
+        });
       }
 
-      // 강의 정보 처리
-      let lecture = memberInfo.lectures.find(
-        (l: any) => l.lectureId === item.lectureId,
-      );
-
-      if (!lecture) {
-        lecture = {
+      // 강의 정보 처리 (중복 방지)
+      if (!lecturesMap.has(item.lectureId) && item.lectureId) {
+        lecturesMap.set(item.lectureId, {
           lectureId: item.lectureId,
           lectureTitle: item.lectureTitle,
           lectureContent: item.lectureContent,
@@ -70,34 +69,34 @@ export class MemberService {
           lectureColor: item.lectureColor,
           lectureDays: item.lectureDays,
           lectureTime: item.lectureTime,
-        };
-        memberInfo.lectures.push(lecture);
+        });
       }
 
-      // 피드백 정보 처리
-      let feedback = memberInfo.feedback.find(
-        (f: any) => f.feedbackId === item.feedbackId,
-      );
-
-      if (!feedback) {
-        feedback = {
+      // 피드백 정보 처리 (중복 방지)
+      if (!feedbackMap.has(item.feedbackId) && item.feedbackId) {
+        feedbackMap.set(item.feedbackId, {
           feedbackId: item.feedbackId,
           feedbackDate: item.feedbackDate,
           feedbackType: item.feedbackType,
           feedbackContent: item.feedbackContent,
           images: [],
-        };
-        memberInfo.feedback.push(feedback);
+        });
       }
 
-      // 이미지 추가
-      if (
-        item.imagePath &&
-        !feedback.images.find((img: any) => img.imagePath === item.imagePath)
-      ) {
-        feedback.images.push({ imagePath: item.imagePath });
+      // 이미지 정보 추가 (중복 방지)
+      if (item.imagePath && feedbackMap.has(item.feedbackId)) {
+        const feedback = feedbackMap.get(item.feedbackId);
+        if (
+          !feedback.images.find((img: any) => img.imagePath === item.imagePath)
+        ) {
+          feedback.images.push({ imagePath: item.imagePath });
+        }
       }
     });
+
+    // Map을 배열로 변환하여 결과에 추가
+    memberInfo.lectures = Array.from(lecturesMap.values());
+    memberInfo.feedback = Array.from(feedbackMap.values());
 
     return memberInfo;
   }

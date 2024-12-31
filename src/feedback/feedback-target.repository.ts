@@ -12,11 +12,18 @@ export class FeedbackTargetRepository {
 
   /* feedbackId를 통해 target 확인 */
   async getFeedbackTargetByFeedbackId(feedbackId: number) {
-    const result = await this.feedbackTargetRepository.query(
-      'CALL GET_FEEDBACK_TARGET_BY_FEEDBACKID(?)',
-      [feedbackId],
-    );
-
-    return result[0];
+    return await this.feedbackTargetRepository
+      .createQueryBuilder('feedbackTarget')
+      .leftJoin('feedbackTarget.user', 'user')
+      .leftJoin('member', 'member', 'member.userId = feedbackTarget.userId')
+      .leftJoin('lecture', 'lecture', 'lecture.lectureId = member.lectureId')
+      .select([
+        'lecture.lectureTitle AS lectureTitle',
+        'feedbackTarget.userId AS memberUserId',
+        'member.memberNickname AS memberNickname',
+        'user.profileImage AS memberProfileImage',
+      ])
+      .where('feedbackTarget.feedbackId = :feedbackId', { feedbackId })
+      .getRawMany();
   }
 }

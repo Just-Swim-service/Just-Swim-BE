@@ -27,23 +27,14 @@ export class LectureService {
     const lectures =
       await this.lectureRepository.getScheduleLecturesByInstructor(userId);
 
-    // lectureId를 기준으로 중복된 강의를 제거, member 정보를 배열로 정리
+    // 강의를 lectureId 기준으로 그룹화하여 member 정보를 배열로 정리
     const groupedLectures = lectures.reduce((acc, lecture) => {
-      const existingLecture = acc.find(
-        (l) => l.lectureId === lecture.lectureId,
-      );
+      // 이미 acc에 같은 lectureId를 가진 강의가 있는지 확인
+      let existingLecture = acc.find((l) => l.lectureId === lecture.lectureId);
 
-      if (existingLecture) {
-        // 이미 해당 강의가 존재하면 member 정보만 추가
-        if (lecture.memberUserId) {
-          existingLecture.members.push({
-            memberUserId: lecture.memberUserId,
-            memberName: lecture.memberName,
-            memberProfileImage: lecture.memberProfileImage,
-          });
-        }
-      } else {
-        acc.push({
+      if (!existingLecture) {
+        // 강의가 없다면 새로운 강의 객체 생성
+        existingLecture = {
           lectureId: lecture.lectureId,
           lectureTitle: lecture.lectureTitle,
           lectureContent: lecture.lectureContent,
@@ -53,15 +44,17 @@ export class LectureService {
           lectureColor: lecture.lectureColor,
           lectureQRCode: lecture.lectureQRCode,
           lectureEndDate: lecture.lectureEndDate,
-          members: lecture.memberUserId
-            ? [
-                {
-                  memberUserId: lecture.memberUserId,
-                  memberName: lecture.memberName,
-                  memberProfileImage: lecture.memberProfileImage,
-                },
-              ]
-            : [],
+          members: [], // 멤버 초기화
+        };
+        acc.push(existingLecture); // 새로운 강의 추가
+      }
+
+      // 멤버 정보가 존재하면 추가
+      if (lecture.memberUserId) {
+        existingLecture.members.push({
+          memberUserId: lecture.memberUserId,
+          memberName: lecture.memberName,
+          memberProfileImage: lecture.memberProfileImage,
         });
       }
 
@@ -76,27 +69,16 @@ export class LectureService {
     const lectureDatas =
       await this.lectureRepository.getAllLecturesByInstructor(userId);
 
-    // lectureId를 기준으로 중복된 강의를 제거, member 정보를 배열로 정리
+    // lectureId를 기준으로 강의를 그룹화하고 member와 instructor 정보를 정리
     const lectures = lectureDatas.reduce((acc, lecture) => {
-      const existingLecture = acc.find(
+      // 기존 강의가 있는지 확인
+      let existingLecture = acc.find(
         (l: any) => l.lectureId === lecture.lectureId,
       );
 
-      if (existingLecture) {
-        // 이미 해당 강의가 존재하면 member 정보만 추가
-        if (lecture.userId) {
-          existingLecture.members.push({
-            userId: lecture.userId,
-            name: lecture.name,
-            profileImage: lecture.profileImage,
-          });
-          existingLecture.instructor = {
-            instructorName: lecture.instructorName,
-            instructorProfileImage: lecture.instructorProfileImage,
-          };
-        }
-      } else {
-        acc.push({
+      if (!existingLecture) {
+        // 기존 강의가 없으면 새로운 강의 추가
+        existingLecture = {
           lectureId: lecture.lectureId,
           lectureTitle: lecture.lectureTitle,
           lectureContent: lecture.lectureContent,
@@ -106,22 +88,30 @@ export class LectureService {
           lectureColor: lecture.lectureColor,
           lectureQRCode: lecture.lectureQRCode,
           lectureEndDate: lecture.lectureEndDate,
-          members: lecture.userId
-            ? [
-                {
-                  userId: lecture.userId,
-                  name: lecture.name,
-                  profileImage: lecture.profileImage,
-                },
-              ]
-            : [],
-          instructor: lecture.userId
-            ? {
-                instructorName: lecture.instructorName,
-                instructorProfileImage: lecture.instructorProfileImage,
-              }
-            : {},
+          members: [],
+          instructor: {},
+        };
+        acc.push(existingLecture);
+      }
+
+      // 멤버 정보 추가
+      if (lecture.userId) {
+        existingLecture.members.push({
+          userId: lecture.userId,
+          name: lecture.name,
+          profileImage: lecture.profileImage,
         });
+      }
+
+      // 강사 정보 추가
+      if (
+        !existingLecture.instructor.instructorName &&
+        lecture.instructorName
+      ) {
+        existingLecture.instructor = {
+          instructorName: lecture.instructorName,
+          instructorProfileImage: lecture.instructorProfileImage,
+        };
       }
 
       return acc;
@@ -252,7 +242,7 @@ export class LectureService {
     editLectureDto: EditLectureDto,
   ): Promise<void> {
     const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
-    if (lecture.userId !== userId) {
+    if (lecture.user.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }
 
@@ -262,7 +252,7 @@ export class LectureService {
   // 강의 삭제(softDelete)
   async softDeleteLecture(userId: number, lectureId: number): Promise<void> {
     const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
-    if (lecture.userId !== userId) {
+    if (lecture.user.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }
 

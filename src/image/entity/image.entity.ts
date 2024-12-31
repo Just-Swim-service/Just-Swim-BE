@@ -16,7 +16,7 @@ export class Image {
 
   @ManyToOne(() => Feedback, (feedback) => feedback.image)
   @JoinColumn({ name: 'feedbackId' })
-  feedbackId: number;
+  feedback: Feedback;
 
   @Column({ type: 'mediumtext' })
   imagePath: string;

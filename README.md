@@ -69,12 +69,43 @@
 
 ### Designer
 
--
+- 최우성
+- 박효경
+
+---
 
 ## :wrench: 기술 스택
 
+- 프레임 워크: <code>Nest.js</code>
+- 패키지 매니저: <code>npm</code>
+- 데이터 베이스: <code>MySQL</code>
+- ORM: <code>TypeOrm</code>
+- CI/CD <code>Docker</code> / <code>Git Action</code>
+- RESTful API Documentation: <code>Swagger</code>
+
+---
+
 ## :books: 라이브러리
+
+| 라이브러리              | 설명                      |
+| :---------------------- | :------------------------ |
+| Nestjs                  | 서버 프레임워크           |
+| express                 | 서버                      |
+| swagger                 | API 명세서 관리           |
+| typescript              | 유지, 보수 및 생산성 향상 |
+| mysql2                  | 데이터 베이스             |
+| jwt                     | 서명 암호화               |
+| passport                | OAuth 2.0 사용            |
+| passport-google-oauth20 | google OAuth 2.0          |
+| passport-kakao          | kakao OAuth 2.0           |
+| passport-naver-v2       | naver OAuth 2.0           |
+| eslint                  | 정적 코드 분석            |
+| typeorm                 | Object Relational Mapping |
+
+---
 
 ## :pushpin: 아키텍처
 
 ## :bank: ERD
+
+![just-swim ERD](https://file.notion.so/f/f/aa8571ff-db5c-4c63-a227-0bac038f37bc/2c0cd728-7bb0-42a0-b2f7-1f2e67f67a2a/drawSQL-image-export-2024-04-22.png?table=block&id=a196341e-b2e8-4d5d-83c4-5b2cbd316cf7&spaceId=aa8571ff-db5c-4c63-a227-0bac038f37bc&expirationTimestamp=1735776000000&signature=tkZQvuQbqLVv0mlZWAwleMiBkp2Sb9V7qCMrkVqntqI&downloadName=drawSQL-image-export-2024-04-22.png)

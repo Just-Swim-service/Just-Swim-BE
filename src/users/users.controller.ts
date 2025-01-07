@@ -83,29 +83,20 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
-      // // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
-      // if (exUser.userType === null) {
-      //   const token = await this.authService.getToken(exUser.userId);
-      //   const query = '?token=' + token;
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // }
-      // // userType 지정되어 있을 경우 Home으로 redirect
-      // if (exUser.userType !== null) {
-      //   const token = await this.authService.getToken(exUser.userId);
-      //   const query = '?token=' + token;
-      //   res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
-      // }
-      const token = await this.authService.getToken(exUser.userId);
-      const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // if (host.includes('localhost:3000')) {
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // } else {
-      //   res.redirect(
-      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
-      //   );
-      // }
+      // userType을 선택하지 않았을 경우
+      if (exUser.userType === null) {
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      }
+      // userType 지정되어 있을 경우 Home으로 redirect
+      if (exUser.userType !== null) {
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
+      }
     }
+
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
@@ -120,13 +111,6 @@ export class UsersController {
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // if (host.includes('localhost:3000')) {
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // } else {
-      //   res.redirect(
-      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
-      //   );
-      // }
     }
   }
 
@@ -169,28 +153,18 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
-      // // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
-      // if (exUser.userType === null) {
-      //   const token = await this.authService.getToken(exUser.userId);
-      //   const query = '?token=' + token;
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // }
-      // // userType 지정되어 있을 경우 Home으로 redirect
-      // if (exUser.userType !== null) {
-      //   const token = await this.authService.getToken(exUser.userId);
-      //   const query = '?token=' + token;
-      //   res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
-      // }
-      const token = await this.authService.getToken(exUser.userId);
-      const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // if (host.includes('localhost:3000')) {
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // } else {
-      //   res.redirect(
-      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
-      //   );
-      // }
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
+      if (exUser.userType === null) {
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      }
+      // userType 지정되어 있을 경우 Home으로 redirect
+      if (exUser.userType !== null) {
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
+      }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
@@ -206,13 +180,6 @@ export class UsersController {
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
       res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // if (host.includes('localhost:3000')) {
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // } else {
-      //   res.redirect(
-      //     process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
-      //   );
-      // }
     }
   }
 
@@ -249,28 +216,20 @@ export class UsersController {
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
-      // // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
-      // if (exUser.userType === null) {
-      //   const token = await this.authService.getToken(exUser.userId);
-      //   const query = '?token=' + token;
-      //   res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      // }
-      // // userType 지정되어 있을 경우 Home으로 redirect
-      // if (exUser.userType !== null) {
-      //   const token = await this.authService.getToken(exUser.userId);
-      //   const query = '?token=' + token;
-      //   res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
-      // }
-      const token = await this.authService.getToken(exUser.userId);
-      const query = '?token=' + token;
-      if (host.includes('localhost:3000')) {
+      // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
+      if (exUser.userType === null) {
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
         res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      } else {
-        res.redirect(
-          process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
-        );
+      }
+      // userType 지정되어 있을 경우 Home으로 redirect
+      if (exUser.userType !== null) {
+        const token = await this.authService.getToken(exUser.userId);
+        const query = '?token=' + token;
+        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
       }
     }
+
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
       const newUserData: UsersDto = {
@@ -282,13 +241,7 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      if (host.includes('localhost:3000')) {
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
-      } else {
-        res.redirect(
-          process.env.SELECT_USERTYPE_PROD_REDIRECT_URI + `/${query}`,
-        );
-      }
+      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
     }
   }
 

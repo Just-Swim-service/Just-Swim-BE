@@ -16,7 +16,11 @@ export class FeedbackTargetRepository {
       .createQueryBuilder('feedbackTarget')
       .leftJoin('feedbackTarget.user', 'user')
       .leftJoin('member', 'member', 'member.userId = feedbackTarget.userId')
-      .leftJoin('lecture', 'lecture', 'lecture.lectureId = member.lectureId')
+      .leftJoin(
+        'lecture',
+        'lecture',
+        'lecture.lectureId = feedbackTarget.lectureId',
+      )
       .select([
         'lecture.lectureTitle AS lectureTitle',
         'feedbackTarget.userId AS memberUserId',

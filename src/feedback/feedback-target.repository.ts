@@ -14,13 +14,9 @@ export class FeedbackTargetRepository {
   async getFeedbackTargetByFeedbackId(feedbackId: number) {
     return await this.feedbackTargetRepository
       .createQueryBuilder('feedbackTarget')
-      .leftJoin('feedbackTarget.user', 'user')
+      .leftJoinAndSelect('feedbackTarget.user', 'user')
+      .leftJoinAndSelect('feedbackTarget.lecture', 'lecture')
       .leftJoin('member', 'member', 'member.userId = feedbackTarget.userId')
-      .leftJoin(
-        'lecture',
-        'lecture',
-        'lecture.lectureId = feedbackTarget.lectureId',
-      )
       .select([
         'lecture.lectureTitle AS lectureTitle',
         'feedbackTarget.userId AS memberUserId',
@@ -28,6 +24,7 @@ export class FeedbackTargetRepository {
         'user.profileImage AS memberProfileImage',
       ])
       .where('feedbackTarget.feedbackId = :feedbackId', { feedbackId })
+      .distinct(true)
       .getRawMany();
   }
 }

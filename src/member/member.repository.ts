@@ -67,7 +67,7 @@ export class MemberRepository {
         'user.userId AS userId',
         'lecture.lectureTitle AS lectureTitle',
         'lecture.lectureId AS lectureId',
-        'member.memberNickname AS memberNickName',
+        'member.memberNickname AS memberNickname',
         'user.profileImage AS profileImage',
       ])
       .where('lecture.userId = :userId', { userId })

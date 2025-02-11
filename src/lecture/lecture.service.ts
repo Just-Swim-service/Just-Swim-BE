@@ -52,9 +52,9 @@ export class LectureService {
       // 멤버 정보가 존재하면 추가
       if (lecture.memberUserId) {
         existingLecture.members.push({
-          memberUserId: lecture.memberUserId,
-          memberName: lecture.memberName,
-          memberProfileImage: lecture.memberProfileImage,
+          userId: lecture.memberUserId,
+          name: lecture.memberName,
+          profileImage: lecture.memberProfileImage,
         });
       }
 

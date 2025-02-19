@@ -201,6 +201,9 @@ export class LectureRepository {
 
   /* 강의 권한 확인을 위한 조회 */
   async getLectureForAuth(lectureId: number): Promise<Lecture> {
-    return await this.lectureRepository.findOne({ where: { lectureId } });
+    return await this.lectureRepository.findOne({
+      where: { lectureId },
+      relations: ['user'],
+    });
   }
 }

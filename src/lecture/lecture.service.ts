@@ -252,7 +252,6 @@ export class LectureService {
   // 강의 삭제(softDelete)
   async softDeleteLecture(userId: number, lectureId: number): Promise<void> {
     const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
-    console.log(lecture);
     if (lecture.user.userId !== userId) {
       throw new UnauthorizedException('강의 수정 권한이 없습니다.');
     }

@@ -5,6 +5,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Res,
@@ -103,7 +104,7 @@ export class FeedbackController {
   @ApiBearerAuth('accessToken')
   async getFeedbackDetail(
     @Res() res: Response,
-    @Param('feedbackId') feedbackId: number,
+    @Param('feedbackId', ParseIntPipe) feedbackId: number,
   ) {
     const { userId } = res.locals.user;
     const feedback = await this.feedbackService.getFeedbackByPk(
@@ -178,7 +179,7 @@ export class FeedbackController {
   @ApiBearerAuth('accessToken')
   async updateFeedback(
     @Res() res: Response,
-    @Param('feedbackId') feedbackId: number,
+    @Param('feedbackId', ParseIntPipe) feedbackId: number,
     @Body() editFeedbackDto: EditFeedbackDto,
   ) {
     const { userId } = res.locals.user;
@@ -206,7 +207,7 @@ export class FeedbackController {
   @ApiBearerAuth('accessToken')
   async softDeleteFeedback(
     @Res() res: Response,
-    @Param('feedbackId') feedbackId: number,
+    @Param('feedbackId', ParseIntPipe) feedbackId: number,
   ) {
     const { userId } = res.locals.user;
 

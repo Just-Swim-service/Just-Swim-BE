@@ -18,7 +18,9 @@ async function bootstrap() {
   });
   app.use(cookieParser());
   app.setGlobalPrefix('api'); // 글로벌 프리픽스 설정
-  app.useGlobalPipes(new ValidationPipe()); // 유효성 검사 파이프라인
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+  ); // 유효성 검사 파이프라인
 
   // swagger 설정
   const config = new DocumentBuilder()

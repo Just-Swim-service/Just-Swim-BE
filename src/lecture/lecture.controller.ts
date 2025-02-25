@@ -127,7 +127,7 @@ export class LectureController {
   }
 
   /* 강의 상세 조회 */
-  @Get('/:lectureId')
+  @Get(':lectureId')
   @ApiOperation({
     summary: '강의 상세 조회',
     description: '강의를 상세한 내용을 조회한다',

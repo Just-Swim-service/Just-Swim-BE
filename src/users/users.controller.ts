@@ -5,6 +5,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseEnumPipe,
   Patch,
   Post,
   Req,
@@ -296,7 +297,7 @@ export class UsersController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async selectUserType(
-    @Param('userType') userType: UserType,
+    @Param('userType', new ParseEnumPipe(UserType)) userType: UserType,
     @Res() res: Response,
   ) {
     const { userId } = res.locals.user;

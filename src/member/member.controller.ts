@@ -133,7 +133,7 @@ export class MemberController {
   @ApiBearerAuth('accessToken')
   async getMemberInfo(
     @Res() res: Response,
-    @Param('memberUserId') memberUserId: number,
+    @Param('memberUserId', ParseIntPipe) memberUserId: number,
   ) {
     const { userId } = res.locals.user;
     const instructorUserId = userId;

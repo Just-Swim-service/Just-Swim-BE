@@ -140,30 +140,7 @@ export class LectureRepository {
     lectureId: number,
     editLectureDto: EditLectureDto,
   ): Promise<void> {
-    const {
-      lectureTitle,
-      lectureContent,
-      lectureTime,
-      lectureDays,
-      lectureColor,
-      lectureQRCode,
-      lectureLocation,
-      lectureEndDate,
-    } = editLectureDto;
-
-    await this.lectureRepository.update(
-      { lectureId },
-      {
-        lectureTitle,
-        lectureContent,
-        lectureTime,
-        lectureDays,
-        lectureColor,
-        lectureQRCode,
-        lectureLocation,
-        lectureEndDate,
-      },
-    );
+    await this.lectureRepository.update({ lectureId }, editLectureDto);
   }
 
   /* 강의 삭제(softDelete) */

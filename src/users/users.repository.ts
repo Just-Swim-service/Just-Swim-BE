@@ -26,16 +26,7 @@ export class UsersRepository {
 
   /* user 생성 */
   async createUser(userData: UsersDto): Promise<Users> {
-    const newUser = this.usersRepository.create({
-      email: userData.email,
-      profileImage: userData.profileImage,
-      name: userData.name,
-      phoneNumber: userData.phoneNumber,
-      provider: userData.provider,
-      birth: userData.birth,
-    });
-
-    return await this.usersRepository.save(newUser);
+    return await this.usersRepository.save(userData);
   }
 
   /* userId를 이용해서 user 조회 */
@@ -53,11 +44,7 @@ export class UsersRepository {
     userId: number,
     editUserDto: EditUserDto,
   ): Promise<void> {
-    const { name, profileImage, birth, phoneNumber } = editUserDto;
-    await this.usersRepository.update(
-      { userId },
-      { name, profileImage, birth, phoneNumber },
-    );
+    await this.usersRepository.update({ userId }, editUserDto);
   }
 
   /* user(instructor) 탈퇴 */

@@ -128,7 +128,7 @@ export class MemberRepository {
         'image.imageId AS imageId',
         'image.imagePath AS imagePath',
       ])
-      .where('member.userId')
+      .where('member.userId = :memberUserId', { memberUserId })
       .getRawMany();
   }
 }

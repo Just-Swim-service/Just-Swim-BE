@@ -17,6 +17,7 @@ export class FeedbackTargetRepository {
       .leftJoinAndSelect('feedbackTarget.user', 'user')
       .leftJoinAndSelect('feedbackTarget.lecture', 'lecture')
       .select([
+        'lecture.lectureId AS lectureId',
         'lecture.lectureTitle AS lectureTitle',
         'feedbackTarget.userId AS memberUserId',
         'user.name AS memberName',

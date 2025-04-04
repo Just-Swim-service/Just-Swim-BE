@@ -3,42 +3,24 @@ import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
 import { MemberRepository } from 'src/member/member.repository';
-import { MockMemberRepository } from 'src/member/member.service.spec';
 import { AwsService } from 'src/common/aws/aws.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { MockUsersRepository } from 'src/users/users.service.spec';
 import * as QRCode from 'qrcode';
-
-const mockUser = new MockUsersRepository().mockUser;
-
-export class MockLectureRepository {
-  readonly mockLecture: Lecture = {
-    lectureId: 1,
-    user: mockUser,
-    lectureTitle: '아침 5반',
-    lectureContent: '이 강의는 고급자를 대상으로 합니다. 응용을 다룹니다.',
-    lectureTime: '12:00-14:00',
-    lectureDays: '화목',
-    lectureLocation: '강동구 실내 수영장',
-    lectureColor: '#F1554C',
-    lectureQRCode: 'QR 코드',
-    lectureEndDate: '2024.05.31',
-    lectureCreatedAt: new Date(),
-    lectureUpdatedAt: new Date(),
-    lectureDeletedAt: null,
-    member: [],
-    feedbackTarget: [],
-  };
-}
+import {
+  mockMember,
+  MockMemberRepository,
+} from 'src/common/mocks/mock-member.repository';
+import {
+  mockLecture,
+  MockLectureRepository,
+} from 'src/common/mocks/mock-lecture.repository';
+import { mockUser } from 'src/common/mocks/mock-user.repository';
 
 describe('LectureService', () => {
   let service: LectureService;
   let lectureRepository: LectureRepository;
   let memberRepository: MemberRepository;
   let awsService: AwsService;
-
-  const mockLecture = new MockLectureRepository().mockLecture;
-  const mockMember = new MockMemberRepository().mockMember;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -54,34 +36,11 @@ describe('LectureService', () => {
         },
         {
           provide: LectureRepository,
-          useValue: {
-            getLectures: jest.fn().mockResolvedValue([mockLecture]),
-            getScheduleLecturesByInstructor: jest
-              .fn()
-              .mockResolvedValue([mockLecture]),
-            getAllLecturesByInstructor: jest
-              .fn()
-              .mockResolvedValue([mockLecture]),
-            getScheduleLecturesByCustomer: jest
-              .fn()
-              .mockResolvedValue([mockLecture]),
-            getAllLecturesByCustomer: jest
-              .fn()
-              .mockResolvedValue([mockLecture]),
-            getLectureByPk: jest.fn().mockResolvedValue([mockLecture]),
-            getLectureForAuth: jest.fn().mockResolvedValue(mockLecture.user),
-            updateLecture: jest.fn().mockResolvedValue(mockLecture),
-            softDeleteLecture: jest.fn().mockResolvedValue(mockLecture),
-            createLecture: jest.fn().mockResolvedValue(mockLecture),
-            saveQRCode: jest.fn(),
-          },
+          useValue: MockLectureRepository,
         },
         {
           provide: MemberRepository,
-          useValue: {
-            insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
-            getAllMembersByLectureId: jest.fn().mockResolvedValue([mockMember]),
-          },
+          useValue: MockMemberRepository,
         },
       ],
     }).compile();

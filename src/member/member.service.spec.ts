@@ -1,27 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MemberService } from './member.service';
 import { MemberRepository } from './member.repository';
-import { Member } from './entity/member.entity';
-import { Lecture } from 'src/lecture/entity/lecture.entity';
-import { Users } from 'src/users/entity/users.entity';
-
-export class MockMemberRepository {
-  readonly mockMember: Member = {
-    memberId: 1,
-    lecture: new Lecture(),
-    user: new Users(),
-    memberNickname: '홍길동',
-    memberCreatedAt: new Date(),
-    memberUpdatedAt: new Date(),
-    memberDeletedAt: null,
-  };
-}
+import { NotFoundException } from '@nestjs/common';
+import {
+  mockMember,
+  MockMemberRepository,
+} from 'src/common/mocks/mock-member.repository';
 
 describe('MemberService', () => {
   let service: MemberService;
   let repository: MemberRepository;
-
-  const mockMember = new MockMemberRepository().mockMember;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,12 +17,7 @@ describe('MemberService', () => {
         MemberService,
         {
           provide: MemberRepository,
-          useValue: {
-            insertMemberFromQR: jest.fn().mockResolvedValue(mockMember),
-            checkCustomer: jest.fn().mockResolvedValue(mockMember),
-            getAllMembersByLectureId: jest.fn().mockResolvedValue(mockMember),
-            getAllMembersByFeedback: jest.fn().mockResolvedValue(mockMember),
-          },
+          useValue: MockMemberRepository,
         },
       ],
     }).compile();
@@ -43,45 +26,74 @@ describe('MemberService', () => {
     repository = module.get<MemberRepository>(MemberRepository);
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('insertMemberFromQR', () => {
-    it('QR을 통해 수강생으로 입장', async () => {
-      const userId = 1;
-      const lectureId = 1;
-      (repository.insertMemberFromQR as jest.Mock).mockResolvedValue(
-        mockMember,
-      );
-
-      const result = await service.insertMemberFromQR(userId, lectureId);
-
+    it('QR을 통해 수강생으로 등록', async () => {
+      const result = await service.insertMemberFromQR(1, 1);
       expect(result).toEqual(mockMember);
     });
   });
 
-  describe('getAllMembersByInstructor', () => {
-    it('강사가 개설한 모든 강의에 해당하는 수강생 조회', async () => {
-      const lectureId = 1;
-      (repository.getAllMembersByLectureId as jest.Mock).mockResolvedValue(
-        mockMember,
-      );
-      const result = await service.getAllMembersByLectureId(lectureId);
-
-      expect(result).toEqual(mockMember);
+  describe('getAllMembersByLectureId', () => {
+    it('강의에 속한 모든 수강생 조회', async () => {
+      const result = await service.getAllMembersByLectureId(1);
+      expect(result).toEqual([mockMember]);
     });
   });
 
   describe('getAllMembersByFeedback', () => {
-    it('강사에 해당하는 모든 수강생을 조회', async () => {
-      const userId = 1;
-      (repository.getAllMembersByFeedback as jest.Mock).mockResolvedValue(
-        mockMember,
-      );
-      const result = await service.getAllMembersByFeedback(userId);
+    it('강사가 피드백을 작성할 수 있는 수강생 조회', async () => {
+      const result = await service.getAllMembersByFeedback(1);
+      expect(result).toEqual([mockMember]);
+    });
+  });
 
-      expect(result).toEqual(mockMember);
+  describe('getMemberInfo', () => {
+    it('강사가 특정 수강생의 정보를 조회', async () => {
+      const result = await service.getMemberInfo(1, 1);
+
+      expect(result).toEqual({
+        userId: 1,
+        profileImage: 'image.jpg',
+        name: '홍길동',
+        birth: '1990-01-01',
+        email: 'hong@example.com',
+        phoneNumber: '010-1234-5678',
+        lectures: [
+          {
+            lectureId: 10,
+            lectureTitle: '강의 제목',
+            lectureContent: '강의 내용',
+            lectureLocation: '강의실 101',
+            lectureColor: '#FF0000',
+            lectureDays: ['월', '수'],
+            lectureTime: '10:00~12:00',
+          },
+        ],
+        feedback: [
+          {
+            feedbackId: 100,
+            feedbackDate: '2024-01-01',
+            feedbackType: '긍정적',
+            feedbackContent: '좋았어요!',
+            images: [{ imagePath: 'img1.jpg' }, { imagePath: 'img2.jpg' }],
+          },
+        ],
+      });
+    });
+
+    it('수강생 정보가 없으면 NotFoundException 발생', async () => {
+      (repository.getMemberInfo as jest.Mock).mockResolvedValue([]);
+      await expect(service.getMemberInfo(1, 1)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

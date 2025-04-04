@@ -1,16 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MemberController } from './member.controller';
-import { MockMemberRepository } from './member.service.spec';
 import { MemberService } from './member.service';
 import { UsersService } from 'src/users/users.service';
 import { Response } from 'express';
 import { ResponseService } from 'src/common/response/reponse.service';
+import { mockMember } from 'src/common/mocks/mock-member.repository';
 
 class MockMemberService {
   insertMemberFromQR = jest.fn();
-  checkCustomer = jest.fn();
-  getAllMembersByInstructor = jest.fn();
   getAllMembersByFeedback = jest.fn();
+  getMemberInfo = jest.fn();
 }
 
 class MockUsersService {
@@ -30,8 +29,6 @@ class MockResponseService {
   forbidden = jest.fn();
   internalServerError = jest.fn();
 }
-
-const mockMember = new MockMemberRepository().mockMember;
 
 describe('MemberController', () => {
   let controller: MemberController;
@@ -62,102 +59,111 @@ describe('MemberController', () => {
   });
 
   describe('insertMemberFromQR', () => {
-    it('QR 코드를 통한 회원 등록', async () => {
+    it('user가 없으면 /signup으로 리디렉션', async () => {
+      const res: Partial<Response> = {
+        locals: {},
+        redirect: jest.fn(),
+      };
+
+      await controller.insertMemberFromQR(1, res as Response);
+      expect(res.redirect).toHaveBeenCalledWith('/signup');
+    });
+
+    it('userType이 null이면 SELECT_USERTYPE_REDIRECT_URI로 리디렉션', async () => {
       const res: Partial<Response> = {
         locals: {
           user: {
             userId: 1,
+            userType: null,
           },
         },
         redirect: jest.fn(),
       };
-      usersService.findUserByPk.mockResolvedValue(undefined);
+
+      await controller.insertMemberFromQR(1, res as Response);
+      expect(res.redirect).toHaveBeenCalledWith(
+        process.env.SELECT_USERTYPE_REDIRECT_URI,
+      );
+    });
+
+    it('userType이 customer가 아니면 unauthorized 호출', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'instructor',
+          },
+        },
+      };
 
       await controller.insertMemberFromQR(1, res as Response);
 
-      expect(res.redirect).toHaveBeenCalledWith('/signup');
+      expect(responseService.unauthorized).toHaveBeenCalledWith(
+        res,
+        '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
+      );
+    });
+
+    it('userType이 customer일 경우 insertMemberFromQR 호출 및 HOME_REDIRECT_URI로 리디렉션', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'customer',
+          },
+        },
+        redirect: jest.fn(),
+      };
+
+      await controller.insertMemberFromQR(1, res as Response);
+
+      expect(memberService.insertMemberFromQR).toHaveBeenCalledWith(1, 1);
+      expect(res.redirect).toHaveBeenCalledWith(process.env.HOME_REDIRECT_URI);
+    });
+
+    it('에러 발생 시 500 상태코드와 /error로 리디렉션', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'customer',
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        redirect: jest.fn(),
+      };
+
+      memberService.insertMemberFromQR.mockRejectedValue(
+        new Error('Test Error'),
+      );
+
+      await controller.insertMemberFromQR(1, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.redirect).toHaveBeenCalledWith('/error');
     });
   });
 
-  it('사용자 타입이 null일 때 타입 선택 페이지로 리디렉션해야 합니다', async () => {
-    const res: Partial<Response> = {
-      locals: {
-        user: {
-          userId: 1,
-        },
-      },
-      redirect: jest.fn(),
-    };
-
-    usersService.findUserByPk.mockResolvedValue({ userType: null });
-
-    await controller.insertMemberFromQR(1, res as Response);
-
-    expect(res.redirect).toHaveBeenCalledWith(
-      process.env.SELECT_USERTYPE_REDIRECT_URI,
-    );
-  });
-
-  it('사용자 타입이 customer가 아닐 때 401 상태 코드와 메시지를 반환해야 합니다', async () => {
-    const res: Partial<Response> = {
-      locals: {
-        user: {
-          userId: 1,
-        },
-      },
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-
-    usersService.findUserByPk.mockResolvedValue({ userType: 'instructor' });
-
-    await controller.insertMemberFromQR(1, res as Response);
-
-    expect(responseService.unauthorized).toHaveBeenCalledWith(
-      res,
-      '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
-    );
-  });
-
-  it('사용자 타입이 customer일 때 회원을 등록하고 강의 페이지로 리디렉션해야 합니다', async () => {
-    const res: Partial<Response> = {
-      locals: {
-        user: {
-          userId: 1,
-        },
-      },
-      redirect: jest.fn(),
-    };
-
-    usersService.findUserByPk.mockResolvedValue({ userType: 'customer' });
-
-    await controller.insertMemberFromQR(1, res as Response);
-
-    expect(memberService.insertMemberFromQR).toHaveBeenCalledWith(1, 1);
-    expect(res.redirect).toHaveBeenCalledWith(process.env.HOME_REDIRECT_URI);
-  });
-
-  it('예기치 않은 오류 발생 시 /error 페이지로 리디렉션해야 합니다', async () => {
-    const res: Partial<Response> = {
-      locals: {
-        user: {
-          userId: 1,
-        },
-      },
-      status: jest.fn().mockReturnThis(),
-      redirect: jest.fn(),
-    };
-
-    usersService.findUserByPk.mockRejectedValue(new Error('Test Error'));
-
-    await controller.insertMemberFromQR(1, res as Response);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.redirect).toHaveBeenCalledWith('/error');
-  });
-
   describe('getAllMembersByFeedback', () => {
-    it('사용자 타입이 instructor일 때 모든 멤버 정보를 return', async () => {
+    it('userType이 instructor가 아니면 unauthorized 호출', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'customer',
+          },
+        },
+      };
+
+      await controller.getAllMembersByFeedback(res as Response);
+
+      expect(responseService.unauthorized).toHaveBeenCalledWith(
+        res,
+        '수강생 조회 권한이 없습니다.',
+      );
+    });
+
+    it('userType이 instructor면 수강생 리스트 반환', async () => {
       const res: Partial<Response> = {
         locals: {
           user: {
@@ -178,6 +184,31 @@ describe('MemberController', () => {
         res,
         '수강생 조회 성공',
         [mockMember],
+      );
+    });
+  });
+
+  describe('getMemberInfo', () => {
+    it('memberInfo 반환', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 99, // instructorUserId
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      memberService.getMemberInfo.mockResolvedValue(mockMember);
+
+      await controller.getMemberInfo(res as Response, 1); // 1 = memberUserId
+
+      expect(memberService.getMemberInfo).toHaveBeenCalledWith(1, 99);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '수강생 정보 조회 성공',
+        mockMember,
       );
     });
   });

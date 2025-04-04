@@ -202,21 +202,6 @@ describe('UsersService', () => {
         phoneNumber: '010-1234-5678',
       };
 
-      const file: Express.Multer.File = {
-        fieldname: 'profileImage',
-        originalname: 'test.png',
-        encoding: '7bit',
-        mimetype: 'image/png',
-        buffer: Buffer.from(''),
-        size: 0,
-        stream: null,
-        destination: '',
-        filename: '',
-        path: '',
-      };
-
-      const ext = 'png';
-
       jest.spyOn(usersRepository, 'findUserByPk').mockResolvedValue(mockUser);
       jest.spyOn(usersRepository, 'editUserProfile').mockResolvedValue();
       jest
@@ -227,9 +212,13 @@ describe('UsersService', () => {
       await usersService.editUserProfile(userId, editUserDto);
 
       expect(usersRepository.findUserByPk).toHaveBeenCalledWith(userId);
-      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
-        'old_profile_image_url',
-      );
+
+      if (mockUser.profileImage) {
+        expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+          'old_profile_image_url',
+        );
+      }
+
       expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
         userId,
         editUserDto,

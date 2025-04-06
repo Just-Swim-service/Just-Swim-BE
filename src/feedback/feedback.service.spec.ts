@@ -1,49 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FeedbackService } from './feedback.service';
-import { Feedback } from './entity/feedback.entity';
 import { FeedbackRepository } from './feedback.repository';
 import { FeedbackTargetRepository } from './feedback-target.repository';
-import { FeedbackTarget } from './entity/feedback-target.entity';
 import { FeedbackType } from './enum/feedback-type.enum';
-import { MockUsersRepository } from 'src/users/users.service.spec';
-import { MockLectureRepository } from 'src/lecture/lecture.service.spec';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
-
-const mockUser = new MockUsersRepository().mockUser;
-
-export class MockFeedbackRepository {
-  readonly mockFeedback: Feedback = {
-    feedbackId: 1,
-    user: mockUser,
-    feedbackType: FeedbackType.Personal,
-    feedbackContent:
-      '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
-    feedbackLink: 'URL',
-    feedbackDate: '2024.04.22',
-    feedbackCreatedAt: new Date(),
-    feedbackUpdatedAt: new Date(),
-    feedbackDeletedAt: null,
-    feedbackTarget: [],
-    image: [],
-  };
-}
-
-const mockFeedback = new MockFeedbackRepository().mockFeedback;
-const mockLecture = new MockLectureRepository().mockLecture;
-
-export class MockFeedbackTargetRepository {
-  readonly mockFeedbackTarget: FeedbackTarget = {
-    feedbackTargetId: 1,
-    feedback: mockFeedback,
-    user: mockUser,
-    lecture: mockLecture,
-    feedbackTargetCreatedAt: new Date(),
-    feedbackTargetUpdatedAt: new Date(),
-  };
-}
+import {
+  mockFeedback,
+  MockFeedbackRepository,
+} from 'src/common/mocks/mock-feedback.repository';
+import { MockFeedbackTargetRepository } from 'src/common/mocks/mock-feedback-target.repository';
+import { mockUser } from 'src/common/mocks/mock-user.repository';
+import { MockImageRepository } from 'src/common/mocks/mock-image.repository';
 
 describe('FeedbackService', () => {
   let service: FeedbackService;
@@ -52,22 +22,13 @@ describe('FeedbackService', () => {
   let awsService: AwsService;
   let imageService: ImageService;
 
-  const mockFeedback = new MockFeedbackRepository().mockFeedback;
-  const mockFeedbackTarget = new MockFeedbackTargetRepository()
-    .mockFeedbackTarget;
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FeedbackService,
         {
           provide: ImageService,
-          useValue: {
-            createImage: jest.fn(),
-            getImagesByFeedbackId: jest.fn(),
-            deleteImagesByFeedbackId: jest.fn(),
-            deleteImage: jest.fn(),
-          },
+          useValue: MockImageRepository,
         },
         {
           provide: AwsService,
@@ -80,26 +41,11 @@ describe('FeedbackService', () => {
         },
         {
           provide: FeedbackRepository,
-          useValue: {
-            getAllFeedbackByInstructor: jest
-              .fn()
-              .mockResolvedValue([mockFeedback]),
-            getAllFeedbackByCustomer: jest
-              .fn()
-              .mockResolvedValue([mockFeedback]),
-            getFeedbackByPk: jest.fn(),
-            createFeedback: jest.fn().mockResolvedValue(mockFeedback),
-            updateFeedback: jest.fn().mockResolvedValue(undefined),
-            softDeleteFeedback: jest.fn().mockResolvedValue(undefined),
-          },
+          useValue: MockFeedbackRepository,
         },
         {
           provide: FeedbackTargetRepository,
-          useValue: {
-            getFeedbackTargetByFeedbackId: jest
-              .fn()
-              .mockResolvedValue([mockFeedbackTarget]),
-          },
+          useValue: MockFeedbackTargetRepository,
         },
       ],
     }).compile();

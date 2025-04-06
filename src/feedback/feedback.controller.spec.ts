@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FeedbackController } from './feedback.controller';
-import { MockFeedbackRepository } from './feedback.service.spec';
 import { FeedbackService } from './feedback.service';
 import { Request, Response } from 'express';
 import { HttpStatus } from '@nestjs/common';
@@ -8,6 +7,7 @@ import { EditFeedbackDto } from './dto/edit-feedback.dto';
 import { FeedbackType } from './enum/feedback-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { FeedbackDto } from './dto/feedback.dto';
+import { mockFeedback } from 'src/common/mocks/mock-feedback.repository';
 
 class MockFeedbackService {
   getAllFeedbackByInstructor = jest.fn();
@@ -29,8 +29,6 @@ class MockResponseService {
   forbidden = jest.fn();
   internalServerError = jest.fn();
 }
-
-const mockFeedback = new MockFeedbackRepository().mockFeedback;
 
 describe('FeedbackController', () => {
   let controller: FeedbackController;

@@ -2,12 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LectureController } from './lecture.controller';
 import { LectureService } from './lecture.service';
 import { Request, Response } from 'express';
-import { MockLectureRepository } from './lecture.service.spec';
 import { EditLectureDto } from './dto/edit-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { MemberService } from 'src/member/member.service';
-import { MockMemberRepository } from 'src/member/member.service.spec';
 import { ResponseService } from 'src/common/response/reponse.service';
+import { mockLecture } from 'src/common/mocks/mock-lecture.repository';
+import { mockMember } from 'src/common/mocks/mock-member.repository';
 
 class MockLectureService {
   getLectures = jest.fn();
@@ -34,9 +34,6 @@ class MockResponseService {
   forbidden = jest.fn();
   internalServerError = jest.fn();
 }
-
-const mockLecture = new MockLectureRepository().mockLecture;
-const mockMember = new MockMemberRepository().mockMember;
 
 describe('LectureController', () => {
   let controller: LectureController;

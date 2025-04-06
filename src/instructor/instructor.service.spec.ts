@@ -3,29 +3,14 @@ import { InstructorService } from './instructor.service';
 import { InstructorRepository } from './instructor.repository';
 import { Instructor } from './entity/instructor.entity';
 import { Users } from 'src/users/entity/users.entity';
-
-export class MockInstructorRepository {
-  readonly mockInstructor: Instructor = {
-    instructorId: 1,
-    user: new Users(),
-    workingLocation: null,
-    career: null,
-    history: null,
-    introduction: null,
-    curriculum: null,
-    youtubeLink: null,
-    instagramLink: null,
-    facebookLink: null,
-    instructorCreatedAt: new Date(),
-    instructorUpdatedAt: new Date(),
-  };
-}
+import {
+  mockInstructor,
+  MockInstructorRepository,
+} from 'src/common/mocks/mock-instructor.repository';
 
 describe('InstructorService', () => {
   let service: InstructorService;
   let repository: InstructorRepository;
-
-  const mockInstructor = new MockInstructorRepository().mockInstructor;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,10 +18,7 @@ describe('InstructorService', () => {
         InstructorService,
         {
           provide: InstructorRepository,
-          useValue: {
-            createInstructor: jest.fn(),
-            findInstructorByUserId: jest.fn(),
-          },
+          useValue: MockInstructorRepository,
         },
       ],
     }).compile();

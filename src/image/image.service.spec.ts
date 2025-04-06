@@ -1,34 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ImageService } from './image.service';
 import { ImageRepository } from './image.repository';
-import { QueryRunner } from 'typeorm';
-import { Image } from './entity/image.entity';
-
-export class MockImageRepository {
-  readonly mockImage: Image = {
-    imageId: 1,
-    feedbackId: 1,
-    imagePath: 'imageURL',
-    imageCreatedAt: new Date(),
-    imageUpdatedAt: new Date(),
-  };
-  createImage = jest.fn();
-  getImagesByFeedbackId = jest.fn();
-  deleteImage = jest.fn();
-  deleteImagesByFeedbackId = jest.fn();
-}
+import {
+  mockImage,
+  MockImageRepository,
+} from 'src/common/mocks/mock-image.repository';
 
 describe('ImageService', () => {
   let service: ImageService;
   let repository: ImageRepository;
 
-  const mockImage = new MockImageRepository().mockImage;
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImageService,
-        { provide: ImageRepository, useClass: MockImageRepository },
+        { provide: ImageRepository, useValue: MockImageRepository },
       ],
     }).compile();
 

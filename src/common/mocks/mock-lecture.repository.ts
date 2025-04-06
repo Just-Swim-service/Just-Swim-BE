@@ -26,7 +26,7 @@ export const MockLectureRepository = {
   getScheduleLecturesByCustomer: jest.fn().mockResolvedValue([mockLecture]),
   getAllLecturesByCustomer: jest.fn().mockResolvedValue([mockLecture]),
   getLectureByPk: jest.fn().mockResolvedValue([mockLecture]),
-  getLectureForAuth: jest.fn().mockResolvedValue(mockLecture.user),
+  getLectureForAuth: jest.fn().mockResolvedValue(mockLecture),
   updateLecture: jest.fn().mockResolvedValue(mockLecture),
   softDeleteLecture: jest.fn().mockResolvedValue(mockLecture),
   createLecture: jest.fn().mockResolvedValue(mockLecture),

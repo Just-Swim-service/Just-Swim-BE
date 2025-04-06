@@ -3,22 +3,14 @@ import { CustomerService } from './customer.service';
 import { CustomerRepository } from './customer.repository';
 import { Customer } from './entity/customer.entity';
 import { Users } from 'src/users/entity/users.entity';
-
-export class MockCustomerRepository {
-  readonly mockCustomer: Customer = {
-    user: new Users(),
-    customerId: 1,
-    customerNickname: '홍길동',
-    customerCreatedAt: new Date(),
-    customerUpdatedAt: new Date(),
-  };
-}
+import {
+  mockCustomer,
+  MockCustomerRepository,
+} from 'src/common/mocks/mock-customer-repository';
 
 describe('CustomerService', () => {
   let service: CustomerService;
   let repository: CustomerRepository;
-
-  const mockCustomer = new MockCustomerRepository().mockCustomer;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,10 +18,7 @@ describe('CustomerService', () => {
         CustomerService,
         {
           provide: CustomerRepository,
-          useValue: {
-            createCustomer: jest.fn(),
-            findCustomerByUserId: jest.fn(),
-          },
+          useValue: MockCustomerRepository,
         },
       ],
     }).compile();

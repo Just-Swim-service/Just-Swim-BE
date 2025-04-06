@@ -4,8 +4,6 @@ import { UsersRepository } from './users.repository';
 import { Users } from './entity/users.entity';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
-import { MockCustomerRepository } from 'src/customer/customer.service.spec';
-import { MockInstructorRepository } from 'src/instructor/instructor.service.spec';
 import { NotFoundException } from '@nestjs/common';
 import { AwsService } from 'src/common/aws/aws.service';
 import { UserType } from './enum/user-type.enum';
@@ -15,9 +13,8 @@ import {
   mockUser,
   MockUsersRepository,
 } from 'src/common/mocks/mock-user.repository';
-
-const mockCustomer = new MockCustomerRepository().mockCustomer;
-const mockInstructor = new MockInstructorRepository().mockInstructor;
+import { MockCustomerRepository } from 'src/common/mocks/mock-customer-repository';
+import { MockInstructorRepository } from 'src/common/mocks/mock-instructor.repository';
 
 describe('UsersService', () => {
   let usersService: UsersService;
@@ -43,17 +40,11 @@ describe('UsersService', () => {
         },
         {
           provide: CustomerRepository,
-          useValue: {
-            createCustomer: jest.fn().mockResolvedValue(mockCustomer),
-            findCustomerByUserId: jest.fn().mockResolvedValue(mockCustomer),
-          },
+          useValue: MockCustomerRepository,
         },
         {
           provide: InstructorRepository,
-          useValue: {
-            createInstructor: jest.fn().mockResolvedValue(mockInstructor),
-            findInstructorByUserId: jest.fn().mockResolvedValue(mockInstructor),
-          },
+          useValue: MockInstructorRepository,
         },
       ],
     }).compile();

@@ -86,7 +86,9 @@ jobs:
           context: .
           builder: ${{steps.buildx.outputs.name}}
           push: true
-          tags: ${{env.DOCKER_IMAGE}}:dev
+          tags: |
+            ${{env.DOCKER_IMAGE}}:dev
+            ${{ env.DOCKER_IMAGE }}:stable
 
   deploy:
     name: Deploy
@@ -110,9 +112,24 @@ jobs:
           echo "${LIGHTSAIL_SSH_KEY}" > LightsailDefaultKey-ap-northeast-2.pem
           chmod 600 LightsailDefaultKey-ap-northeast-2.pem
 
-          ssh -i LightsailDefaultKey-ap-northeast-2.pem -o StrictHostKeyChecking=no ${{ env.LIGHTSAIL_USERNAME }}@${{ env.LIGHTSAIL_HOST }} << EOF
-            echo "${{ secrets.ACCESS_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
-            docker stop ${{ env.NAME }} && docker rm -f ${{env.NAME}} && docker rmi -f ${{ env.DOCKER_IMAGE}}:dev
-            docker pull ${{ env.DOCKER_IMAGE }}:dev
-            docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 80:80 --name justswim ${{ env.DOCKER_IMAGE }}:dev
+          ssh -i LightsailDefaultKey.pem -o StrictHostKeyChecking=no ${{ env.LIGHTSAIL_USERNAME }}@${{ env.LIGHTSAIL_HOST }} << 'EOF'
+            set -e
+
+            echo "🔄 배포 준비 중..."
+            docker stop justswim || true
+            docker rm justswim || true
+            docker rmi -f ${{ env.DOCKER_IMAGE }}:dev || true
+
+            echo "🚀 dev 이미지 pull 시도..."
+            if docker pull ${{ env.DOCKER_IMAGE }}:dev && docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 80:80 --name justswim ${{ env.DOCKER_IMAGE }}:dev; then
+              echo "✅ dev 이미지로 배포 성공!"
+            else
+              echo "⚠️ dev 실패! stable 이미지로 롤백 시도..."
+              docker stop justswim || true
+              docker rm justswim || true
+              docker rmi -f ${{ env.DOCKER_IMAGE }}:stable || true
+              docker pull ${{ env.DOCKER_IMAGE }}:stable
+              docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 80:80 --name justswim ${{ env.DOCKER_IMAGE }}:stable
+              echo "🛟 롤백 완료: stable 이미지 실행됨."
+            fi
           EOF

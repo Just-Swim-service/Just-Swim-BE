@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { FeedbackRepository } from './feedback.repository';
 import { Feedback } from './entity/feedback.entity';
-import { FeedbackDto } from './dto/feedback.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 import { FeedbackTargetRepository } from './feedback-target.repository';
 import { AwsService } from 'src/common/aws/aws.service';
@@ -175,13 +175,16 @@ export class FeedbackService {
   /* feedback 생성 */
   async createFeedback(
     userId: number,
-    feedbackDto: FeedbackDto,
+    createFeedbackDto: CreateFeedbackDto,
   ): Promise<Feedback> {
     // image
     let filesJsonArray = [];
 
-    if (feedbackDto.feedbackImage && feedbackDto.feedbackImage.length > 0) {
-      filesJsonArray = feedbackDto.feedbackImage.map((imageUrl) => {
+    if (
+      createFeedbackDto.feedbackImage &&
+      createFeedbackDto.feedbackImage.length > 0
+    ) {
+      filesJsonArray = createFeedbackDto.feedbackImage.map((imageUrl) => {
         return {
           filePath: imageUrl,
         };
@@ -191,12 +194,12 @@ export class FeedbackService {
     const filesJson = JSON.stringify(filesJsonArray);
 
     // feedbackTarget을 db에 넣을 수 있게 변경
-    const feedbackTargetJson = JSON.stringify(feedbackDto.feedbackTarget);
+    const feedbackTargetJson = JSON.stringify(createFeedbackDto.feedbackTarget);
 
     // feedback 생성
     const feedback = await this.feedbackRepository.createFeedback(
       userId,
-      feedbackDto,
+      createFeedbackDto,
       feedbackTargetJson,
       filesJson,
     );

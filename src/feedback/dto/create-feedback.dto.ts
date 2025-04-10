@@ -11,7 +11,7 @@ import { FeedbackType } from '../enum/feedback-type.enum';
 import { Type } from 'class-transformer';
 import { FeedbackTargetDto } from './feedback-target.dto';
 
-export class FeedbackDto {
+export class CreateFeedbackDto {
   @ApiProperty({
     example: 'group',
     description: 'feedback 타입',

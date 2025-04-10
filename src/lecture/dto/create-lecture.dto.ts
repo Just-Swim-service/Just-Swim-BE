@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class LectureDto {
+export class CreateLectureDto {
   @ApiProperty({
     example: '아침 5반',
     description: '강의 제목',

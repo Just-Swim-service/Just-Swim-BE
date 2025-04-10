@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { UserType } from '../enum/user-type.enum';
 
-export class UsersDto {
+export class CreateUsersDto {
   @ApiProperty({
     example: 'kakao',
     description: '로그인 제공 사이트',

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lecture } from './entity/lecture.entity';
 import { EditLectureDto } from './dto/edit-lecture.dto';
-import { LectureDto } from './dto/lecture.dto';
+import { CreateLectureDto } from './dto/create-lecture.dto';
 
 @Injectable()
 export class LectureRepository {
@@ -154,18 +154,18 @@ export class LectureRepository {
   /* 강의 생성 */
   async createLecture(
     userId: number,
-    lectureDto: LectureDto,
+    createLectureDto: CreateLectureDto,
   ): Promise<Lecture> {
     const newLecture = this.lectureRepository.create({
       user: { userId },
-      lectureTitle: lectureDto.lectureTitle,
-      lectureContent: lectureDto.lectureContent,
-      lectureTime: lectureDto.lectureTime,
-      lectureDays: lectureDto.lectureDays,
-      lectureColor: lectureDto.lectureColor,
-      lectureLocation: lectureDto.lectureLocation,
-      lectureQRCode: lectureDto.lectureQRCode,
-      lectureEndDate: lectureDto.lectureEndDate,
+      lectureTitle: createLectureDto.lectureTitle,
+      lectureContent: createLectureDto.lectureContent,
+      lectureTime: createLectureDto.lectureTime,
+      lectureDays: createLectureDto.lectureDays,
+      lectureColor: createLectureDto.lectureColor,
+      lectureLocation: createLectureDto.lectureLocation,
+      lectureQRCode: createLectureDto.lectureQRCode,
+      lectureEndDate: createLectureDto.lectureEndDate,
     });
 
     return await this.lectureRepository.save(newLecture);

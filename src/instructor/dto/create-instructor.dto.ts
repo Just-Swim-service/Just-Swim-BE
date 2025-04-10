@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class InstructorDto {
+export class CreateInstructorDto {
   @ApiProperty({
     example: '경기도 일산',
     description: 'workingLocation',

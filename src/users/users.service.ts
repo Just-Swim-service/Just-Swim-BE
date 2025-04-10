@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { Users } from './entity/users.entity';
-import { UsersDto } from './dto/users.dto';
+import { CreateUsersDto } from './dto/create-users.dto';
 import { EditUserDto } from './dto/edit-user.dto';
 import { CustomerRepository } from 'src/customer/customer.repository';
 import { InstructorRepository } from 'src/instructor/instructor.repository';
@@ -13,7 +13,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { UserType } from './enum/user-type.enum';
 import slugify from 'slugify';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
-import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
+import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 
 @Injectable()
 export class UsersService {
@@ -34,7 +34,7 @@ export class UsersService {
   }
 
   /* user 생성 */
-  async createUser(userData: UsersDto): Promise<Users> {
+  async createUser(userData: CreateUsersDto): Promise<Users> {
     return await this.usersRepository.createUser(userData);
   }
 
@@ -104,8 +104,8 @@ export class UsersService {
   /* user 탈퇴 */
   async withdrawUser(
     userId: number,
-    withdrawalReasonDto: WithdrawalReasonDto,
+    createWithdrawalReasonDto: CreateWithdrawalReasonDto,
   ): Promise<void> {
-    await this.usersRepository.withdrawUser(userId, withdrawalReasonDto);
+    await this.usersRepository.withdrawUser(userId, createWithdrawalReasonDto);
   }
 }

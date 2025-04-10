@@ -6,7 +6,7 @@ import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { Request, Response } from 'express';
-import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import { EditUserDto } from './dto/edit-user.dto';
 
 // Mock Services

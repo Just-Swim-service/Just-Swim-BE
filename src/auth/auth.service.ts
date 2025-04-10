@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Users } from 'src/users/entity/users.entity';
 import { UsersService } from 'src/users/users.service';
 import * as jwt from 'jsonwebtoken';
-import { UsersDto } from 'src/users/dto/users.dto';
+import { CreateUsersDto } from 'src/users/dto/create-users.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,7 @@ export class AuthService {
   }
 
   /* user 생성 */
-  async createUser(userData: UsersDto): Promise<Users> {
+  async createUser(userData: CreateUsersDto): Promise<Users> {
     return await this.usersService.createUser(userData);
   }
 }

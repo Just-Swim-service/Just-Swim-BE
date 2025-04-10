@@ -27,12 +27,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { UsersDto } from './dto/users.dto';
+import { CreateUsersDto } from './dto/create-users.dto';
 import { EditUserDto } from './dto/edit-user.dto';
 import { UserType } from './enum/user-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
-import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
+import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 
 @ApiTags('Users')
 @Controller()
@@ -100,7 +100,7 @@ export class UsersController {
 
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
-      const newUserData: UsersDto = {
+      const newUserData: CreateUsersDto = {
         email,
         profileImage,
         name,
@@ -169,7 +169,7 @@ export class UsersController {
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
-      const newUserData: UsersDto = {
+      const newUserData: CreateUsersDto = {
         email,
         profileImage,
         name,
@@ -233,7 +233,7 @@ export class UsersController {
 
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
     if (exUser === null) {
-      const newUserData: UsersDto = {
+      const newUserData: CreateUsersDto = {
         email,
         profileImage,
         name,
@@ -316,7 +316,7 @@ export class UsersController {
   /* 나의 프로필 조회 */
   @Get('user/myProfile')
   @ApiOperation({ summary: '프로필 조회' })
-  @ApiOkResponse({ type: UsersDto, description: '프로필 조회 성공' })
+  @ApiOkResponse({ type: CreateUsersDto, description: '프로필 조회 성공' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async findUserProfile(@Res() res: Response) {
@@ -394,16 +394,16 @@ export class UsersController {
     summary: '회원 탈퇴',
     description: '회원 탈퇴 시 사유를 저장하게 된다.',
   })
-  @ApiBody({ description: '탈퇴 사유', type: WithdrawalReasonDto })
+  @ApiBody({ description: '탈퇴 사유', type: CreateWithdrawalReasonDto })
   @ApiResponse({ status: 200, description: '회원 탈퇴 완료' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async withdrawUser(
     @Res() res: Response,
-    @Body() withdrawalReasonDto: WithdrawalReasonDto,
+    @Body() createWithdrawalReasonDto: CreateWithdrawalReasonDto,
   ) {
     const { userId } = res.locals.user;
-    await this.usersService.withdrawUser(userId, withdrawalReasonDto);
+    await this.usersService.withdrawUser(userId, createWithdrawalReasonDto);
     res.clearCookie('authorization');
     this.responseService.success(res, '회원 탈퇴 완료');
   }

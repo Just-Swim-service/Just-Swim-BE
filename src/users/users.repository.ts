@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.entity';
 import { EntityManager, Repository } from 'typeorm';
-import { UsersDto } from './dto/users.dto';
+import { CreateUsersDto } from './dto/create-users.dto';
 import { EditUserDto } from './dto/edit-user.dto';
-import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
+import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import { UserType } from './enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
 
@@ -25,7 +25,7 @@ export class UsersRepository {
   }
 
   /* user 생성 */
-  async createUser(userData: UsersDto): Promise<Users> {
+  async createUser(userData: CreateUsersDto): Promise<Users> {
     return await this.usersRepository.save(userData);
   }
 
@@ -50,9 +50,10 @@ export class UsersRepository {
   /* user(instructor) 탈퇴 */
   async withdrawUser(
     userId: number,
-    withdrawalReasonDto: WithdrawalReasonDto,
+    createWithdrawalReasonDto: CreateWithdrawalReasonDto,
   ): Promise<void> {
-    const withdrawalReasonContent = withdrawalReasonDto.withdrawalReasonContent;
+    const withdrawalReasonContent =
+      createWithdrawalReasonDto.withdrawalReasonContent;
 
     await this.usersRepository.manager.transaction(
       async (entityManager: EntityManager) => {

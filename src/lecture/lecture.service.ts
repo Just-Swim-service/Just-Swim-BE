@@ -6,7 +6,7 @@ import {
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
 import { EditLectureDto } from './dto/edit-lecture.dto';
-import { LectureDto } from './dto/lecture.dto';
+import { CreateLectureDto } from './dto/create-lecture.dto';
 import * as QRCode from 'qrcode';
 import { AwsService } from 'src/common/aws/aws.service';
 
@@ -262,11 +262,11 @@ export class LectureService {
   // 강의 생성
   async createLecture(
     userId: number,
-    lectureDto: LectureDto,
+    createLectureDto: CreateLectureDto,
   ): Promise<Lecture> {
     const newLecture = await this.lectureRepository.createLecture(
       userId,
-      lectureDto,
+      createLectureDto,
     );
 
     // QR 생성

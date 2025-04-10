@@ -28,7 +28,7 @@ import {
 } from './example/feedback-example';
 import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
 import { ResponseService } from 'src/common/response/reponse.service';
-import { FeedbackDto } from './dto/feedback.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 
 @ApiTags('Feedback')
@@ -124,20 +124,23 @@ export class FeedbackController {
   })
   @ApiBody({
     description: 'feedback 정보와 image 주소를 받는다.',
-    type: FeedbackDto,
+    type: CreateFeedbackDto,
   })
   @ApiResponse({ status: 200, description: 'feedback 생성 성공' })
   @ApiResponse({ status: 400, description: 'feedback 생성 실패' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
-  async createFeedback(@Res() res: Response, @Body() feedbackDto: FeedbackDto) {
+  async createFeedback(
+    @Res() res: Response,
+    @Body() createFeedbackDto: CreateFeedbackDto,
+  ) {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
       this.responseService.unauthorized(res, 'feedback 작성 권한이 없습니다.');
     }
-    if (feedbackDto.feedbackTarget.length === 0) {
+    if (createFeedbackDto.feedbackTarget.length === 0) {
       return this.responseService.error(
         res,
         'feedback 대상을 지정해주세요',
@@ -147,7 +150,7 @@ export class FeedbackController {
 
     const feedback = await this.feedbackService.createFeedback(
       userId,
-      feedbackDto,
+      createFeedbackDto,
     );
 
     if (!feedback) {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Feedback } from './entity/feedback.entity';
 import { Repository } from 'typeorm';
-import { FeedbackDto } from './dto/feedback.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 
 @Injectable()
@@ -110,12 +110,12 @@ export class FeedbackRepository {
   /* feedback 생성 */
   async createFeedback(
     userId: number,
-    feedbackDto: FeedbackDto,
+    createFeedbackDto: CreateFeedbackDto,
     feedbackTargetJson: string,
     filesJson: string,
   ): Promise<Feedback> {
     const { feedbackType, feedbackContent, feedbackDate, feedbackLink } =
-      feedbackDto;
+      createFeedbackDto;
     const result = await this.feedbackRepository.query(
       'CALL CREATE_FEEDBACK(?, ?, ?, ?, ?, ?, ?)',
       [

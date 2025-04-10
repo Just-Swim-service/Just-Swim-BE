@@ -13,7 +13,7 @@ import {
 import { Response } from 'express';
 import { LectureService } from './lecture.service';
 import { EditLectureDto } from './dto/edit-lecture.dto';
-import { LectureDto } from './dto/lecture.dto';
+import { CreateLectureDto } from './dto/create-lecture.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -208,13 +208,16 @@ export class LectureController {
     summary: '강의 생성',
     description: 'instructor가 강의를 새롭게 생성합니다.',
   })
-  @ApiBody({ description: '강의 생성을 위한 정보', type: LectureDto })
+  @ApiBody({ description: '강의 생성을 위한 정보', type: CreateLectureDto })
   @ApiResponse({ status: 200, description: '강의 생성 완료' })
   @ApiResponse({ status: 400, description: '강의 생성 실패' })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
-  async createLecture(@Res() res: Response, @Body() lectureDto: LectureDto) {
+  async createLecture(
+    @Res() res: Response,
+    @Body() createLectureDto: CreateLectureDto,
+  ) {
     const { userId, userType } = res.locals.user;
 
     if (userType !== 'instructor') {
@@ -223,7 +226,7 @@ export class LectureController {
 
     const newLecture = await this.lectureService.createLecture(
       userId,
-      lectureDto,
+      createLectureDto,
     );
 
     if (!newLecture) {

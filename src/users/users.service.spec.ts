@@ -8,7 +8,7 @@ import { NotFoundException } from '@nestjs/common';
 import { AwsService } from 'src/common/aws/aws.service';
 import { UserType } from './enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
-import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/withdrawal-reason.dto';
+import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import {
   mockUser,
   MockUsersRepository,

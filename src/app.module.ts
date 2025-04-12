@@ -26,6 +26,7 @@ import { ResponseModule } from './common/response/response.module';
 import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.module';
 
 import * as Joi from 'joi';
+import { envVariables } from './common/const/env.const';
 
 @Module({
   imports: [
@@ -45,11 +46,11 @@ import * as Joi from 'joi';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
+        host: configService.get<string>(envVariables.dbHost),
+        port: configService.get<number>(envVariables.dbPort),
+        username: configService.get<string>(envVariables.dbUsername),
+        password: configService.get<string>(envVariables.dbPassword),
+        database: configService.get<string>(envVariables.dbDatabase),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         // synchronize: true,
         synchronize: false,
@@ -77,37 +78,17 @@ import * as Joi from 'joi';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleWare).forRoutes(
-      // Users
-      { path: 'user/:userType', method: RequestMethod.POST },
-      { path: 'user/edit', method: RequestMethod.PATCH },
-      { path: 'user/myProfile', method: RequestMethod.GET },
-      { path: 'user/logout', method: RequestMethod.POST },
-      { path: 'user/withdraw', method: RequestMethod.DELETE },
-      { path: 'user/profileImage/presignedUrl', method: RequestMethod.POST },
-      // Lecture
-      { path: 'lecture', method: RequestMethod.POST },
-      { path: 'lecture/schedule', method: RequestMethod.GET },
-      { path: 'lecture/myLectures', method: RequestMethod.GET },
-      { path: 'lecture/:lectureId', method: RequestMethod.GET },
-      { path: 'lecture/:lectureId', method: RequestMethod.PATCH },
-      { path: 'lecture/:lectureId', method: RequestMethod.DELETE },
-      { path: 'lecture/:lectureId/qr-code', method: RequestMethod.POST },
-      { path: 'lecture/memberList/:lectureId', method: RequestMethod.GET },
-      // Member
-      { path: 'member/qr-code', method: RequestMethod.GET },
-      { path: 'member', method: RequestMethod.GET },
-      { path: 'member/:userId', method: RequestMethod.GET },
-      // feedback
-      { path: 'feedback', method: RequestMethod.GET },
-      { path: 'feedback/:feedbackId', method: RequestMethod.GET },
-      { path: 'feedback', method: RequestMethod.POST },
-      {
-        path: 'feedback/feedbackImage/presignedUrl',
-        method: RequestMethod.POST,
-      },
-      { path: 'feedback/:feedbackId', method: RequestMethod.PATCH },
-      { path: 'feedback/:feedbackId', method: RequestMethod.DELETE },
-    );
+    consumer
+      .apply(AuthMiddleWare)
+      .exclude(
+        { path: 'Oauth/kakao', method: RequestMethod.GET },
+        { path: 'Oauth/kakao/callback', method: RequestMethod.GET },
+        { path: 'Oauth/naver', method: RequestMethod.GET },
+        { path: 'Oauth/naver/callback', method: RequestMethod.GET },
+        { path: 'Oauth/google', method: RequestMethod.GET },
+        { path: 'Oauth/google/callback', method: RequestMethod.GET },
+        { path: 'login', method: RequestMethod.POST },
+      )
+      .forRoutes('*');
   }
 }

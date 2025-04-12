@@ -9,11 +9,14 @@ import { NextFunction, Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { MyLogger } from 'src/common/logger/logger.service';
+import { ConfigService } from '@nestjs/config';
+import { envVariables } from 'src/common/const/env.const';
 
 @Injectable()
 export class AuthMiddleWare implements NestMiddleware<Request, Response> {
   constructor(
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     private readonly logger: MyLogger,
   ) {}
@@ -36,8 +39,8 @@ export class AuthMiddleWare implements NestMiddleware<Request, Response> {
         throw new UnauthorizedException('잘못된 쿠키 형식입니다.');
       }
 
-      const { userId } = this.jwtService.verify(tokenValue, {
-        secret: process.env.JWT_SECRET,
+      const { userId } = await this.jwtService.verifyAsync(tokenValue, {
+        secret: this.configService.get<string>(envVariables.jwtSecret),
       });
       const user = await this.usersService.findUserByPk(userId);
 

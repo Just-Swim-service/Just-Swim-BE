@@ -11,7 +11,7 @@ export class FeedbackTargetRepository {
   ) {}
 
   /* feedbackId를 통해 target 확인 */
-  async getFeedbackTargetByFeedbackId(feedbackId: number) {
+  async getFeedbackTargetByFeedbackId(feedbackId: number): Promise<any[]> {
     return await this.feedbackTargetRepository
       .createQueryBuilder('feedbackTarget')
       .leftJoinAndSelect('feedbackTarget.user', 'user')

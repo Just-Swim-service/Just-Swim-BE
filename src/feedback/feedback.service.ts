@@ -12,6 +12,13 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import slugify from 'slugify';
 import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
+import { FeedbackPresignedUrlDto } from './dto/feedback-presigned-url.dto';
+import { InstructorFeedbackDto } from './dto/instructor-feedback.dto';
+import { CustomerFeedbackDto } from './dto/customer-feedback.dto';
+import {
+  FeedbackDetailForCustomerDto,
+  FeedbackDetailForInstructorDto,
+} from './dto/feedback-detail.dto';
 
 @Injectable()
 export class FeedbackService {
@@ -23,7 +30,9 @@ export class FeedbackService {
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
-  async getAllFeedbackByInstructor(userId: number): Promise<any[]> {
+  async getAllFeedbackByInstructor(
+    userId: number,
+  ): Promise<InstructorFeedbackDto[]> {
     const feedbackDatas =
       await this.feedbackRepository.getAllFeedbackByInstructor(userId);
 
@@ -67,13 +76,15 @@ export class FeedbackService {
   }
 
   /* customer 개인 feedback 전체 조회 */
-  async getAllFeedbackByCustomer(userId: number): Promise<any[]> {
+  async getAllFeedbackByCustomer(
+    userId: number,
+  ): Promise<CustomerFeedbackDto[]> {
     const feedbackDatas =
       await this.feedbackRepository.getAllFeedbackByCustomer(userId);
 
     // 강사 정보를 객체로 묶어서 반환
     const feedbacks = feedbackDatas.map((feedback) => ({
-      feedback: feedback.feedbackId,
+      feedbackId: feedback.feedbackId,
       lectureTitle: feedback.lectureTitle,
       feedbackContent: feedback.feedbackContent,
       feedbackDate: feedback.feedbackDate,
@@ -88,7 +99,10 @@ export class FeedbackService {
   }
 
   /* feedback 상세 조회 */
-  async getFeedbackByPk(userId: number, feedbackId: number) {
+  async getFeedbackByPk(
+    userId: number,
+    feedbackId: number,
+  ): Promise<FeedbackDetailForInstructorDto | FeedbackDetailForCustomerDto> {
     const feedbackData =
       await this.feedbackRepository.getFeedbackByPk(feedbackId);
     if (!feedbackData) {
@@ -132,13 +146,13 @@ export class FeedbackService {
       );
     // instructor
     if (feedback[0].instructor.instructorUserId === userId) {
-      return { feedback, feedbackTargetList };
+      return { feedback, feedbackTargetList } as FeedbackDetailForInstructorDto;
     }
 
     // member
     for (let i = 0; i < feedbackTargetList.length; i++) {
       if (feedbackTargetList[i].memberUserId === userId) {
-        return feedback;
+        return feedback as FeedbackDetailForCustomerDto;
       }
     }
     throw new UnauthorizedException('feedback 상세 조회 권한이 없습니다.');
@@ -148,7 +162,7 @@ export class FeedbackService {
   async generateFeedbackPresignedUrls(
     userId: number,
     feedbackImageDto: FeedbackImageDto,
-  ): Promise<any[]> {
+  ): Promise<FeedbackPresignedUrlDto[]> {
     const presignedUrls = await Promise.all(
       feedbackImageDto.files.map(async (file) => {
         const ext = file.split('.').pop(); // 확장자 추출

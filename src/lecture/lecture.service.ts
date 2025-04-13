@@ -9,6 +9,9 @@ import { EditLectureDto } from './dto/edit-lecture.dto';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import * as QRCode from 'qrcode';
 import { AwsService } from 'src/common/aws/aws.service';
+import { InstructorLectureDto } from './dto/instructor-lecture.dto';
+import { CustomerLectureDto } from './dto/customer-lecture.dto';
+import { LectureDetailDto } from './dto/lecture-detail.dto';
 
 @Injectable()
 export class LectureService {
@@ -23,7 +26,9 @@ export class LectureService {
   }
 
   /* 스케줄 - 강사용 강의 조회 (lectureDeletedAt is null) */
-  async getScheduleLecturesByInstructor(userId: number): Promise<any[]> {
+  async getScheduleLecturesByInstructor(
+    userId: number,
+  ): Promise<InstructorLectureDto[]> {
     const lectures =
       await this.lectureRepository.getScheduleLecturesByInstructor(userId);
 
@@ -65,7 +70,9 @@ export class LectureService {
   }
 
   /* 강사 모든 강의 조회 */
-  async getAllLecturesByInstructor(userId: number): Promise<any[]> {
+  async getAllLecturesByInstructor(
+    userId: number,
+  ): Promise<InstructorLectureDto[]> {
     const lectureDatas =
       await this.lectureRepository.getAllLecturesByInstructor(userId);
 
@@ -121,7 +128,9 @@ export class LectureService {
   }
 
   /* 스케줄 - 수강생 본인이 들어가 있는 강의 조회 */
-  async getScheduleLecturesByCustomer(userId: number): Promise<any[]> {
+  async getScheduleLecturesByCustomer(
+    userId: number,
+  ): Promise<CustomerLectureDto[]> {
     const lectureDatas =
       await this.lectureRepository.getScheduleLecturesByCustomer(userId);
 
@@ -146,7 +155,9 @@ export class LectureService {
   }
 
   /* 수강생 모든 강의 조회 */
-  async getAllLecturesByCustomer(userId: number): Promise<any[]> {
+  async getAllLecturesByCustomer(
+    userId: number,
+  ): Promise<CustomerLectureDto[]> {
     const lectureDatas =
       await this.lectureRepository.getAllLecturesByCustomer(userId);
 
@@ -162,8 +173,8 @@ export class LectureService {
       lectureQRCode: lecture.lectureQRCode,
       lectureEndDate: lecture.lectureEndDate,
       instructor: {
-        name: lecture.name,
-        profileImage: lecture.profileImage,
+        instructorName: lecture.instructorName,
+        instructorProfileImage: lecture.instructorProfileImage,
       },
     }));
 
@@ -171,7 +182,10 @@ export class LectureService {
   }
 
   /* 강의 상세 조회 */
-  async getLectureByPk(userId: number, lectureId: number) {
+  async getLectureByPk(
+    userId: number,
+    lectureId: number,
+  ): Promise<LectureDetailDto> {
     const lectureData = await this.lectureRepository.getLectureByPk(
       lectureId,
       userId,

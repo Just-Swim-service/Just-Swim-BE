@@ -33,6 +33,8 @@ import { UserType } from './enum/user-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
 import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
+import { ConfigService } from '@nestjs/config';
+import { envVariables } from 'src/common/const/env.const';
 
 @ApiTags('Users')
 @Controller()
@@ -40,6 +42,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly configService: ConfigService,
     private readonly responseService: ResponseService,
   ) {}
 
@@ -88,13 +91,20 @@ export class UsersController {
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+        res.redirect(
+          this.configService.get<string>(
+            envVariables.selectUserTypeRedirectURI,
+          ) + `/${query}`,
+        );
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
-        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
+        res.redirect(
+          this.configService.get<string>(envVariables.homeRedirectURI) +
+            `/${query}`,
+        );
       }
     }
 
@@ -111,7 +121,10 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      res.redirect(
+        this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
+          `/${query}`,
+      );
     }
   }
 
@@ -149,8 +162,6 @@ export class UsersController {
     // phoneNumber
     let phoneNumber: string = profile.mobile;
 
-    const host = req.headers.host;
-
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
@@ -158,13 +169,20 @@ export class UsersController {
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+        res.redirect(
+          this.configService.get<string>(
+            envVariables.selectUserTypeRedirectURI,
+          ) + `/${query}`,
+        );
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
-        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
+        res.redirect(
+          this.configService.get<string>(envVariables.homeRedirectURI) +
+            `/${query}`,
+        );
       }
     }
     // user가 없을 경우 새로 생성 후에 userType 지정으로 redirect
@@ -180,7 +198,10 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      res.redirect(
+        this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
+          `/${query}`,
+      );
     }
   }
 
@@ -212,8 +233,6 @@ export class UsersController {
     let email: string = profile._json.email;
     let profileImage: string = profile._json.picture;
 
-    const host = req.headers.host;
-
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
@@ -221,13 +240,20 @@ export class UsersController {
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
-        res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+        res.redirect(
+          this.configService.get<string>(
+            envVariables.selectUserTypeRedirectURI,
+          ) + `/${query}`,
+        );
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         const query = '?token=' + token;
-        res.redirect(process.env.HOME_REDIRECT_URI + `/${query}`);
+        res.redirect(
+          this.configService.get<string>(envVariables.homeRedirectURI) +
+            `/${query}`,
+        );
       }
     }
 
@@ -242,7 +268,10 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       const query = '?token=' + token;
-      res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI + `/${query}`);
+      res.redirect(
+        this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
+          `/${query}`,
+      );
     }
   }
 

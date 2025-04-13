@@ -37,7 +37,7 @@ export class MemberRepository {
   }
 
   /* 강의에 해당하는 member 조회 */
-  async getAllMembersByLectureId(lectureId: number): Promise<Member[]> {
+  async getAllMembersByLectureId(lectureId: number): Promise<any[]> {
     return await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.user', 'user')
@@ -57,7 +57,7 @@ export class MemberRepository {
   }
 
   /* instructor가 피드백 작성 시 강의를 듣고 있는 member 조회 */
-  async getAllMembersByFeedback(userId: number): Promise<Member[]> {
+  async getAllMembersByFeedback(userId: number): Promise<any[]> {
     return await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.user', 'user')
@@ -76,7 +76,10 @@ export class MemberRepository {
   }
 
   /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 */
-  async getMemberInfo(memberUserId: number, instructorUserId: number) {
+  async getMemberInfo(
+    memberUserId: number,
+    instructorUserId: number,
+  ): Promise<any> {
     return await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.user', 'user')
@@ -121,6 +124,8 @@ export class MemberRepository {
         'lecture.lectureColor AS lectureColor',
         'lecture.lectureDays AS lectureDays',
         'lecture.lectureTime AS lectureTime',
+        'lecture.lectureQRCode AS lectureQRCode',
+        'lecture.lectureEndDate AS lectureEndDate',
         'feedback.feedbackId AS feedbackId',
         'feedback.feedbackDate AS feedbackDate',
         'feedback.feedbackType AS feedbackType',

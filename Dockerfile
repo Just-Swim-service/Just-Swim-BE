@@ -15,6 +15,9 @@ COPY . .
 # .env 파일 복사
 COPY .env .env
 
+# test 진행
+RUN npm run test
+
 # FROM에서 설정한 이미지 위에서 스크립트 혹은 명령을 실행
 RUN npm run build
 

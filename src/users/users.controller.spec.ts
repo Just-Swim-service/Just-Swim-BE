@@ -5,9 +5,10 @@ import { AuthService } from 'src/auth/auth.service';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
 import { ResponseService } from 'src/common/response/reponse.service';
-import { Request, Response } from 'express';
-import { WithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
+import { Response } from 'express';
+import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import { EditUserDto } from './dto/edit-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 // Mock Services
 const mockUsersService = {
@@ -35,6 +36,10 @@ const mockResponseService = {
   internalServerError: jest.fn(),
 };
 
+const mockConfigService = {
+  get: jest.fn(),
+};
+
 describe('UsersController', () => {
   let controller: UsersController;
 
@@ -47,6 +52,7 @@ describe('UsersController', () => {
         { provide: CustomerService, useValue: {} },
         { provide: InstructorService, useValue: {} },
         { provide: ResponseService, useValue: mockResponseService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -104,7 +110,7 @@ describe('UsersController', () => {
 
   describe('withdrawUser', () => {
     it('회원 탈퇴 처리', async () => {
-      const withdrawalReasonDto: WithdrawalReasonDto = {
+      const withdrawalReasonDto: CreateWithdrawalReasonDto = {
         withdrawalReasonContent: '기능이 유용하지 않아요.',
       };
 

@@ -6,7 +6,7 @@ import { HttpStatus } from '@nestjs/common';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 import { FeedbackType } from './enum/feedback-type.enum';
 import { ResponseService } from 'src/common/response/reponse.service';
-import { FeedbackDto } from './dto/create-feedback.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { mockFeedback } from 'src/common/mocks/mock-feedback.repository';
 
 class MockFeedbackService {
@@ -113,7 +113,7 @@ describe('FeedbackController', () => {
 
   describe('createFeedback', () => {
     it('instructor가 member에 해당하는 customer에게 feedback을 남긴다.', async () => {
-      const feedbackDto: FeedbackDto = {
+      const feedbackDto: CreateFeedbackDto = {
         feedbackType: FeedbackType.Group,
         feedbackDate: '2024.04.22',
         feedbackLink: 'URL',

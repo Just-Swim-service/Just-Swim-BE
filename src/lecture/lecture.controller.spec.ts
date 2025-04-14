@@ -3,7 +3,7 @@ import { LectureController } from './lecture.controller';
 import { LectureService } from './lecture.service';
 import { Request, Response } from 'express';
 import { EditLectureDto } from './dto/edit-lecture.dto';
-import { LectureDto } from './dto/create-lecture.dto';
+import { CreateLectureDto } from './dto/create-lecture.dto';
 import { MemberService } from 'src/member/member.service';
 import { ResponseService } from 'src/common/response/reponse.service';
 import { mockLecture } from 'src/common/mocks/mock-lecture.repository';
@@ -258,7 +258,7 @@ describe('LectureController', () => {
   describe('createLecture', () => {
     it('instructor면 강의를 생성할 수 있다.', async () => {
       const req: Partial<Request> = {
-        body: { lectureDto: LectureDto },
+        body: { lectureDto: CreateLectureDto },
       };
 
       const res: Partial<Response> = {

@@ -96,7 +96,7 @@ describe('FeedbackService', () => {
 
       expect(result).toEqual([
         expect.objectContaining({
-          feedback: mockFeedback.feedbackId,
+          feedbackId: mockFeedback.feedbackId,
           lectureTitle: undefined,
           feedbackContent: mockFeedback.feedbackContent,
           feedbackDate: mockFeedback.feedbackDate,

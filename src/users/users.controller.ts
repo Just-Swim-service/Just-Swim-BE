@@ -305,6 +305,10 @@ export class UsersController {
   ) {
     const user = await this.usersService.findUserByEmail(email, provider);
 
+    if (!user) {
+      this.responseService.error(res, '로그인 실패');
+    }
+
     let userId: number = user.userId;
     let token: string = await this.authService.getToken(userId);
 

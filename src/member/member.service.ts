@@ -14,7 +14,14 @@ export class MemberService {
 
   /* QR코드를 통한 회원 등록 */
   async insertMemberFromQR(userId: number, lectureId: number): Promise<Member> {
-    return await this.memberRepository.insertMemberFromQR(userId, lectureId);
+    const result = await this.memberRepository.insertMemberFromQR(
+      userId,
+      lectureId,
+    );
+    if (!result) {
+      throw new NotFoundException('회원 등록에 실패했습니다.');
+    }
+    return result;
   }
 
   /* 강의에 해당하는 수강생 */

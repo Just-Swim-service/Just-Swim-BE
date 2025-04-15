@@ -308,7 +308,7 @@ export class FeedbackService {
         existingImages.map((image) => {
           const url = new URL(image.imagePath);
           const fileName = url.pathname.split('/').slice(-3).join('/');
-          this.awsService.deleteImageFromS3(fileName);
+          return this.awsService.deleteImageFromS3(fileName);
         }),
       );
     }

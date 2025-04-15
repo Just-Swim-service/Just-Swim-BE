@@ -1,7 +1,8 @@
 import {
+  ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
@@ -194,7 +195,7 @@ export class LectureService {
       throw new NotFoundException('존재하지 않는 강좌입니다.');
     }
     if (lectureData[0].lectureId === null) {
-      throw new UnauthorizedException('강의 접근 권한이 없습니다.');
+      throw new ForbiddenException('강의 접근 권한이 없습니다.');
     }
 
     // 중복 강의 정보를 제거하고 멤버 정보를 그룹화
@@ -257,7 +258,7 @@ export class LectureService {
   ): Promise<void> {
     const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
     if (lecture.user.userId !== userId) {
-      throw new UnauthorizedException('강의 수정 권한이 없습니다.');
+      throw new ForbiddenException('이 강의를 수정할 수 있는 권한이 없습니다.');
     }
 
     await this.lectureRepository.updateLecture(lectureId, editLectureDto);
@@ -267,7 +268,7 @@ export class LectureService {
   async softDeleteLecture(userId: number, lectureId: number): Promise<void> {
     const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
     if (lecture.user.userId !== userId) {
-      throw new UnauthorizedException('강의 수정 권한이 없습니다.');
+      throw new ForbiddenException('이 강의를 삭제할 수 있는 권한이 없습니다.');
     }
 
     await this.lectureRepository.softDeleteLecture(lectureId);
@@ -284,15 +285,19 @@ export class LectureService {
     );
 
     // QR 생성
-    const qrCodeData = await QRCode.toDataURL(
-      `${process.env.SERVER_QR_CHECK_URI}?lectureId=${newLecture.lectureId}`,
-    );
-    const lectureQRCode = await this.awsService.uploadQRCodeToS3(
-      newLecture.lectureId,
-      qrCodeData,
-    );
+    try {
+      const qrCodeData = await QRCode.toDataURL(
+        `${process.env.SERVER_QR_CHECK_URI}?lectureId=${newLecture.lectureId}`,
+      );
+      const lectureQRCode = await this.awsService.uploadQRCodeToS3(
+        newLecture.lectureId,
+        qrCodeData,
+      );
 
-    await this.saveQRCode(newLecture.lectureId, lectureQRCode);
+      await this.saveQRCode(newLecture.lectureId, lectureQRCode);
+    } catch (error) {
+      throw new InternalServerErrorException('QR 코드 생성에 실패했습니다.');
+    }
 
     return newLecture;
   }

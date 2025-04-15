@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotAcceptableException,
   NotFoundException,
@@ -67,7 +68,17 @@ export class UsersService {
     userId: number,
     editProfileImageDto: EditProfileImageDto,
   ): Promise<string> {
+    if (!editProfileImageDto.profileImage) {
+      throw new BadRequestException(
+        '프로필 이미지 파일명이 제공되지 않았습니다.',
+      );
+    }
+
     const ext = editProfileImageDto.profileImage.split('.').pop();
+    if (!ext || !['jpg', 'png', 'jpeg', 'webp'].includes(ext.toLowerCase())) {
+      throw new BadRequestException('허용되지 않는 이미지 확장자입니다.');
+    }
+
     const originalNameWithoutExt = editProfileImageDto.profileImage
       .split('.')
       .slice(0, -1)

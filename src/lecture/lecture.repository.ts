@@ -79,7 +79,7 @@ export class LectureRepository {
     return await this.lectureRepository
       .createQueryBuilder('lecture')
       .leftJoinAndSelect('lecture.member', 'member')
-      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect('lecture.user', 'instructor')
       .select([
         'lecture.lectureId as lectureId',
         'lecture.lectureTitle as lectureTitle',
@@ -90,9 +90,8 @@ export class LectureRepository {
         'lecture.lectureColor as lectureColor',
         'lecture.lectureQRCode as lectureQRCode',
         'lecture.lectureEndDate as lectureEndDate',
-        'user.userId as memberUserId',
-        'user.name as memberName',
-        'user.profileImage as memberProfileImage',
+        'instructor.name as name',
+        'instructor.profileImage as profileImage',
       ])
       .where('member.userId = :userId', { userId })
       .andWhere('lecture.lectureDeletedAt IS NULL')

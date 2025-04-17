@@ -4,7 +4,11 @@ import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
 import { MemberRepository } from 'src/member/member.repository';
 import { AwsService } from 'src/common/aws/aws.service';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import {
   mockMember,
@@ -248,7 +252,7 @@ describe('LectureService', () => {
       );
     });
 
-    it('강의 접근 권한이 없으면 UnauthorizedException을 throw', async () => {
+    it('강의 접근 권한이 없으면 ForbiddenException을 throw', async () => {
       const userId = 999;
       const lectureId = 1;
 
@@ -257,7 +261,7 @@ describe('LectureService', () => {
       ]);
 
       await expect(service.getLectureByPk(userId, lectureId)).rejects.toThrow(
-        UnauthorizedException,
+        ForbiddenException,
       );
     });
   });

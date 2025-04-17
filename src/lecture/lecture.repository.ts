@@ -96,7 +96,7 @@ export class LectureRepository {
       .where('member.userId = :userId', { userId })
       .andWhere('lecture.lectureDeletedAt IS NULL')
       .orderBy('lecture.lectureId', 'ASC')
-      .addOrderBy('user.userId', 'ASC')
+      .addOrderBy('instructor.userId', 'ASC')
       .getRawMany();
   }
 
@@ -121,7 +121,8 @@ export class LectureRepository {
       ])
       .where('member.userId = :userId', { userId })
       .andWhere('lecture.lectureDeletedAt IS NULL')
-      .groupBy('lecture.lectureId')
+      .orderBy('lecture.lectureId', 'ASC')
+      .addOrderBy('instructor.userId', 'ASC')
       .getRawMany();
   }
 

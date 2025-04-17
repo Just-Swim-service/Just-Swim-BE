@@ -174,8 +174,8 @@ export class LectureService {
       lectureQRCode: lecture.lectureQRCode,
       lectureEndDate: lecture.lectureEndDate,
       instructor: {
-        instructorName: lecture.instructorName,
-        instructorProfileImage: lecture.instructorProfileImage,
+        instructorName: lecture.name,
+        instructorProfileImage: lecture.profileImage,
       },
     }));
 

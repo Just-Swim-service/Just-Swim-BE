@@ -48,6 +48,7 @@ export class FeedbackRepository {
       .select([
         'feedback.feedbackId AS feedbackId',
         'lecture.lectureTitle AS lectureTitle',
+        'lecture.lectureColor AS lectureColor',
         'feedback.feedbackContent AS feedbackContent',
         'feedback.feedbackDate AS feedbackDate',
         'feedback.feedbackType AS feedbackType',

@@ -86,6 +86,7 @@ export class FeedbackService {
     const feedbacks = feedbackDatas.map((feedback) => ({
       feedbackId: feedback.feedbackId,
       lectureTitle: feedback.lectureTitle,
+      lectureColor: feedback.lectureColor,
       feedbackContent: feedback.feedbackContent,
       feedbackDate: feedback.feedbackDate,
       feedbackType: feedback.feedbackType,

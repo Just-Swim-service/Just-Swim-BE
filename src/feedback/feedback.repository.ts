@@ -41,8 +41,8 @@ export class FeedbackRepository {
   /* customer 개인 feedback 전체 조회 */
   async getAllFeedbackByCustomer(userId: number): Promise<any[]> {
     return await this.feedbackRepository
-      .createQueryBuilder('feedbackTarget')
-      .leftJoin('feedbackTarget.feedback', 'feedback')
+      .createQueryBuilder('feedback')
+      .leftJoin('feedback.feedbackTarget', 'feedbackTarget')
       .leftJoin('feedbackTarget.lecture', 'lecture')
       .leftJoin('lecture.user', 'instructor')
       .select([

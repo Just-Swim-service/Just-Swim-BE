@@ -15,10 +15,7 @@ import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
 import { FeedbackPresignedUrlDto } from './dto/feedback-presigned-url.dto';
 import { InstructorFeedbackDto } from './dto/instructor-feedback.dto';
 import { CustomerFeedbackDto } from './dto/customer-feedback.dto';
-import {
-  FeedbackDetailForCustomerDto,
-  FeedbackDetailForInstructorDto,
-} from './dto/feedback-detail.dto';
+import { FeedbackDetail } from './dto/feedback-detail.dto';
 
 @Injectable()
 export class FeedbackService {
@@ -103,7 +100,7 @@ export class FeedbackService {
   async getFeedbackByPk(
     userId: number,
     feedbackId: number,
-  ): Promise<FeedbackDetailForInstructorDto | FeedbackDetailForCustomerDto> {
+  ): Promise<FeedbackDetail> {
     const feedbackData =
       await this.feedbackRepository.getFeedbackByPk(feedbackId);
     if (!feedbackData) {
@@ -147,13 +144,13 @@ export class FeedbackService {
       );
     // instructor
     if (feedback[0].instructor.instructorUserId === userId) {
-      return { feedback, feedbackTargetList } as FeedbackDetailForInstructorDto;
+      return { feedback, feedbackTargetList };
     }
 
     // member
     for (let i = 0; i < feedbackTargetList.length; i++) {
       if (feedbackTargetList[i].memberUserId === userId) {
-        return feedback as FeedbackDetailForCustomerDto;
+        return { feedback };
       }
     }
     throw new UnauthorizedException('feedback 상세 조회 권한이 없습니다.');

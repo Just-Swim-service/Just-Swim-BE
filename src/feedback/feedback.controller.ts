@@ -73,9 +73,7 @@ export class FeedbackController {
     if (userType === 'customer') {
       const feedbacks =
         await this.feedbackService.getAllFeedbackByCustomer(userId);
-      this.responseService.success(res, 'feedback 전체 조회 성공', {
-        feedback: feedbacks,
-      });
+      this.responseService.success(res, 'feedback 전체 조회 성공', feedbacks);
     }
   }
 

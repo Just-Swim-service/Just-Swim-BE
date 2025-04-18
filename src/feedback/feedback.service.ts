@@ -127,6 +127,7 @@ export class FeedbackService {
           feedbackType: feedback.feedbackType,
           feedbackLink: feedback.feedbackLink,
           feedbackCreatedAt: feedback.feedbackCreatedAt,
+          lectureTitle: feedback.lectureTitle,
           instructor: {
             instructorUserId: feedback.instructorUserId,
             instructorName: feedback.instructorName,

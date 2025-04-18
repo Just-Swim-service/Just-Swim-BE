@@ -77,6 +77,8 @@ export class FeedbackRepository {
       .createQueryBuilder('feedback')
       .leftJoin('feedback.user', 'instructor')
       .leftJoin('feedback.image', 'image')
+      .leftJoin('feedback.feedbackTarget', 'feedbackTarget')
+      .leftJoin('feedbackTarget.lecture', 'lecture')
       .select([
         'feedback.userId AS instructorUserId',
         'feedback.feedbackId AS feedbackId',
@@ -85,6 +87,7 @@ export class FeedbackRepository {
         'feedback.feedbackContent AS feedbackContent',
         'feedback.feedbackLink AS feedbackLink',
         'feedback.feedbackCreatedAt AS feedbackCreatedAt',
+        'lecture.lectureTitle AS lectureTitle',
         'instructor.name AS instructorName',
         'instructor.profileImage AS instructorProfileImage',
         'image.imagePath AS imagePath',
@@ -100,6 +103,7 @@ export class FeedbackRepository {
         feedback.feedbackContent,
         feedback.feedbackLink,
         feedback.feedbackCreatedAt,
+        lecture.lectureTitle,
         instructor.name,
         instructor.profileImage,
         image.imagePath

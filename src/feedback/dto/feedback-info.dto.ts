@@ -7,5 +7,6 @@ export class FeedbackInfoDto {
   feedbackContent: string;
   feedbackLink?: string;
   feedbackCreatedAt?: Date;
+  lectureTitle?: string;
   images?: ImageDto[];
 }

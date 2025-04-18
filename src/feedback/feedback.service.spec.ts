@@ -119,6 +119,7 @@ describe('FeedbackService', () => {
         feedbackType: 'positive',
         feedbackLink: 'http://example.com/feedback/1',
         feedbackCreatedAt: '2024-09-05T08:56:43.366Z',
+        lectureTitle: '새벽 1반',
         instructorUserId: 1,
         instructorName: 'John Doe',
         instructorProfileImage: 'http://example.com/instructor.jpg',
@@ -153,6 +154,7 @@ describe('FeedbackService', () => {
             feedbackType: mockFeedback.feedbackType,
             feedbackLink: mockFeedback.feedbackLink,
             feedbackCreatedAt: mockFeedback.feedbackCreatedAt,
+            lectureTitle: mockFeedback.lectureTitle,
             instructor: {
               instructorUserId: mockFeedback.instructorUserId,
               instructorName: mockFeedback.instructorName,

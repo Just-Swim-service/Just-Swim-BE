@@ -45,7 +45,7 @@ export class FeedbackService {
           existingFeedback.members.push({
             memberUserId: feedback.memberUserId,
             memberProfileImage: feedback.memberProfileImage,
-            memberNickname: feedback.memberNickname,
+            memberName: feedback.memberNickname,
           });
         }
       } else {
@@ -60,7 +60,7 @@ export class FeedbackService {
                 {
                   memberUserId: feedback.memberUserId,
                   memberProfileImage: feedback.memberProfileImage,
-                  memberNickname: feedback.memberNickname,
+                  memberName: feedback.memberNickname,
                 },
               ]
             : [],

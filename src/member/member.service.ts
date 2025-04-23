@@ -99,6 +99,7 @@ export class MemberService {
           feedbackDate: item.feedbackDate,
           feedbackType: item.feedbackType,
           feedbackContent: item.feedbackContent,
+          feedbackLink: item.feedbackLink,
           images: [],
         });
       }

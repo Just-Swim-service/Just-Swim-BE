@@ -130,6 +130,7 @@ export class MemberRepository {
         'feedback.feedbackDate AS feedbackDate',
         'feedback.feedbackType AS feedbackType',
         'feedback.feedbackContent AS feedbackContent',
+        'feedback.feedbackLink AS feedbackLink',
         'image.imageId AS imageId',
         'image.imagePath AS imagePath',
       ])

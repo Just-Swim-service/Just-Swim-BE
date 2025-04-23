@@ -35,6 +35,7 @@ import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
 import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import { ConfigService } from '@nestjs/config';
 import { envVariables } from 'src/common/const/env.const';
+import { SkipAuth } from 'src/auth/decorator/skip-auth.decorator';
 
 @ApiTags('Users')
 @Controller()
@@ -47,6 +48,7 @@ export class UsersController {
   ) {}
 
   /* kakao 소셜 로그인 (Guard를 통해 접근) */
+  @SkipAuth()
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao')
   @ApiOperation({
@@ -58,6 +60,7 @@ export class UsersController {
     return;
   }
 
+  @SkipAuth()
   @UseGuards(KakaoAuthGuard)
   @Get('Oauth/kakao/callback')
   @ApiOperation({
@@ -90,6 +93,14 @@ export class UsersController {
       // userType을 선택하지 않았을 경우
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
+        // const { accessToken, refreshToken } = token;
+        // res.cookie('refreshToken', refreshToken, {
+        //   httpOnly: true,
+        //   secure: true,
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 14,
+        // });
+
         const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(
@@ -100,6 +111,14 @@ export class UsersController {
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
+        // const { accessToken, refreshToken } = token;
+        // res.cookie('refreshToken', refreshToken, {
+        //   httpOnly: true,
+        //   secure: true,
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 14,
+        // });
+
         const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(envVariables.homeRedirectURI) +
@@ -120,6 +139,14 @@ export class UsersController {
       };
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
+      // const { accessToken, refreshToken } = token;
+      // res.cookie('refreshToken', refreshToken, {
+      //   httpOnly: true,
+      //   secure: true,
+      //   sameSite: 'strict',
+      //   maxAge: 1000 * 60 * 60 * 24 * 14,
+      // });
+
       const query = '?token=' + token;
       res.redirect(
         this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
@@ -129,6 +156,7 @@ export class UsersController {
   }
 
   /* naver 소셜 로그인 (Guard를 통해 접근) */
+  @SkipAuth()
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver')
   @ApiOperation({
@@ -140,6 +168,7 @@ export class UsersController {
     return;
   }
 
+  @SkipAuth()
   @UseGuards(NaverAuthGuard)
   @Get('Oauth/naver/callback')
   @ApiOperation({
@@ -168,6 +197,14 @@ export class UsersController {
       // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
+        // const { accessToken, refreshToken } = token;
+        // res.cookie('refreshToken', refreshToken, {
+        //   httpOnly: true,
+        //   secure: true,
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 14,
+        // });
+
         const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(
@@ -178,6 +215,14 @@ export class UsersController {
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
+        // const { accessToken, refreshToken } = token;
+        // res.cookie('refreshToken', refreshToken, {
+        //   httpOnly: true,
+        //   secure: true,
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 14,
+        // });
+
         const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(envVariables.homeRedirectURI) +
@@ -197,6 +242,14 @@ export class UsersController {
       };
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
+      // const { accessToken, refreshToken } = token;
+      // res.cookie('refreshToken', refreshToken, {
+      //   httpOnly: true,
+      //   secure: true,
+      //   sameSite: 'strict',
+      //   maxAge: 1000 * 60 * 60 * 24 * 14,
+      // });
+
       const query = '?token=' + token;
       res.redirect(
         this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
@@ -206,6 +259,7 @@ export class UsersController {
   }
 
   /* google 소셜 로그인 (Guard를 통해 접근) */
+  @SkipAuth()
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google')
   @ApiOperation({
@@ -217,6 +271,7 @@ export class UsersController {
     return;
   }
 
+  @SkipAuth()
   @UseGuards(GoogleAuthGuard)
   @Get('Oauth/google/callback')
   @ApiOperation({
@@ -239,6 +294,14 @@ export class UsersController {
       // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
+        // const { accessToken, refreshToken } = token;
+        // res.cookie('refreshToken', refreshToken, {
+        //   httpOnly: true,
+        //   secure: true,
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 14,
+        // });
+
         const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(
@@ -249,6 +312,14 @@ export class UsersController {
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
+        // const { accessToken, refreshToken } = token;
+        // res.cookie('refreshToken', refreshToken, {
+        //   httpOnly: true,
+        //   secure: true,
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 14,
+        // });
+
         const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(envVariables.homeRedirectURI) +
@@ -267,6 +338,14 @@ export class UsersController {
       };
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
+      // const { accessToken, refreshToken } = token;
+      // res.cookie('refreshToken', refreshToken, {
+      //   httpOnly: true,
+      //   secure: true,
+      //   sameSite: 'strict',
+      //   maxAge: 1000 * 60 * 60 * 24 * 14,
+      // });
+
       const query = '?token=' + token;
       res.redirect(
         this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
@@ -276,6 +355,7 @@ export class UsersController {
   }
 
   /* 개발자를 위한 로그인 */
+  @SkipAuth()
   @Post('login')
   @ApiBody({
     description: '로그인 정보',
@@ -310,9 +390,16 @@ export class UsersController {
     }
 
     let userId: number = user.userId;
-    let token: string = await this.authService.getToken(userId);
+    const token = await this.authService.getToken(userId);
+    // const { accessToken, refreshToken } = token;
 
     res.cookie('authorization', token);
+    // res.cookie('refreshToken', refreshToken, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: 'strict',
+    //   maxAge: 1000 * 60 * 60 * 24 * 14,
+    // });
     this.responseService.success(res, '로그인 성공');
   }
 
@@ -438,6 +525,7 @@ export class UsersController {
     const { userId } = res.locals.user;
     await this.usersService.withdrawUser(userId, createWithdrawalReasonDto);
     res.clearCookie('authorization');
+    res.clearCookie('refreshToken');
     this.responseService.success(res, '회원 탈퇴 완료');
   }
 }

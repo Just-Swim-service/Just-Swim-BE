@@ -17,7 +17,7 @@ import { LectureModule } from './lecture/lecture.module';
 import { AuthMiddleWare } from './auth/middleware/auth.middleware';
 import { MemberModule } from './member/member.module';
 import { FeedbackModule } from './feedback/feedback.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/response/http-exception.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
@@ -27,6 +27,7 @@ import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.mo
 
 import * as Joi from 'joi';
 import { envVariables } from './common/const/env.const';
+import { AuthGuard } from './auth/guard/auth.guard';
 
 @Module({
   imports: [
@@ -73,22 +74,8 @@ import { envVariables } from './common/const/env.const';
   providers: [
     AppService,
     JwtService,
+    { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleWare)
-      .exclude(
-        { path: 'Oauth/kakao', method: RequestMethod.GET },
-        { path: 'Oauth/kakao/callback', method: RequestMethod.GET },
-        { path: 'Oauth/naver', method: RequestMethod.GET },
-        { path: 'Oauth/naver/callback', method: RequestMethod.GET },
-        { path: 'Oauth/google', method: RequestMethod.GET },
-        { path: 'Oauth/google/callback', method: RequestMethod.GET },
-        { path: 'login', method: RequestMethod.POST },
-      )
-      .forRoutes('*');
-  }
-}
+export class AppModule {}

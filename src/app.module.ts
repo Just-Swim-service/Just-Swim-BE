@@ -14,7 +14,6 @@ import { JwtService } from '@nestjs/jwt';
 import { CustomerModule } from './customer/customer.module';
 import { InstructorModule } from './instructor/instructor.module';
 import { LectureModule } from './lecture/lecture.module';
-import { AuthMiddleWare } from './auth/middleware/auth.middleware';
 import { MemberModule } from './member/member.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';

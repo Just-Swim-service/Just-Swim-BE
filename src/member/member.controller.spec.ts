@@ -3,7 +3,7 @@ import { MemberController } from './member.controller';
 import { MemberService } from './member.service';
 import { UsersService } from 'src/users/users.service';
 import { Response } from 'express';
-import { ResponseService } from 'src/common/response/reponse.service';
+import { ResponseService } from 'src/common/response/response.service';
 import { mockMember } from 'src/common/mocks/mock-member.repository';
 
 class MockMemberService {

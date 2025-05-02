@@ -27,7 +27,7 @@ import {
   feedbacksByInstructor,
 } from './example/feedback-example';
 import { FeedbackImageDto } from 'src/image/dto/feedback-image.dto';
-import { ResponseService } from 'src/common/response/reponse.service';
+import { ResponseService } from 'src/common/response/response.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 

@@ -31,7 +31,7 @@ import {
   getScheuldeLecturesByInstructor,
   getAllLecturesByInstructor,
 } from './example/lecture-example';
-import { ResponseService } from 'src/common/response/reponse.service';
+import { ResponseService } from 'src/common/response/response.service';
 
 @ApiTags('Lecture')
 @Controller('lecture')

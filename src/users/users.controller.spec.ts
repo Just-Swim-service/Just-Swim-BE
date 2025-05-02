@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { AuthService } from 'src/auth/auth.service';
 import { CustomerService } from 'src/customer/customer.service';
 import { InstructorService } from 'src/instructor/instructor.service';
-import { ResponseService } from 'src/common/response/reponse.service';
+import { ResponseService } from 'src/common/response/response.service';
 import { Response } from 'express';
 import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import { EditUserDto } from './dto/edit-user.dto';

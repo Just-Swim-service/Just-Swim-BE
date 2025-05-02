@@ -103,6 +103,15 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1"
-    }
+    },
+    "coveragePathIgnorePatterns": [
+      "src/main.ts",
+      "src/app.module.ts",
+      "src/.*\\.dto\\.ts",
+      "src/.*\\.enum\\.ts",
+      "src/.*\\.interface\\.ts",
+      "src/.*\\.constant\\.ts",
+      "src/.*\\.strategy\\.ts"
+    ]
   }
 }

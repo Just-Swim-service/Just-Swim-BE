@@ -18,7 +18,7 @@ import {
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { allMembersByFeedback, memberInfo } from './example/member-example';
-import { ResponseService } from 'src/common/response/reponse.service';
+import { ResponseService } from 'src/common/response/response.service';
 
 @ApiTags('Member')
 @Controller('member')

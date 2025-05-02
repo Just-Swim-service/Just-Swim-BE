@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { EditLectureDto } from './dto/edit-lecture.dto';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { MemberService } from 'src/member/member.service';
-import { ResponseService } from 'src/common/response/reponse.service';
+import { ResponseService } from 'src/common/response/response.service';
 import { mockLecture } from 'src/common/mocks/mock-lecture.repository';
 import { mockMember } from 'src/common/mocks/mock-member.repository';
 

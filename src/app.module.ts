@@ -1,9 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
@@ -21,13 +16,14 @@ import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
 import { ResponseModule } from './common/response/response.module';
 import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.module';
-
 import * as Joi from 'joi';
 import { envVariables } from './common/const/env.const';
 import { AuthGuard } from './auth/guard/auth.guard';
+import { CronModule } from './common/cron/cron.module';
 
 @Module({
   imports: [
+    CronModule,
     LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,

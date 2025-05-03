@@ -22,7 +22,7 @@ RUN npm run test
 RUN npm run build
 
 # prod stage
-FROM node:18-alpine
+FROM node:22-alpine
 WORKDIR /usr/src/app
 ARG NODE_ENV=production
 # 환경변수 설정

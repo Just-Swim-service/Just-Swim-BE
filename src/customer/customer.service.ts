@@ -22,11 +22,11 @@ export class CustomerService {
   }
 
   /* userType을 customer로 지정할 경우 customer 정보 생성 */
-  async createCustomer(userId: number): Promise<Customer> {
+  async createCustomer(userId: number, name: string): Promise<Customer> {
     const exists = await this.customerRepository.findCustomerByUserId(userId);
     if (exists) {
       throw new ConflictException('이미 해당 customer 정보가 존재합니다.');
     }
-    return await this.customerRepository.createCustomer(userId);
+    return await this.customerRepository.createCustomer(userId, name);
   }
 }

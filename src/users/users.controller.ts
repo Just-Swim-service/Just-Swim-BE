@@ -420,7 +420,7 @@ export class UsersController {
     @Param('userType', new ParseEnumPipe(UserType)) userType: UserType,
     @Res() res: Response,
   ) {
-    const { userId } = res.locals.user;
+    const { userId, name } = res.locals.user;
 
     // userType 기본 검사
     if (!Object.values(UserType).includes(userType)) {
@@ -429,7 +429,7 @@ export class UsersController {
         .json({ message: '올바른 userType을 지정해주세요.' });
     }
 
-    await this.usersService.selectUserType(userId, userType);
+    await this.usersService.selectUserType(userId, userType, name);
     this.responseService.success(res, 'userType 지정 완료');
   }
 

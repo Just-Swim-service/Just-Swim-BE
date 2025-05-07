@@ -30,14 +30,21 @@ describe('CustomerRepository', () => {
   });
 
   it('should create customer for given userId', async () => {
-    const created = { customerId: 1, user: { userId: 1 } } as Customer;
+    const created = {
+      customerId: 1,
+      user: { userId: 1 },
+      customerNickname: '홍길동',
+    } as Customer;
 
     repo.create.mockReturnValue(created);
     repo.save.mockResolvedValue(created);
 
-    const result = await customerRepository.createCustomer(1);
+    const result = await customerRepository.createCustomer(1, '홍길동');
 
-    expect(repo.create).toHaveBeenCalledWith({ user: { userId: 1 } });
+    expect(repo.create).toHaveBeenCalledWith({
+      user: { userId: 1 },
+      customerNickname: '홍길동',
+    });
     expect(repo.save).toHaveBeenCalledWith(created);
     expect(result).toEqual(created);
   });

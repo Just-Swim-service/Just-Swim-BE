@@ -42,7 +42,10 @@ describe('CustomerService', () => {
       };
       (repository.createCustomer as jest.Mock).mockResolvedValue(newCustomer);
 
-      const result = await service.createCustomer(newCustomer.user.userId);
+      const result = await service.createCustomer(
+        newCustomer.user.userId,
+        newCustomer.customerNickname,
+      );
 
       expect(result).toEqual(newCustomer);
     });

@@ -11,8 +11,11 @@ export class CustomerRepository {
   ) {}
 
   /* userType을 customer로 지정할 경우 customer 정보 생성 */
-  async createCustomer(userId: number): Promise<Customer> {
-    const newCustomer = this.customerRepository.create({ user: { userId } });
+  async createCustomer(userId: number, name: string): Promise<Customer> {
+    const newCustomer = this.customerRepository.create({
+      user: { userId },
+      customerNickname: name,
+    });
 
     return await this.customerRepository.save(newCustomer);
   }

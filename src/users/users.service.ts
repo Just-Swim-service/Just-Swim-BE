@@ -49,14 +49,18 @@ export class UsersService {
   }
 
   /* user의 userType 지정 */
-  async selectUserType(userId: number, userType: UserType): Promise<void> {
+  async selectUserType(
+    userId: number,
+    userType: UserType,
+    name: string,
+  ): Promise<void> {
     const user = await this.usersRepository.findUserByPk(userId);
     if (user.userType !== null) {
       throw new NotAcceptableException('계정에 타입이 이미 지정되어 있습니다.');
     }
     await this.usersRepository.selectUserType(userId, userType);
     if (userType === UserType.Customer) {
-      await this.customerRepository.createCustomer(userId);
+      await this.customerRepository.createCustomer(userId, name);
     }
     if (userType === UserType.Instructor) {
       await this.instructorRepository.createInstructor(userId);

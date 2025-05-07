@@ -148,26 +148,31 @@ describe('UsersService', () => {
     it('userType이 null인 경우, Customer로 설정하고 createCustomer 호출', async () => {
       const userId = 1;
       const userType = UserType.Customer;
+      const name = mockUser.name;
       mockUser.userType = null;
       (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
-      await usersService.selectUserType(userId, userType);
+      await usersService.selectUserType(userId, userType, name);
 
       expect(usersRepository.selectUserType).toHaveBeenCalledWith(
         userId,
         userType,
       );
-      expect(customerRepository.createCustomer).toHaveBeenCalledWith(userId);
+      expect(customerRepository.createCustomer).toHaveBeenCalledWith(
+        userId,
+        name,
+      );
       expect(instructorRepository.createInstructor).not.toHaveBeenCalled();
     });
 
     it('userType이 null인 경우, Instructor로 설정하고 createInstructor 호출', async () => {
       const userId = 1;
       const userType = UserType.Instructor;
+      const name = mockUser.name;
       mockUser.userType = null;
       (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
-      await usersService.selectUserType(userId, userType);
+      await usersService.selectUserType(userId, userType, name);
 
       expect(usersRepository.selectUserType).toHaveBeenCalledWith(
         userId,
@@ -185,7 +190,7 @@ describe('UsersService', () => {
       (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
       await expect(
-        usersService.selectUserType(userId, UserType.Instructor),
+        usersService.selectUserType(userId, UserType.Instructor, mockUser.name),
       ).rejects.toThrow('계정에 타입이 이미 지정되어 있습니다.');
 
       expect(usersRepository.selectUserType).not.toHaveBeenCalled();

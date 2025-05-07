@@ -39,11 +39,11 @@ async function bootstrap() {
       'accessToken',
     )
     .addServer('http://3.38.162.80', '서버 주소')
-    .addServer('http://localhost', '로컬 주소')
+    .addServer('http://localhost:3000', '로컬 주소')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
-  await app.listen(80);
+  await app.listen(3000);
 }
 bootstrap();

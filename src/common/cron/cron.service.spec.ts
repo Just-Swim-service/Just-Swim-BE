@@ -45,13 +45,23 @@ describe('CronService', () => {
     expect(lectureRepository.createQueryBuilder).toHaveBeenCalled();
 
     const qb = lectureRepository.createQueryBuilder();
+
     expect(qb.update).toHaveBeenCalled();
     expect(qb.set).toHaveBeenCalledWith({ lectureDeletedAt: expect.any(Date) });
-    expect(qb.where).toHaveBeenCalledWith(
-      'lectureEndDate < :today',
+
+    expect(qb.where).toHaveBeenCalledWith('lecture.lectureEndDate IS NOT NULL');
+    expect(qb.andWhere).toHaveBeenCalledWith('lecture.lectureEndDate != ""');
+    expect(qb.andWhere).toHaveBeenCalledWith(
+      'STR_TO_DATE(lecture.lectureEndDate, "%Y.%m.%d") IS NOT NULL',
+    );
+    expect(qb.andWhere).toHaveBeenCalledWith(
+      'STR_TO_DATE(lecture.lectureEndDate, "%Y.%m.%d") < :today',
       expect.objectContaining({ today: expect.any(Date) }),
     );
-    expect(qb.andWhere).toHaveBeenCalledWith('lectureDeletedAt IS NULL');
+    expect(qb.andWhere).toHaveBeenCalledWith(
+      'lecture.lectureDeletedAt IS NULL',
+    );
+
     expect(qb.execute).toHaveBeenCalled();
   });
 });

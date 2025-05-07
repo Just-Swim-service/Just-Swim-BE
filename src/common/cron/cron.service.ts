@@ -19,11 +19,16 @@ export class CronService {
     const today = dayjs().startOf('day').toDate();
 
     const result = await this.lectureRepository
-      .createQueryBuilder()
-      .update()
+      .createQueryBuilder('lecture')
+      .update(Lecture)
       .set({ lectureDeletedAt: new Date() })
-      .where('lectureEndDate < :today', { today })
-      .andWhere('lectureDeletedAt IS NULL')
+      .where('lecture.lectureEndDate IS NOT NULL')
+      .andWhere('lecture.lectureEndDate != ""')
+      .andWhere('STR_TO_DATE(lecture.lectureEndDate, "%Y.%m.%d") IS NOT NULL')
+      .andWhere('STR_TO_DATE(lecture.lectureEndDate, "%Y.%m.%d") < :today', {
+        today,
+      })
+      .andWhere('lecture.lectureDeletedAt IS NULL')
       .execute();
 
     // this.logger.log(`${result.affected} lectures marked as deleted`);

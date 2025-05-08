@@ -43,10 +43,13 @@ jobs:
           echo "HOME_REDIRECT_URI=$HOME_REDIRECT_URI" >> .env
         env:
           KAKAO_ID: ${{ secrets.KAKAO_ID }}
+          KAKAO_CALLBACK_URL: ${{secrets.KAKAO_CALLBACK_URL}}
           NAVER_ID: ${{ secrets.NAVER_ID }}
           NAVER_SECRET: ${{ secrets.NAVER_SECRET }}
+          NAVER_CALLBACK_URL: ${{secrets.NAVER_CALLBACK_URL}}
           GOOGLE_ID: ${{ secrets.GOOGLE_ID }}
           GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
+          GOOGLE_CALLBACK_URL: ${{secrets.GOOGLE_CALLBACK_URL}}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_DATABASE: ${{ secrets.DB_DATABASE }}

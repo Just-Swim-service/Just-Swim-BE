@@ -44,6 +44,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
+
+  // 서버 포트
   await app.listen(3001);
 }
 bootstrap();

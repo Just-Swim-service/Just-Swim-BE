@@ -9,8 +9,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'http://localhost:80',
-      'https://alpha-justswim.netlify.app',
+      'http://localhost:3001',
+      'https://just-swim.kr',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
@@ -39,11 +39,11 @@ async function bootstrap() {
       'accessToken',
     )
     .addServer('http://3.38.162.80', '서버 주소')
-    .addServer('http://localhost:3000', '로컬 주소')
+    .addServer('http://localhost:3001', '로컬 주소')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
-  await app.listen(3000);
+  await app.listen(3001);
 }
 bootstrap();

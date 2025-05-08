@@ -121,7 +121,7 @@ jobs:
             docker rmi -f ${{ env.DOCKER_IMAGE }}:dev || true
 
             echo "🚀 dev 이미지 pull 시도..."
-            if docker pull ${{ env.DOCKER_IMAGE }}:dev && docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 3000:3000 --name justswim ${{ env.DOCKER_IMAGE }}:dev; then
+            if docker pull ${{ env.DOCKER_IMAGE }}:dev && docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 3001:3001 --name justswim ${{ env.DOCKER_IMAGE }}:dev; then
               echo "✅ dev 이미지로 배포 성공!"
             else
               echo "⚠️ dev 실패! stable 이미지로 롤백 시도..."
@@ -129,7 +129,7 @@ jobs:
               docker rm justswim || true
               docker rmi -f ${{ env.DOCKER_IMAGE }}:stable || true
               docker pull ${{ env.DOCKER_IMAGE }}:stable
-              docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 3000:3000 --name justswim ${{ env.DOCKER_IMAGE }}:stable
+              docker run --env-file /home/${{env.LIGHTSAIL_USERNAME}}/.env -d -p 3001:3001 --name justswim ${{ env.DOCKER_IMAGE }}:stable
               echo "🛟 롤백 완료: stable 이미지 실행됨."
             fi
           EOF

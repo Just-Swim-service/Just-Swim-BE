@@ -94,12 +94,12 @@ export class UsersController {
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         // const { accessToken, refreshToken } = token;
-        // res.cookie('refreshToken', refreshToken, {
-        //   httpOnly: true,
-        //   secure: true,
-        //   sameSite: 'strict',
-        //   maxAge: 1000 * 60 * 60 * 24 * 14,
-        // });
+        res.cookie('authorization', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 60 * 24 * 14,
+        });
 
         const query = '?token=' + token;
         res.redirect(
@@ -112,12 +112,12 @@ export class UsersController {
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         // const { accessToken, refreshToken } = token;
-        // res.cookie('refreshToken', refreshToken, {
-        //   httpOnly: true,
-        //   secure: true,
-        //   sameSite: 'strict',
-        //   maxAge: 1000 * 60 * 60 * 24 * 14,
-        // });
+        res.cookie('authorization', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 60 * 24 * 14,
+        });
 
         const query = '?token=' + token;
         res.redirect(
@@ -140,12 +140,12 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       // const { accessToken, refreshToken } = token;
-      // res.cookie('refreshToken', refreshToken, {
-      //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: 'strict',
-      //   maxAge: 1000 * 60 * 60 * 24 * 14,
-      // });
+      res.cookie('authorization', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 60 * 24 * 14,
+      });
 
       const query = '?token=' + token;
       res.redirect(
@@ -198,12 +198,12 @@ export class UsersController {
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         // const { accessToken, refreshToken } = token;
-        // res.cookie('refreshToken', refreshToken, {
-        //   httpOnly: true,
-        //   secure: true,
-        //   sameSite: 'strict',
-        //   maxAge: 1000 * 60 * 60 * 24 * 14,
-        // });
+        res.cookie('authorization', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 60 * 24 * 14,
+        });
 
         const query = '?token=' + token;
         res.redirect(
@@ -216,12 +216,12 @@ export class UsersController {
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         // const { accessToken, refreshToken } = token;
-        // res.cookie('refreshToken', refreshToken, {
-        //   httpOnly: true,
-        //   secure: true,
-        //   sameSite: 'strict',
-        //   maxAge: 1000 * 60 * 60 * 24 * 14,
-        // });
+        res.cookie('authorization', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 60 * 24 * 14,
+        });
 
         const query = '?token=' + token;
         res.redirect(
@@ -243,12 +243,12 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       // const { accessToken, refreshToken } = token;
-      // res.cookie('refreshToken', refreshToken, {
-      //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: 'strict',
-      //   maxAge: 1000 * 60 * 60 * 24 * 14,
-      // });
+      res.cookie('authorization', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 60 * 24 * 14,
+      });
 
       const query = '?token=' + token;
       res.redirect(
@@ -295,12 +295,12 @@ export class UsersController {
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
         // const { accessToken, refreshToken } = token;
-        // res.cookie('refreshToken', refreshToken, {
-        //   httpOnly: true,
-        //   secure: true,
-        //   sameSite: 'strict',
-        //   maxAge: 1000 * 60 * 60 * 24 * 14,
-        // });
+        res.cookie('authorization', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 60 * 24 * 14,
+        });
 
         const query = '?token=' + token;
         res.redirect(
@@ -313,12 +313,12 @@ export class UsersController {
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
         // const { accessToken, refreshToken } = token;
-        // res.cookie('refreshToken', refreshToken, {
-        //   httpOnly: true,
-        //   secure: true,
-        //   sameSite: 'strict',
-        //   maxAge: 1000 * 60 * 60 * 24 * 14,
-        // });
+        res.cookie('authorization', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 1000 * 60 * 60 * 24 * 14,
+        });
 
         const query = '?token=' + token;
         res.redirect(
@@ -339,12 +339,12 @@ export class UsersController {
       const newUser = await this.authService.createUser(newUserData);
       const token = await this.authService.getToken(newUser.userId);
       // const { accessToken, refreshToken } = token;
-      // res.cookie('refreshToken', refreshToken, {
-      //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: 'strict',
-      //   maxAge: 1000 * 60 * 60 * 24 * 14,
-      // });
+      res.cookie('authorization', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 60 * 24 * 14,
+      });
 
       const query = '?token=' + token;
       res.redirect(

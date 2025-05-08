@@ -39,7 +39,7 @@ async function bootstrap() {
       },
       'accessToken',
     )
-    .addServer('http://3.38.162.80', '서버 주소')
+    .addServer('https://api.just-swim.kr', '서버 주소')
     .addServer('http://localhost:3001', '로컬 주소')
     .build();
 

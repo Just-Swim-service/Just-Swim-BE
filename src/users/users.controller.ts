@@ -93,7 +93,6 @@ export class UsersController {
       // userType을 선택하지 않았을 경우
       if (exUser.userType === null) {
         const token = await this.authService.getToken(exUser.userId);
-        // const { accessToken, refreshToken } = token;
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
@@ -101,17 +100,15 @@ export class UsersController {
           maxAge: 1000 * 60 * 60 * 24 * 14,
         });
 
-        const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(
             envVariables.selectUserTypeRedirectURI,
-          ) + `/${query}`,
+          ),
         );
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
         const token = await this.authService.getToken(exUser.userId);
-        // const { accessToken, refreshToken } = token;
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
@@ -119,10 +116,8 @@ export class UsersController {
           maxAge: 1000 * 60 * 60 * 24 * 14,
         });
 
-        const query = '?token=' + token;
         res.redirect(
-          this.configService.get<string>(envVariables.homeRedirectURI) +
-            `/${query}`,
+          this.configService.get<string>(envVariables.homeRedirectURI),
         );
       }
     }
@@ -147,10 +142,8 @@ export class UsersController {
         maxAge: 1000 * 60 * 60 * 24 * 14,
       });
 
-      const query = '?token=' + token;
       res.redirect(
-        this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
-          `/${query}`,
+        this.configService.get<string>(envVariables.selectUserTypeRedirectURI),
       );
     }
   }
@@ -205,11 +198,10 @@ export class UsersController {
           maxAge: 1000 * 60 * 60 * 24 * 14,
         });
 
-        const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(
             envVariables.selectUserTypeRedirectURI,
-          ) + `/${query}`,
+          ),
         );
       }
       // userType 지정되어 있을 경우 Home으로 redirect
@@ -223,10 +215,8 @@ export class UsersController {
           maxAge: 1000 * 60 * 60 * 24 * 14,
         });
 
-        const query = '?token=' + token;
         res.redirect(
-          this.configService.get<string>(envVariables.homeRedirectURI) +
-            `/${query}`,
+          this.configService.get<string>(envVariables.homeRedirectURI),
         );
       }
     }
@@ -250,10 +240,8 @@ export class UsersController {
         maxAge: 1000 * 60 * 60 * 24 * 14,
       });
 
-      const query = '?token=' + token;
       res.redirect(
-        this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
-          `/${query}`,
+        this.configService.get<string>(envVariables.selectUserTypeRedirectURI),
       );
     }
   }
@@ -302,11 +290,10 @@ export class UsersController {
           maxAge: 1000 * 60 * 60 * 24 * 14,
         });
 
-        const query = '?token=' + token;
         res.redirect(
           this.configService.get<string>(
             envVariables.selectUserTypeRedirectURI,
-          ) + `/${query}`,
+          ),
         );
       }
       // userType 지정되어 있을 경우 Home으로 redirect
@@ -320,10 +307,8 @@ export class UsersController {
           maxAge: 1000 * 60 * 60 * 24 * 14,
         });
 
-        const query = '?token=' + token;
         res.redirect(
-          this.configService.get<string>(envVariables.homeRedirectURI) +
-            `/${query}`,
+          this.configService.get<string>(envVariables.homeRedirectURI),
         );
       }
     }
@@ -346,10 +331,8 @@ export class UsersController {
         maxAge: 1000 * 60 * 60 * 24 * 14,
       });
 
-      const query = '?token=' + token;
       res.redirect(
-        this.configService.get<string>(envVariables.selectUserTypeRedirectURI) +
-          `/${query}`,
+        this.configService.get<string>(envVariables.selectUserTypeRedirectURI),
       );
     }
   }

@@ -96,8 +96,10 @@ export class UsersController {
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 60 * 24 * 14,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
 
         res.redirect(
@@ -112,8 +114,10 @@ export class UsersController {
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 60 * 24 * 14,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
 
         res.redirect(
@@ -138,8 +142,10 @@ export class UsersController {
       res.cookie('authorization', token, {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
-        maxAge: 1000 * 60 * 60 * 24 * 14,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
       });
 
       res.redirect(
@@ -194,8 +200,10 @@ export class UsersController {
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 60 * 24 * 14,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
 
         res.redirect(
@@ -211,8 +219,10 @@ export class UsersController {
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 60 * 24 * 14,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
 
         res.redirect(
@@ -236,8 +246,10 @@ export class UsersController {
       res.cookie('authorization', token, {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
-        maxAge: 1000 * 60 * 60 * 24 * 14,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
       });
 
       res.redirect(
@@ -286,8 +298,10 @@ export class UsersController {
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 60 * 24 * 14,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
 
         res.redirect(
@@ -303,8 +317,10 @@ export class UsersController {
         res.cookie('authorization', token, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
-          maxAge: 1000 * 60 * 60 * 24 * 14,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
 
         res.redirect(
@@ -327,8 +343,10 @@ export class UsersController {
       res.cookie('authorization', token, {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
-        maxAge: 1000 * 60 * 60 * 24 * 14,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
       });
 
       res.redirect(

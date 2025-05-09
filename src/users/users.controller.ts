@@ -97,7 +97,6 @@ export class UsersController {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          domain: '.just-swim.kr',
           path: '/',
           maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
@@ -115,7 +114,6 @@ export class UsersController {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          domain: '.just-swim.kr',
           path: '/',
           maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
@@ -143,7 +141,6 @@ export class UsersController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: '.just-swim.kr',
         path: '/',
         maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
       });
@@ -201,7 +198,6 @@ export class UsersController {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          domain: '.just-swim.kr',
           path: '/',
           maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
@@ -220,7 +216,6 @@ export class UsersController {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          domain: '.just-swim.kr',
           path: '/',
           maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
@@ -247,7 +242,6 @@ export class UsersController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: '.just-swim.kr',
         path: '/',
         maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
       });
@@ -299,7 +293,6 @@ export class UsersController {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          domain: '.just-swim.kr',
           path: '/',
           maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
@@ -318,7 +311,6 @@ export class UsersController {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
-          domain: '.just-swim.kr',
           path: '/',
           maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
         });
@@ -344,7 +336,6 @@ export class UsersController {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: '.just-swim.kr',
         path: '/',
         maxAge: 1000 * 60 * 60 * 24 * 14, // 14일
       });

@@ -25,6 +25,7 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
+    console.log(request.cookies, request.headers);
 
     // 인증 건너뛰기
     const skipAuth = this.reflector.get<boolean>(
@@ -40,7 +41,6 @@ export class AuthGuard implements CanActivate {
     const authorization = authorizationCookies
       ? `Bearer ` + authorizationCookies
       : authorizationHeaders;
-    console.log(authorization);
 
     // Cookie가 존재하지 않을 경우
     if (!authorization) {

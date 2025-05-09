@@ -7,7 +7,11 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [/\.just-swim\.kr$/, 'http://localhost:3000'],
+    origin: [
+      'https://just-swim.kr',
+      'https://www.just-swim.kr',
+      'http://localhost:3000',
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     optionsSuccessStatus: 204,

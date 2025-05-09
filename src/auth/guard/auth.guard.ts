@@ -40,6 +40,7 @@ export class AuthGuard implements CanActivate {
     const authorization = authorizationCookies
       ? `Bearer ` + authorizationCookies
       : authorizationHeaders;
+    console.log(authorization);
 
     // Cookie가 존재하지 않을 경우
     if (!authorization) {

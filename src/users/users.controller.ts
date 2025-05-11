@@ -283,6 +283,7 @@ export class UsersController {
     @Res() res: Response,
   ): Promise<void> {
     let profile: any = req.user;
+    console.log(profile);
     let provider: string = profile.provider;
     let name: string = profile._json.name;
     let email: string = profile._json.email;

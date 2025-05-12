@@ -48,7 +48,7 @@ export class MemberController {
 
       // user 정보가 없을 경우 가입 경로로 redirect
       if (!user) {
-        return res.redirect('/signup');
+        return res.redirect(process.env.SINGIN_REDIRECT_URI);
       }
 
       // userType이 null 일 경우 userType 지정으로 redirect

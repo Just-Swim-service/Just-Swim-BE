@@ -60,13 +60,18 @@ describe('MemberController', () => {
 
   describe('insertMemberFromQR', () => {
     it('user가 없으면 /signup으로 리디렉션', async () => {
+      const redirectMock = jest.fn();
+
       const res: Partial<Response> = {
         locals: {},
-        redirect: jest.fn(),
+        redirect: redirectMock,
       };
 
       await controller.insertMemberFromQR(1, res as Response);
-      expect(res.redirect).toHaveBeenCalledWith('/signup');
+
+      expect(redirectMock).toHaveBeenCalledWith(
+        process.env.SINGIN_REDIRECT_URI,
+      );
     });
 
     it('userType이 null이면 SELECT_USERTYPE_REDIRECT_URI로 리디렉션', async () => {

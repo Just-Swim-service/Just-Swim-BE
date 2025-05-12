@@ -7,6 +7,7 @@ import {
   Res,
   HttpStatus,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,6 +20,8 @@ import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { allMembersByFeedback, memberInfo } from './example/member-example';
 import { ResponseService } from 'src/common/response/response.service';
+import { SkipAuth } from 'src/auth/decorator/skip-auth.decorator';
+import { RedirectAuthGuard } from 'src/auth/guard/redirect-auth.guard';
 
 @ApiTags('Member')
 @Controller('member')
@@ -30,6 +33,8 @@ export class MemberController {
   ) {}
 
   /* QR코드를 통한 회원 등록 */
+  @SkipAuth()
+  @UseGuards(RedirectAuthGuard)
   @Get('/qr-code')
   @ApiOperation({
     summary: '강의 QR코드를 통한 회원 등록',

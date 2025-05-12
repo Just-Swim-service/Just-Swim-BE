@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoggerModule } from 'src/common/logger/logger.module';
 import { MyLogger } from 'src/common/logger/logger.service';
 import { AuthGuard } from './guard/auth.guard';
+import { RedirectAuthGuard } from './guard/redirect-auth.guard';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthGuard } from './guard/auth.guard';
     JwtService,
     MyLogger,
     AuthGuard,
+    RedirectAuthGuard,
   ],
   exports: [AuthService, PassportModule, JwtService],
 })

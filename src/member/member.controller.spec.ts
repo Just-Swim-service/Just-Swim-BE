@@ -5,6 +5,9 @@ import { UsersService } from 'src/users/users.service';
 import { Response } from 'express';
 import { ResponseService } from 'src/common/response/response.service';
 import { mockMember } from 'src/common/mocks/mock-member.repository';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { MyLogger } from 'src/common/logger/logger.service';
 
 class MockMemberService {
   insertMemberFromQR = jest.fn();
@@ -43,6 +46,25 @@ describe('MemberController', () => {
         { provide: MemberService, useClass: MockMemberService },
         { provide: UsersService, useClass: MockUsersService },
         { provide: ResponseService, useClass: MockResponseService },
+        {
+          provide: JwtService,
+          useValue: {
+            verify: jest.fn(),
+            verifyAsync: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('mock-secret'),
+          },
+        },
+        {
+          provide: MyLogger,
+          useValue: {
+            error: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

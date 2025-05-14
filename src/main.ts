@@ -53,3 +53,13 @@ async function bootstrap() {
   await app.listen(3001);
 }
 bootstrap();
+
+process.on('uncaughtException', (err) => {
+  console.error('[🔥 Uncaught Exception]', err);
+  // 프로덕션 환경에서는 process.exit(1) 고려
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[💥 Unhandled Rejection]', reason);
+  // 프로덕션 환경에서는 process.exit(1) 고려
+});

@@ -1,6 +1,20 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { LoggerService } from '@nestjs/common';
 import * as winston from 'winston';
-import WinstonCloudWatch from 'winston-cloudwatch';
+import * as WinstonCloudWatch from 'winston-cloudwatch';
+import * as AWS from 'aws-sdk';
+
+const accessKeyId = process.env.AWS_S3_ACCESS_KEY!;
+const secretAccessKey = process.env.AWS_S3_SECRET_ACCESS_KEY!;
+const region = process.env.AWS_REGION!;
+
+const cloudWatchLogs = new AWS.CloudWatchLogs({
+  accessKeyId,
+  secretAccessKey,
+  region,
+});
 
 export class MyLogger implements LoggerService {
   private readonly logger: winston.Logger;
@@ -17,13 +31,10 @@ export class MyLogger implements LoggerService {
       ),
       transports: [
         new winston.transports.Console(),
-
         new WinstonCloudWatch({
           logGroupName: process.env.CLOUDWATCH_LOG_GROUP,
           logStreamName: process.env.CLOUDWATCH_LOG_STREAM,
-          awsRegion: process.env.AWS_REGION,
-          awsAccessKeyId: process.env.AWS_S3_ACCESS_KEY,
-          awsSecretKey: process.env.AWS_S3_SECRET_ACCESS_KEY,
+          cloudWatchLogs: cloudWatchLogs as unknown as any,
           jsonMessage: false,
         }),
       ],

@@ -46,6 +46,8 @@ jobs:
           echo "SELECT_USERTYPE_REDIRECT_URI=$SELECT_USERTYPE_REDIRECT_URI" >> .env
           echo "HOME_REDIRECT_URI=$HOME_REDIRECT_URI" >> .env
           echo "SINGIN_REDIRECT_URI=$SINGIN_REDIRECT_URI" >> .env
+          echo "CLOUDWATCH_LOG_GROUP=$CLOUDWATCH_LOG_GROUP" >> .env
+          echo "CLOUDWATCH_LOG_STREAM=$CLOUDWATCH_LOG_STREAM" >> .env
         env:
           KAKAO_ID: ${{ secrets.KAKAO_ID }}
           KAKAO_CALLBACK_URL: ${{secrets.KAKAO_CALLBACK_URL}}
@@ -69,6 +71,8 @@ jobs:
           SELECT_USERTYPE_REDIRECT_URI: ${{ secrets.SELECT_USERTYPE_REDIRECT_URI }}
           HOME_REDIRECT_URI: ${{ secrets.HOME_REDIRECT_URI }}
           SINGIN_REDIRECT_URI: ${{secrets.SINGIN_REDIRECT_URI}}
+          CLOUDWATCH_LOG_GROUP: ${{secrets.CLOUDWATCH_LOG_GROUP}}
+          CLOUDWATCH_LOG_STREAM: ${{secrets.CLOUDWATCH_LOG_STREAM}}
 
       - name: Setup docker buildx
         id: buildx

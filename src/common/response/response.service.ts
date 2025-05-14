@@ -17,6 +17,7 @@ export class ResponseService {
     statusCode: number = 400,
     errors: any = null,
   ) {
+    if (res.headersSent || res.writableEnded) return;
     return res.status(statusCode).json({
       success: false,
       message,

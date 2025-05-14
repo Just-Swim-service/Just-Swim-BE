@@ -387,7 +387,7 @@ export class UsersController {
     const user = await this.usersService.findUserByEmail(email, provider);
 
     if (!user) {
-      this.responseService.error(res, '로그인 실패');
+      return this.responseService.error(res, '로그인 실패');
     }
 
     let userId: number = user.userId;
@@ -401,7 +401,7 @@ export class UsersController {
     //   sameSite: 'strict',
     //   maxAge: 1000 * 60 * 60 * 24 * 14,
     // });
-    this.responseService.success(res, '로그인 성공');
+    return this.responseService.success(res, '로그인 성공');
   }
 
   /* 로그인 이후에 userType을 지정 */
@@ -431,7 +431,7 @@ export class UsersController {
     }
 
     await this.usersService.selectUserType(userId, userType, name);
-    this.responseService.success(res, 'userType 지정 완료');
+    return this.responseService.success(res, 'userType 지정 완료');
   }
 
   /* 나의 프로필 조회 */
@@ -444,7 +444,7 @@ export class UsersController {
     const { userId } = res.locals.user;
     const userProfile = await this.usersService.findUserByPk(userId);
 
-    this.responseService.success(res, '프로필 조회 성공', userProfile);
+    return this.responseService.success(res, '프로필 조회 성공', userProfile);
   }
 
   /* 프로필 이미지 presigned URL 요청 */
@@ -466,7 +466,7 @@ export class UsersController {
         editProfileImageDto,
       );
 
-    this.responseService.success(
+    return this.responseService.success(
       res,
       'profileImage presigned url 생성 완료',
       presignedUrl,
@@ -495,7 +495,7 @@ export class UsersController {
 
     await this.usersService.editUserProfile(userId, editUserDto);
 
-    this.responseService.success(res, '프로필 수정 완료');
+    return this.responseService.success(res, '프로필 수정 완료');
   }
 
   /* 로그아웃 */
@@ -506,7 +506,7 @@ export class UsersController {
   @ApiBearerAuth('accessToken')
   async logout(@Res() res: Response) {
     res.clearCookie('authorization');
-    this.responseService.success(res, 'logout 완료');
+    return this.responseService.success(res, 'logout 완료');
   }
 
   /* 회원 탈퇴 */
@@ -527,6 +527,6 @@ export class UsersController {
     await this.usersService.withdrawUser(userId, createWithdrawalReasonDto);
     res.clearCookie('authorization');
     res.clearCookie('refreshToken');
-    this.responseService.success(res, '회원 탈퇴 완료');
+    return this.responseService.success(res, '회원 탈퇴 완료');
   }
 }

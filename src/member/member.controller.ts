@@ -62,7 +62,7 @@ export class MemberController {
       }
 
       if (user.userType !== 'customer') {
-        this.reponseService.unauthorized(
+        return this.reponseService.unauthorized(
           res,
           '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
         );
@@ -110,7 +110,7 @@ export class MemberController {
       parseInt(userId),
     );
 
-    this.reponseService.success(res, '수강생 조회 성공', allMembers);
+    return this.reponseService.success(res, '수강생 조회 성공', allMembers);
   }
 
   /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 */
@@ -148,6 +148,10 @@ export class MemberController {
       instructorUserId,
     );
 
-    this.reponseService.success(res, '수강생 정보 조회 성공', memberInfo);
+    return this.reponseService.success(
+      res,
+      '수강생 정보 조회 성공',
+      memberInfo,
+    );
   }
 }

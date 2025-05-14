@@ -56,7 +56,8 @@
     "swagger-ui-express": "^5.0.0",
     "typeorm": "^0.3.20",
     "uuid": "^10.0.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "winston-cloudwatch": "^6.3.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

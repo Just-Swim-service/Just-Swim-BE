@@ -8,6 +8,7 @@ import {
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
+import { SkipAuth } from './decorator/skip-auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -16,6 +17,7 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  @SkipAuth()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies?.refreshToken;

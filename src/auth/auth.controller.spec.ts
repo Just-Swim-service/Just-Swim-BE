@@ -10,7 +10,7 @@ describe('AuthController - /auth/refresh', () => {
   let usersService: UsersService;
 
   const mockRequest = {
-    cookies: {},
+    headers: {},
   } as any;
 
   const mockResponse = {
@@ -46,7 +46,7 @@ describe('AuthController - /auth/refresh', () => {
   });
 
   it('should throw if no refreshToken in cookies', async () => {
-    mockRequest.cookies = {};
+    mockRequest.headers.cookie = '';
 
     await expect(controller.refresh(mockRequest, mockResponse)).rejects.toThrow(
       UnauthorizedException,
@@ -54,7 +54,7 @@ describe('AuthController - /auth/refresh', () => {
   });
 
   it('should throw if refreshToken is invalid', async () => {
-    mockRequest.cookies = { refreshToken: 'invalid' };
+    mockRequest.headers.cookie = 'refreshToken=invalid';
     (authService.verifyRefreshToken as jest.Mock).mockImplementation(() => {
       throw new UnauthorizedException('유효하지 않은 refreshToken입니다.');
     });
@@ -65,7 +65,7 @@ describe('AuthController - /auth/refresh', () => {
   });
 
   it('should throw if stored refreshToken validation fails', async () => {
-    mockRequest.cookies = { refreshToken: 'validToken' };
+    mockRequest.headers.cookie = 'refreshToken=validToken';
     (authService.verifyRefreshToken as jest.Mock).mockReturnValue({
       userId: 1,
     });
@@ -77,7 +77,7 @@ describe('AuthController - /auth/refresh', () => {
   });
 
   it('should issue new accessToken if refreshToken is valid', async () => {
-    mockRequest.cookies = { refreshToken: 'validToken' };
+    mockRequest.headers.cookie = 'refreshToken=validToken';
     (authService.verifyRefreshToken as jest.Mock).mockReturnValue({
       userId: 1,
     });

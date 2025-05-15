@@ -9,6 +9,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import { SkipAuth } from './decorator/skip-auth.decorator';
+import * as cookie from 'cookie';
 
 @Controller('auth')
 export class AuthController {
@@ -20,7 +21,8 @@ export class AuthController {
   @SkipAuth()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies?.refreshToken;
+    const cookies = cookie.parse(req.headers.cookie || '');
+    const refreshToken = cookies.refreshToken;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token이 없습니다.');
     }

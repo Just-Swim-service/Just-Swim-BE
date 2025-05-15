@@ -15,7 +15,8 @@ const naverSecret = 'NAVER_SECRET';
 const googleId = 'GOOGLE_ID';
 const googleSecret = 'GOOGLE_SECRET';
 // JWT
-const jwtSecret = 'JWT_SECRET';
+const accessTokenSecret = 'ACCESS_TOKEN_SECRET';
+const refreshTokenSecret = 'REFRESH_TOKEN_SECRET';
 // QR
 const serverQrCheckURI = 'SERVER_QR_CHECK_URI';
 // Redirect
@@ -40,7 +41,8 @@ export const envVariables = {
   googleId,
   naverSecret,
   googleSecret,
-  jwtSecret,
+  accessTokenSecret,
+  refreshTokenSecret,
   serverQrCheckURI,
   selectUserTypeRedirectURI,
   selectUserTypeProdRedirectURI,

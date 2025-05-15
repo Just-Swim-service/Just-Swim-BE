@@ -105,6 +105,7 @@ describe('UsersService', () => {
         ...userData,
         birth: null,
         phoneNumber: null,
+        refreshToken: null,
         userCreatedAt: new Date(),
         userUpdatedAt: new Date(),
         userDeletedAt: null,

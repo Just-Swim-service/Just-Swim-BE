@@ -22,6 +22,7 @@ describe('AuthService', () => {
           useValue: {
             findUserByEmail: jest.fn(),
             createUser: jest.fn(),
+            updateRefreshToken: jest.fn(),
           },
         },
         {
@@ -58,6 +59,7 @@ describe('AuthService', () => {
         birth: null,
         profileImage: null,
         phoneNumber: null,
+        refreshToken: null,
         userType: UserType.Customer,
         userCreatedAt: new Date(),
         userUpdatedAt: new Date(),
@@ -92,12 +94,31 @@ describe('AuthService', () => {
     it('userId를 포함하는 token return', async () => {
       const userId = 1;
       const accessToken = 'mocked_access_token';
-      (jwt.sign as jest.Mock).mockReturnValue(accessToken);
+      const refreshToken = 'mocked_refresh_token';
+      (jwt.sign as jest.Mock)
+        .mockReturnValueOnce(accessToken)
+        .mockReturnValueOnce(refreshToken);
 
       const result = await service.getToken(userId);
 
-      expect(result).toEqual(accessToken);
-      expect(jwt.sign).toHaveBeenCalledWith({ userId }, process.env.JWT_SECRET);
+      expect(result).toEqual({ accessToken, refreshToken });
+      expect(jwt.sign).toHaveBeenCalledTimes(2);
+
+      // 첫 번째 호출은 accessToken 생성
+      expect(jwt.sign).toHaveBeenNthCalledWith(
+        1,
+        { userId },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '15m' },
+      );
+
+      // 두 번째 호출은 refreshToken 생성
+      expect(jwt.sign).toHaveBeenNthCalledWith(
+        2,
+        { userId },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: '14d' },
+      );
     });
   });
 
@@ -115,6 +136,7 @@ describe('AuthService', () => {
         ...userData,
         birth: null,
         phoneNumber: null,
+        refreshToken: null,
         userCreatedAt: new Date(),
         userUpdatedAt: new Date(),
         userDeletedAt: null,

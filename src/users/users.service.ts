@@ -15,6 +15,7 @@ import { UserType } from './enum/user-type.enum';
 import slugify from 'slugify';
 import { EditProfileImageDto } from 'src/image/dto/edit-profile-image.dto';
 import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -122,5 +123,27 @@ export class UsersService {
     createWithdrawalReasonDto: CreateWithdrawalReasonDto,
   ): Promise<void> {
     await this.usersRepository.withdrawUser(userId, createWithdrawalReasonDto);
+  }
+
+  /*refreshToken update*/
+  async updateRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<void> {
+    const hashedToken = await bcrypt.hash(refreshToken, 10);
+    await this.usersRepository.updateRefreshToken(userId, hashedToken);
+  }
+
+  /* refreshToken 제거 */
+  async removeRefreshToken(userId: number): Promise<void> {
+    await this.usersRepository.removeRefreshToken(userId);
+  }
+
+  /* validateRefreshToken */
+  async validateRefreshToken(userId: number, token: string): Promise<boolean> {
+    const user = await this.usersRepository.findUserByPk(userId);
+    if (!user?.refreshToken) return false;
+
+    return await bcrypt.compare(token, user.refreshToken);
   }
 }

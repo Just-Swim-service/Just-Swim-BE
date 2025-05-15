@@ -68,6 +68,11 @@ export class AuthGuard implements CanActivate {
     } catch (error) {
       this.logger.error(error);
       response.clearCookie('authorization');
+      response.clearCookie('refreshToken');
+
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('accessToken이 만료되었습니다.');
+      }
       throw new UnauthorizedException('토큰이 유효하지 않습니다.');
     }
   }

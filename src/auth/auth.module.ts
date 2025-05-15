@@ -10,6 +10,7 @@ import { LoggerModule } from 'src/common/logger/logger.module';
 import { MyLogger } from 'src/common/logger/logger.service';
 import { AuthGuard } from './guard/auth.guard';
 import { RedirectAuthGuard } from './guard/redirect-auth.guard';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RedirectAuthGuard } from './guard/redirect-auth.guard';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     LoggerModule,
   ],
+  controllers: [AuthController],
   providers: [
     AuthService,
     KakaoStrategy,

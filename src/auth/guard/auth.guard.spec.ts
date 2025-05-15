@@ -100,14 +100,17 @@ describe('AuthGuard', () => {
     mockRequest.headers = { authorization: 'Bearer invalidtoken' };
     jwtService.verifyAsync = jest
       .fn()
-      .mockRejectedValue(new Error('Invalid token'));
+      .mockRejectedValue(new Error('JsonWebTokenError'));
+
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,
     );
+
     expect(mockResponse.clearCookie).toHaveBeenCalledWith('authorization');
+    expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken');
   });
 
-  it('should throw UnauthorizedException if user not found (wrapped)', async () => {
+  it('should throw NotFoundException if user not found', async () => {
     mockRequest.headers = { authorization: 'Bearer validtoken' };
     jwtService.verifyAsync = jest.fn().mockResolvedValue({ userId: 1 });
     usersService.findUserByPk = jest.fn().mockResolvedValue(null);

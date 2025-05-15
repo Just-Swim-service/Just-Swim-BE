@@ -3,13 +3,14 @@ import { UserType } from 'src/users/enum/user-type.enum';
 
 export const mockUser: Users = {
   userId: 1,
+  userType: UserType.Customer,
   email: 'test@example.com',
   provider: 'kakao',
   name: '홍길동',
   birth: null,
   profileImage: 'old_profile_image_url',
   phoneNumber: null,
-  userType: UserType.Customer,
+  refreshToken: null,
   userCreatedAt: new Date(),
   userUpdatedAt: new Date(),
   userDeletedAt: null,

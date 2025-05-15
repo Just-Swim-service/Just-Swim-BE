@@ -79,4 +79,14 @@ export class UsersRepository {
       },
     );
   }
+
+  /* user refreshToken 심기 */
+  async updateRefreshToken(userId: number, hashedToken: string): Promise<void> {
+    await this.usersRepository.update(userId, { refreshToken: hashedToken });
+  }
+
+  /* user refreshToken 제거 */
+  async removeRefreshToken(userId: number) {
+    await this.usersRepository.update(userId, { refreshToken: null });
+  }
 }

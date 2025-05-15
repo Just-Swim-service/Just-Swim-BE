@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Users } from 'src/users/entity/users.entity';
 import { UsersService } from 'src/users/users.service';
 import * as jwt from 'jsonwebtoken';
@@ -20,17 +20,38 @@ export class AuthService {
   /* token */
   async getToken(
     userId: number,
-  ): Promise<string /* { accessToken: string; refreshToken: string } */> {
-    const tokenExpiry: number = 3600;
-    const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET);
-    // const refreshToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    //   expiresIn: tokenExpiry * 24 * 14,
-    // });
-    return accessToken;
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '15m',
+    });
+    const refreshToken = jwt.sign(
+      { userId },
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: '14d',
+      },
+    );
+    await this.usersService.updateRefreshToken(userId, refreshToken);
+
+    return { accessToken, refreshToken };
   }
 
   /* user 생성 */
   async createUser(userData: CreateUsersDto): Promise<Users> {
     return await this.usersService.createUser(userData);
+  }
+
+  async verifyRefreshToken(refreshToken: string): Promise<{ userId: number }> {
+    try {
+      const payload = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+      ) as {
+        userId: number;
+      };
+      return payload;
+    } catch (error) {
+      throw new UnauthorizedException('refreshToken이 유효하지 않습니다.');
+    }
   }
 }

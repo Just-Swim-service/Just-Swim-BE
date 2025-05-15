@@ -85,15 +85,26 @@ export class UsersController {
     let cleanedNumber: string = phone_number.replace(/\D/g, '');
     let phoneNumber: string = `010-${cleanedNumber.substring(4, 8)}-${cleanedNumber.substring(8, 13)}`;
 
-    const host = req.headers.host;
-
     const exUser = await this.authService.validateUser(email, provider);
     // user가 존재할 경우 로그인 시도
     if (exUser) {
       // userType을 선택하지 않았을 경우
       if (exUser.userType === null) {
-        const token = await this.authService.getToken(exUser.userId);
-        res.cookie('authorization', token, {
+        const { accessToken, refreshToken } = await this.authService.getToken(
+          exUser.userId,
+        );
+        // accessToken 저장
+        res.cookie('authorization', accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        });
+
+        // refreshToken 저장
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
@@ -110,8 +121,21 @@ export class UsersController {
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
-        const token = await this.authService.getToken(exUser.userId);
-        res.cookie('authorization', token, {
+        const { accessToken, refreshToken } = await this.authService.getToken(
+          exUser.userId,
+        );
+        // accessToken 저장
+        res.cookie('authorization', accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        });
+
+        // refreshToken 저장
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
@@ -137,9 +161,21 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      const token = await this.authService.getToken(newUser.userId);
-      // const { accessToken, refreshToken } = token;
-      res.cookie('authorization', token, {
+      const { accessToken, refreshToken } = await this.authService.getToken(
+        exUser.userId,
+      );
+      // accessToken 저장
+      res.cookie('authorization', accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+        maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+      });
+
+      // refreshToken 저장
+      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
@@ -195,9 +231,21 @@ export class UsersController {
     if (exUser) {
       // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
-        const token = await this.authService.getToken(exUser.userId);
-        // const { accessToken, refreshToken } = token;
-        res.cookie('authorization', token, {
+        const { accessToken, refreshToken } = await this.authService.getToken(
+          exUser.userId,
+        );
+        // accessToken 저장
+        res.cookie('authorization', accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        });
+
+        // refreshToken 저장
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
@@ -214,9 +262,21 @@ export class UsersController {
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
-        const token = await this.authService.getToken(exUser.userId);
-        // const { accessToken, refreshToken } = token;
-        res.cookie('authorization', token, {
+        const { accessToken, refreshToken } = await this.authService.getToken(
+          exUser.userId,
+        );
+        // accessToken 저장
+        res.cookie('authorization', accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        });
+
+        // refreshToken 저장
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
@@ -241,9 +301,21 @@ export class UsersController {
         phoneNumber,
       };
       const newUser = await this.authService.createUser(newUserData);
-      const token = await this.authService.getToken(newUser.userId);
-      // const { accessToken, refreshToken } = token;
-      res.cookie('authorization', token, {
+      const { accessToken, refreshToken } = await this.authService.getToken(
+        exUser.userId,
+      );
+      // accessToken 저장
+      res.cookie('authorization', accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+        maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+      });
+
+      // refreshToken 저장
+      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
@@ -293,9 +365,21 @@ export class UsersController {
     if (exUser) {
       // userType 지정되어 있지 않을 경우 userType을 선택하는 곳으로 redirect
       if (exUser.userType === null) {
-        const token = await this.authService.getToken(exUser.userId);
-        // const { accessToken, refreshToken } = token;
-        res.cookie('authorization', token, {
+        const { accessToken, refreshToken } = await this.authService.getToken(
+          exUser.userId,
+        );
+        // accessToken 저장
+        res.cookie('authorization', accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        });
+
+        // refreshToken 저장
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
@@ -312,9 +396,21 @@ export class UsersController {
       }
       // userType 지정되어 있을 경우 Home으로 redirect
       if (exUser.userType !== null) {
-        const token = await this.authService.getToken(exUser.userId);
-        // const { accessToken, refreshToken } = token;
-        res.cookie('authorization', token, {
+        const { accessToken, refreshToken } = await this.authService.getToken(
+          exUser.userId,
+        );
+        // accessToken 저장
+        res.cookie('authorization', accessToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          domain: '.just-swim.kr',
+          path: '/',
+          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        });
+
+        // refreshToken 저장
+        res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'none',
@@ -338,9 +434,21 @@ export class UsersController {
         provider,
       };
       const newUser = await this.authService.createUser(newUserData);
-      const token = await this.authService.getToken(newUser.userId);
-      // const { accessToken, refreshToken } = token;
-      res.cookie('authorization', token, {
+      const { accessToken, refreshToken } = await this.authService.getToken(
+        exUser.userId,
+      );
+      // accessToken 저장
+      res.cookie('authorization', accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+        maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+      });
+
+      // refreshToken 저장
+      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',

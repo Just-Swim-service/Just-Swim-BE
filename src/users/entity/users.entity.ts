@@ -42,6 +42,9 @@ export class Users {
   @Column({ type: 'varchar', nullable: true })
   phoneNumber: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  refreshToken: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   userCreatedAt: Date;
 

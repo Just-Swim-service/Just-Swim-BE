@@ -37,7 +37,7 @@ export class RedirectAuthGuard implements CanActivate {
 
     try {
       const { userId } = await this.jwtService.verifyAsync(tokenValue, {
-        secret: this.configService.get<string>(envVariables.jwtSecret),
+        secret: this.configService.get<string>(envVariables.accessTokenSecret),
       });
 
       const user = await this.usersService.findUserByPk(userId);

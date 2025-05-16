@@ -19,14 +19,22 @@ export class RedirectAuthGuard implements CanActivate {
     const res = context.switchToHttp().getResponse();
 
     const authorizationCookies = req.cookies.authorization;
+    const refreshToken = req.cookies.refreshToken;
     const authorizationHeaders = req.headers.authorization;
     const authorization = authorizationCookies
       ? `Bearer ` + authorizationCookies
       : authorizationHeaders;
 
     if (!authorization) {
-      res.redirect(process.env.SINGIN_REDIRECT_URI);
-      return false;
+      // ❗ accessToken 없고 → refreshToken도 없으면 → 로그인 리다이렉트
+      if (!refreshToken) {
+        res.redirect(process.env.SINGIN_REDIRECT_URI);
+        return false;
+      } else {
+        // refreshToken은 있음 → refresh 페이지로 redirect (선택적)
+        res.redirect(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`);
+        return false;
+      }
     }
 
     const [tokenType, tokenValue] = authorization.split(' ');
@@ -51,6 +59,12 @@ export class RedirectAuthGuard implements CanActivate {
       return true;
     } catch (error) {
       this.logger.error(error);
+
+      if (refreshToken) {
+        res.redirect(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`);
+        return false;
+      }
+
       res.clearCookie('authorization');
       res.redirect(process.env.SINGIN_REDIRECT_URI);
       return false;

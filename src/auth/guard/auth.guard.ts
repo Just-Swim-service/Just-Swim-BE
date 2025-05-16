@@ -34,6 +34,7 @@ export class AuthGuard implements CanActivate {
     if (skipAuth) {
       return true;
     }
+    console.log(request.cookies, request.headers);
 
     const authorizationCookies = request.cookies.authorization;
     const authorizationHeaders = request.headers.authorization;

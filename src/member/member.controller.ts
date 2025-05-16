@@ -51,14 +51,15 @@ export class MemberController {
     try {
       const user = res.locals.user;
 
-      // user 정보가 없을 경우 가입 경로로 redirect
       if (!user) {
-        return res.redirect(process.env.SINGIN_REDIRECT_URI);
+        return this.reponseService.unauthorized(res, '로그인 후 사용해주세요.');
       }
 
-      // userType이 null 일 경우 userType 지정으로 redirect
       if (user.userType === null) {
-        return res.redirect(process.env.SELECT_USERTYPE_REDIRECT_URI);
+        return this.reponseService.unauthorized(
+          res,
+          'userType 선택 후 사용해주세요.',
+        );
       }
 
       if (user.userType !== 'customer') {
@@ -76,7 +77,10 @@ export class MemberController {
         return res.redirect(process.env.HOME_REDIRECT_URI);
       }
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).redirect('/error');
+      return this.reponseService.internalServerError(
+        res,
+        '회원 등록 중 오류 발생',
+      );
     }
   }
 

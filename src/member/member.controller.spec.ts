@@ -91,8 +91,9 @@ describe('MemberController', () => {
 
       await controller.insertMemberFromQR(1, res as Response);
 
-      expect(redirectMock).toHaveBeenCalledWith(
-        process.env.SINGIN_REDIRECT_URI,
+      expect(responseService.unauthorized).toHaveBeenCalledWith(
+        res,
+        '로그인 후 사용해주세요.',
       );
     });
 
@@ -108,8 +109,9 @@ describe('MemberController', () => {
       };
 
       await controller.insertMemberFromQR(1, res as Response);
-      expect(res.redirect).toHaveBeenCalledWith(
-        process.env.SELECT_USERTYPE_REDIRECT_URI,
+      expect(responseService.unauthorized).toHaveBeenCalledWith(
+        res,
+        'userType 선택 후 사용해주세요.',
       );
     });
 
@@ -148,26 +150,21 @@ describe('MemberController', () => {
       expect(res.redirect).toHaveBeenCalledWith(process.env.HOME_REDIRECT_URI);
     });
 
-    it('에러 발생 시 500 상태코드와 /error로 리디렉션', async () => {
-      const res: Partial<Response> = {
-        locals: {
-          user: {
-            userId: 1,
-            userType: 'customer',
-          },
-        },
-        status: jest.fn().mockReturnThis(),
-        redirect: jest.fn(),
-      };
+    it('에러 발생 시 internalServerError 호출', async () => {
+      const res = {
+        locals: { user: { userId: 1, userType: 'customer' } },
+      } as Partial<Response> as Response;
 
       memberService.insertMemberFromQR.mockRejectedValue(
         new Error('Test Error'),
       );
 
-      await controller.insertMemberFromQR(1, res as Response);
+      await controller.insertMemberFromQR(1, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.redirect).toHaveBeenCalledWith('/error');
+      expect(responseService.internalServerError).toHaveBeenCalledWith(
+        res,
+        '회원 등록 중 오류 발생',
+      );
     });
   });
 

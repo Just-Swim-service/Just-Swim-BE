@@ -36,7 +36,7 @@ describe('MemberService', () => {
 
   describe('insertMemberFromQR', () => {
     it('QR을 통해 수강생으로 등록', async () => {
-      const result = await service.insertMemberFromQR(1, 1);
+      const result = await service.insertMemberFromQR(1, 'nickname', 1);
       expect(result).toEqual(mockMember);
     });
   });

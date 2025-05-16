@@ -72,6 +72,7 @@ export class MemberController {
       if (user.userType === 'customer') {
         await this.memberService.insertMemberFromQR(
           parseInt(user.userId),
+          user.name,
           lectureId,
         );
         return res.redirect(process.env.HOME_REDIRECT_URI);

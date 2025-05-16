@@ -138,6 +138,7 @@ describe('MemberController', () => {
         locals: {
           user: {
             userId: 1,
+            name: 'nickname',
             userType: 'customer',
           },
         },
@@ -146,7 +147,11 @@ describe('MemberController', () => {
 
       await controller.insertMemberFromQR(1, res as Response);
 
-      expect(memberService.insertMemberFromQR).toHaveBeenCalledWith(1, 1);
+      expect(memberService.insertMemberFromQR).toHaveBeenCalledWith(
+        1,
+        'nickname',
+        1,
+      );
       expect(res.redirect).toHaveBeenCalledWith(process.env.HOME_REDIRECT_URI);
     });
 

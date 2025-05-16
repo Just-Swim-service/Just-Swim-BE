@@ -11,7 +11,11 @@ export class MemberRepository {
   ) {}
 
   /* QR코드를 통한 회원 등록 */
-  async insertMemberFromQR(userId: number, lectureId: number): Promise<Member> {
+  async insertMemberFromQR(
+    userId: number,
+    name: string,
+    lectureId: number,
+  ): Promise<Member> {
     return await this.memberRepository.manager.transaction(
       async (entityManager: EntityManager) => {
         const exsitingMember = await entityManager.findOne(Member, {
@@ -28,6 +32,7 @@ export class MemberRepository {
 
         const newMember = entityManager.create(Member, {
           user: { userId },
+          memberNickname: name,
           lecture: { lectureId },
         });
 

@@ -13,9 +13,14 @@ export class MemberService {
   constructor(private readonly memberRepository: MemberRepository) {}
 
   /* QR코드를 통한 회원 등록 */
-  async insertMemberFromQR(userId: number, lectureId: number): Promise<Member> {
+  async insertMemberFromQR(
+    userId: number,
+    name: string,
+    lectureId: number,
+  ): Promise<Member> {
     const result = await this.memberRepository.insertMemberFromQR(
       userId,
+      name,
       lectureId,
     );
     if (!result) {

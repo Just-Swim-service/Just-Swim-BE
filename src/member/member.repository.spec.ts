@@ -41,7 +41,7 @@ describe('MemberRepository', () => {
 
     repo.manager.transaction = mockTransaction;
 
-    const result = await memberRepository.insertMemberFromQR(1, 10);
+    const result = await memberRepository.insertMemberFromQR(1, 'nickname', 10);
     expect(result).toEqual({ memberId: 1 });
     expect(mockTransaction).toHaveBeenCalled();
   });

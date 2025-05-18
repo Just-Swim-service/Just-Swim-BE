@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entity/member.entity';
 import { EntityManager, Repository } from 'typeorm';
@@ -27,7 +27,7 @@ export class MemberRepository {
         });
 
         if (exsitingMember) {
-          throw new BadRequestException('중복된 수강생 정보가 있습니다.');
+          throw new ConflictException('이미 등록된 수업입니다.');
         }
 
         const newMember = entityManager.create(Member, {

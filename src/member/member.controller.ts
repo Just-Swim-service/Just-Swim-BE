@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   UseGuards,
+  ConflictException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -29,7 +30,7 @@ export class MemberController {
   constructor(
     private readonly memberService: MemberService,
     private readonly usersService: UsersService,
-    private readonly reponseService: ResponseService,
+    private readonly responseService: ResponseService,
   ) {}
 
   /* QR코드를 통한 회원 등록 */
@@ -52,18 +53,21 @@ export class MemberController {
       const user = res.locals.user;
 
       if (!user) {
-        return this.reponseService.unauthorized(res, '로그인 후 사용해주세요.');
+        return this.responseService.unauthorized(
+          res,
+          '로그인 후 사용해주세요.',
+        );
       }
 
       if (user.userType === null) {
-        return this.reponseService.unauthorized(
+        return this.responseService.unauthorized(
           res,
           'userType 선택 후 사용해주세요.',
         );
       }
 
       if (user.userType !== 'customer') {
-        return this.reponseService.unauthorized(
+        return this.responseService.unauthorized(
           res,
           '수강생으로 가입하지 않을 경우 수강에 제한이 있습니다.',
         );
@@ -75,10 +79,13 @@ export class MemberController {
           user.name,
           lectureId,
         );
-        return res.redirect(process.env.HOME_REDIRECT_URI);
+        return this.responseService.success(res, '회원 등록 완료');
       }
     } catch (error) {
-      return this.reponseService.internalServerError(
+      if (error instanceof ConflictException) {
+        return this.responseService.conflict(res, error.message);
+      }
+      return this.responseService.internalServerError(
         res,
         '회원 등록 중 오류 발생',
       );
@@ -105,7 +112,7 @@ export class MemberController {
   async getAllMembersByFeedback(@Res() res: Response) {
     const { userId, userType } = res.locals.user;
     if (userType !== 'instructor') {
-      return this.reponseService.unauthorized(
+      return this.responseService.unauthorized(
         res,
         '수강생 조회 권한이 없습니다.',
       );
@@ -115,7 +122,7 @@ export class MemberController {
       parseInt(userId),
     );
 
-    return this.reponseService.success(res, '수강생 조회 성공', allMembers);
+    return this.responseService.success(res, '수강생 조회 성공', allMembers);
   }
 
   /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 */
@@ -153,7 +160,7 @@ export class MemberController {
       instructorUserId,
     );
 
-    return this.reponseService.success(
+    return this.responseService.success(
       res,
       '수강생 정보 조회 성공',
       memberInfo,

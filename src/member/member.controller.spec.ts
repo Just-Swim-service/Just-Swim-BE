@@ -152,7 +152,10 @@ describe('MemberController', () => {
         'nickname',
         1,
       );
-      expect(res.redirect).toHaveBeenCalledWith(process.env.HOME_REDIRECT_URI);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '회원 등록 완료',
+      );
     });
 
     it('에러 발생 시 internalServerError 호출', async () => {

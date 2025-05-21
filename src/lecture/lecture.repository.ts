@@ -34,6 +34,7 @@ export class LectureRepository {
         'lecture.lectureColor as lectureColor',
         'lecture.lectureQRCode as lectureQRCode',
         'lecture.lectureEndDate as lectureEndDate',
+        'lecture.lectureCreatedAt as lectureCreatedAt',
         'user.userId as memberUserId',
         'user.name as memberName',
         'user.profileImage as memberProfileImage',
@@ -90,6 +91,7 @@ export class LectureRepository {
         'lecture.lectureColor as lectureColor',
         'lecture.lectureQRCode as lectureQRCode',
         'lecture.lectureEndDate as lectureEndDate',
+        'lecture.lectureCreatedAt as lectureCreatedAt',
         'instructor.name as name',
         'instructor.profileImage as profileImage',
       ])

@@ -4,11 +4,7 @@ import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
 import { MemberRepository } from 'src/member/member.repository';
 import { AwsService } from 'src/common/aws/aws.service';
-import {
-  ForbiddenException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import {
   mockMember,
@@ -91,6 +87,7 @@ describe('LectureService', () => {
           lectureColor: mockLecture.lectureColor,
           lectureQRCode: mockLecture.lectureQRCode,
           lectureEndDate: mockLecture.lectureEndDate,
+          lectureCreatedAt: mockLecture.lectureCreatedAt,
           members: [],
         }),
       ]);
@@ -143,6 +140,7 @@ describe('LectureService', () => {
           lectureColor: mockLecture.lectureColor,
           lectureQRCode: mockLecture.lectureQRCode,
           lectureEndDate: mockLecture.lectureEndDate,
+          lectureCreatedAt: mockLecture.lectureCreatedAt,
           instructor: {
             instructorName: undefined,
             instructorProfileImage: undefined,

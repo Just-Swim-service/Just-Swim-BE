@@ -50,6 +50,7 @@ export class LectureService {
           lectureColor: lecture.lectureColor,
           lectureQRCode: lecture.lectureQRCode,
           lectureEndDate: lecture.lectureEndDate,
+          lectureCreatedAt: lecture.lectureCreatedAt,
           members: [], // 멤버 초기화
         };
         acc.push(existingLecture); // 새로운 강의 추가
@@ -146,6 +147,7 @@ export class LectureService {
       lectureColor: lecture.lectureColor,
       lectureQRCode: lecture.lectureQRCode,
       lectureEndDate: lecture.lectureEndDate,
+      lectureCreatedAt: lecture.lectureCreatedAt,
       instructor: {
         instructorName: lecture.name,
         instructorProfileImage: lecture.profileImage,

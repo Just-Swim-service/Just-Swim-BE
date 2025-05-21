@@ -8,4 +8,5 @@ export class LectureInfoDto {
   lectureColor: string;
   lectureQRCode: string;
   lectureEndDate: string;
+  lectureCreatedAt?: string;
 }

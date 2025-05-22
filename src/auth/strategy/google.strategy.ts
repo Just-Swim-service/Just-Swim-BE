@@ -19,7 +19,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: any,
   ) {
-    console.log(profile);
-    return profile;
+    console.log('[GoogleStrategy] 받은 프로필:', profile);
+    done(null, profile);
   }
 }

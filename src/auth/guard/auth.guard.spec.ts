@@ -120,5 +120,6 @@ describe('AuthGuard', () => {
 
     expect(result).toBe(true);
     expect(mockRequest.user).toEqual(mockUser);
+    expect(mockResponse.locals.user).toEqual(mockUser);
   });
 });

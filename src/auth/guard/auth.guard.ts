@@ -24,6 +24,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    const response = context.switchToHttp().getResponse();
 
     const skipAuth = this.reflector.get<boolean>(
       'skipAuth',
@@ -55,6 +56,7 @@ export class AuthGuard implements CanActivate {
       }
 
       request.user = user;
+      response.locals.user = user;
       return true;
     } catch (error) {
       this.logger.error('AuthGuard error', error);

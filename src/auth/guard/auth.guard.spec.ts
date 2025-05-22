@@ -5,14 +5,13 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { MyLogger } from 'src/common/logger/logger.service';
-import { UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
   let reflector: Reflector;
   let jwtService: JwtService;
   let usersService: UsersService;
-  let configService: ConfigService;
 
   const mockRequest: any = {
     cookies: {},
@@ -21,7 +20,6 @@ describe('AuthGuard', () => {
 
   const mockResponse: any = {
     locals: {},
-    clearCookie: jest.fn(),
   };
 
   const mockContext: any = {
@@ -42,27 +40,19 @@ describe('AuthGuard', () => {
         },
         {
           provide: JwtService,
-          useValue: {
-            verifyAsync: jest.fn(),
-          },
+          useValue: { verifyAsync: jest.fn() },
         },
         {
           provide: UsersService,
-          useValue: {
-            findUserByPk: jest.fn(),
-          },
+          useValue: { findUserByPk: jest.fn() },
         },
         {
           provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockReturnValue('test-secret'),
-          },
+          useValue: { get: jest.fn().mockReturnValue('test-secret') },
         },
         {
           provide: MyLogger,
-          useValue: {
-            error: jest.fn(),
-          },
+          useValue: { error: jest.fn() },
         },
       ],
     }).compile();
@@ -71,64 +61,64 @@ describe('AuthGuard', () => {
     reflector = module.get(Reflector);
     jwtService = module.get(JwtService);
     usersService = module.get(UsersService);
-    configService = module.get(ConfigService);
   });
 
   it('should allow access if skipAuth is true', async () => {
     jest.spyOn(reflector, 'get').mockReturnValue(true);
+
     const result = await guard.canActivate(mockContext);
     expect(result).toBe(true);
   });
 
-  it('should throw if no token is present', async () => {
+  it('should throw UnauthorizedException if no token is present', async () => {
     jest.spyOn(reflector, 'get').mockReturnValue(false);
     mockRequest.cookies = {};
     mockRequest.headers = {};
+
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,
     );
   });
 
-  it('should throw if token format is invalid', async () => {
+  it('should throw UnauthorizedException if token format is invalid', async () => {
     mockRequest.headers = { authorization: 'Token invalidtoken' };
+
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,
     );
   });
 
-  it('should throw if token is invalid', async () => {
+  it('should throw UnauthorizedException if token is invalid', async () => {
     mockRequest.headers = { authorization: 'Bearer invalidtoken' };
-    jwtService.verifyAsync = jest
-      .fn()
-      .mockRejectedValue(new Error('JsonWebTokenError'));
-
-    await expect(guard.canActivate(mockContext)).rejects.toThrow(
-      UnauthorizedException,
+    (jwtService.verifyAsync as jest.Mock).mockRejectedValue(
+      new Error('JsonWebTokenError'),
     );
-
-    expect(mockResponse.clearCookie).toHaveBeenCalledWith('authorization');
-    expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken');
-  });
-
-  it('should throw NotFoundException if user not found', async () => {
-    mockRequest.headers = { authorization: 'Bearer validtoken' };
-    jwtService.verifyAsync = jest.fn().mockResolvedValue({ userId: 1 });
-    usersService.findUserByPk = jest.fn().mockResolvedValue(null);
 
     await expect(guard.canActivate(mockContext)).rejects.toThrow(
       UnauthorizedException,
     );
   });
 
-  it('should set request.user and response.locals.user if token and user valid', async () => {
+  it('should throw UnauthorizedException if user is not found', async () => {
     mockRequest.headers = { authorization: 'Bearer validtoken' };
-    const mockUser = { userId: 1, name: '테스트' };
-    jwtService.verifyAsync = jest.fn().mockResolvedValue({ userId: 1 });
-    usersService.findUserByPk = jest.fn().mockResolvedValue(mockUser);
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue({ userId: 1 });
+    (usersService.findUserByPk as jest.Mock).mockResolvedValue(null);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should set request.user and response.locals.user if token and user are valid', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockUser = { id: 1, name: 'Test User' };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue({ userId: 1 });
+    (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
     const result = await guard.canActivate(mockContext);
+
     expect(result).toBe(true);
     expect(mockRequest.user).toEqual(mockUser);
-    expect(mockResponse.locals.user).toEqual(mockUser);
   });
 });

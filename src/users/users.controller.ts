@@ -435,7 +435,7 @@ export class UsersController {
       };
       const newUser = await this.authService.createUser(newUserData);
       const { accessToken, refreshToken } = await this.authService.getToken(
-        exUser.userId,
+        newUser.userId,
       );
       // accessToken 저장
       res.cookie('authorization', accessToken, {

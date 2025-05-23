@@ -321,7 +321,8 @@ export class UsersController {
     description:
       'google 소셜 로그인 - 서버 주소에 엔드포인트를 붙이시면 사용 가능합니다.',
   })
-  async googleLogin(): Promise<void> {
+  async googleLogin(@Req() req: Request): Promise<void> {
+    console.log('🟡 [Google Login 요청] req.url:', req.url);
     return;
   }
 
@@ -336,6 +337,9 @@ export class UsersController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
+    console.log('🟢 [Google Callback 요청 도착]');
+    console.log('📦 req.query:', req.query); // 👈 핵심!
+    console.log('📦 req.user:', req.user);
     let profile: any = req.user;
     let provider: string = profile.provider;
     let name: string = profile._json.name;

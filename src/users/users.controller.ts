@@ -321,9 +321,17 @@ export class UsersController {
     description:
       'google 소셜 로그인 - 서버 주소에 엔드포인트를 붙이시면 사용 가능합니다.',
   })
-  async googleLogin(@Req() req: Request): Promise<void> {
-    console.log('🟡 [Google Login 요청] req.url:', req.url);
-    return;
+  async googleLogin(@Res() res: Response): Promise<void> {
+    const redirectUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${process.env.GOOGLE_ID}` +
+      `&redirect_uri=${encodeURIComponent(process.env.GOOGLE_CALLBACK_URL)}` +
+      `&response_type=code` +
+      `&scope=profile email` +
+      `&access_type=offline` +
+      `&prompt=consent`;
+
+    res.redirect(redirectUrl);
   }
 
   @SkipAuth()

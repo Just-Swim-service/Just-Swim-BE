@@ -152,7 +152,7 @@ export class UsersController {
       };
       const newUser = await this.authService.createUser(newUserData);
       const { accessToken, refreshToken } = await this.authService.getToken(
-        exUser.userId,
+        newUser.userId,
       );
       // accessToken 저장
       res.cookie('authorization', accessToken, {
@@ -284,7 +284,7 @@ export class UsersController {
       };
       const newUser = await this.authService.createUser(newUserData);
       const { accessToken, refreshToken } = await this.authService.getToken(
-        exUser.userId,
+        newUser.userId,
       );
       // accessToken 저장
       res.cookie('authorization', accessToken, {
@@ -322,16 +322,7 @@ export class UsersController {
       'google 소셜 로그인 - 서버 주소에 엔드포인트를 붙이시면 사용 가능합니다.',
   })
   async googleLogin(@Res() res: Response): Promise<void> {
-    const redirectUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${process.env.GOOGLE_ID}` +
-      `&redirect_uri=${encodeURIComponent(process.env.GOOGLE_CALLBACK_URL)}` +
-      `&response_type=code` +
-      `&scope=profile email` +
-      `&access_type=offline` +
-      `&prompt=consent`;
-
-    res.redirect(redirectUrl);
+    return;
   }
 
   @SkipAuth()
@@ -345,9 +336,6 @@ export class UsersController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    console.log('🟢 [Google Callback 요청 도착]');
-    console.log('📦 req.query:', req.query); // 👈 핵심!
-    console.log('📦 req.user:', req.user);
     let profile: any = req.user;
     let provider: string = profile.provider;
     let name: string = profile._json.name;

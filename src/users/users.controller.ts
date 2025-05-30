@@ -92,7 +92,7 @@ export class UsersController {
           sameSite: 'none',
           domain: '.just-swim.kr',
           path: '/',
-          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+          maxAge: 1000 * 60 * 60 * 2,
         });
 
         // refreshToken 저장
@@ -123,7 +123,7 @@ export class UsersController {
           sameSite: 'none',
           domain: '.just-swim.kr',
           path: '/',
-          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+          maxAge: 1000 * 60 * 60 * 2,
         });
 
         // refreshToken 저장
@@ -225,7 +225,7 @@ export class UsersController {
           sameSite: 'none',
           domain: '.just-swim.kr',
           path: '/',
-          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+          maxAge: 1000 * 60 * 60 * 2,
         });
 
         // refreshToken 저장
@@ -256,7 +256,7 @@ export class UsersController {
           sameSite: 'none',
           domain: '.just-swim.kr',
           path: '/',
-          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+          maxAge: 1000 * 60 * 60 * 2,
         });
 
         // refreshToken 저장
@@ -293,7 +293,7 @@ export class UsersController {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        maxAge: 1000 * 60 * 60 * 2,
       });
 
       // refreshToken 저장
@@ -357,7 +357,7 @@ export class UsersController {
           sameSite: 'none',
           domain: '.just-swim.kr',
           path: '/',
-          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+          maxAge: 1000 * 60 * 60 * 2,
         });
 
         // refreshToken 저장
@@ -388,7 +388,7 @@ export class UsersController {
           sameSite: 'none',
           domain: '.just-swim.kr',
           path: '/',
-          maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+          maxAge: 1000 * 60 * 60 * 2,
         });
 
         // refreshToken 저장
@@ -426,7 +426,7 @@ export class UsersController {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 1000 * 60 * 15, // 15분 (accessToken 짧게)
+        maxAge: 1000 * 60 * 60 * 2,
       });
 
       // refreshToken 저장

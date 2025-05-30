@@ -11,15 +11,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: process.env.GOOGLE_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
       scope: ['email', 'profile'],
-
-      authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
-      tokenURL: 'https://oauth2.googleapis.com/token',
-      userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
-
-      accessType: 'offline',
-      prompt: 'consent',
-      includeGrantedScopes: true,
-      passReqToCallback: false,
     });
   }
   async validate(

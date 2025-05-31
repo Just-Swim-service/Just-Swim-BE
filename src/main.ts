@@ -13,12 +13,22 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
+  const allowedOrigins = [
+    'https://just-swim.kr',
+    'https://www.just-swim.kr',
+    'http://localhost:3000',
+  ];
+
   app.enableCors({
-    origin: [
-      'https://just-swim.kr',
-      'https://www.just-swim.kr',
-      'http://localhost:3000',
-    ],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, origin);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     optionsSuccessStatus: 204,

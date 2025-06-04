@@ -10,7 +10,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
-      scope: ['email', 'profile'],
+      scope: ['openid', 'email', 'profile'],
     });
   }
   async validate(
@@ -19,7 +19,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback,
   ) {
-    console.log('[GoogleStrategy] 받은 프로필:', profile);
-    done(null, profile);
+    return profile;
   }
 }

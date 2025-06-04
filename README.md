@@ -106,6 +106,8 @@
 
 ## :pushpin: 아키텍처
 
+![Architecture](https://github.com/user-attachments/assets/04e1a786-8378-4d86-b4b0-34bac489349d)
+
 ## :bank: ERD
 
-![just-swim ERD](https://file.notion.so/f/f/aa8571ff-db5c-4c63-a227-0bac038f37bc/2c0cd728-7bb0-42a0-b2f7-1f2e67f67a2a/drawSQL-image-export-2024-04-22.png?table=block&id=a196341e-b2e8-4d5d-83c4-5b2cbd316cf7&spaceId=aa8571ff-db5c-4c63-a227-0bac038f37bc&expirationTimestamp=1735776000000&signature=tkZQvuQbqLVv0mlZWAwleMiBkp2Sb9V7qCMrkVqntqI&downloadName=drawSQL-image-export-2024-04-22.png)
+![ERD](https://github.com/user-attachments/assets/1715a127-8760-4368-9265-5b3365604a41)

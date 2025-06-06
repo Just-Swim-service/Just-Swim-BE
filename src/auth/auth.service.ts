@@ -3,6 +3,7 @@ import { Users } from 'src/users/entity/users.entity';
 import { UsersService } from 'src/users/users.service';
 import * as jwt from 'jsonwebtoken';
 import { CreateUsersDto } from 'src/users/dto/create-users.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -46,11 +47,21 @@ export class AuthService {
       const payload = jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
-      ) as {
-        userId: number;
-      };
+      ) as { userId: number };
+
+      const user = await this.usersService.findUserByPk(payload.userId);
+      if (!user) {
+        throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
+      }
+
+      const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
+      if (!isMatch) {
+        throw new UnauthorizedException('refreshToken이 유효하지 않습니다.');
+      }
+
       return payload;
     } catch (error) {
+      console.error('Refresh token 검증 실패:', error);
       throw new UnauthorizedException('refreshToken이 유효하지 않습니다.');
     }
   }

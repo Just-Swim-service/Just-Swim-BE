@@ -5,21 +5,33 @@ import {
   mockImage,
   MockImageRepository,
 } from 'src/common/mocks/mock-image.repository';
+import { AwsService } from 'src/common/aws/aws.service';
 
 describe('ImageService', () => {
   let service: ImageService;
   let repository: ImageRepository;
+  let awsService: AwsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImageService,
         { provide: ImageRepository, useValue: MockImageRepository },
+        {
+          provide: AwsService,
+          useValue: {
+            uploadImageToS3: jest.fn(),
+            deleteImageFromS3: jest.fn(),
+            uploadQRCodeToS3: jest.fn(),
+            getPresignedUrl: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<ImageService>(ImageService);
     repository = module.get<ImageRepository>(ImageRepository);
+    awsService = module.get<AwsService>(AwsService);
   });
 
   it('should be defined', () => {
@@ -71,6 +83,19 @@ describe('ImageService', () => {
       await service.deleteImage(imageId);
 
       expect(repository.deleteImage).toHaveBeenCalledWith(imageId);
+    });
+  });
+
+  describe('deleteFeedbackImageFromS3', () => {
+    it('image URL로부터 S3 이미지 삭제', async () => {
+      const fileURL =
+        'https://just-swim-bucket.s3.ap-northeast-2.amazonaws.com/feedback/1/test-image.png';
+
+      await service.deleteFeedbackImageFromS3({ fileURL });
+
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'feedback/1/test-image.png',
+      );
     });
   });
 });

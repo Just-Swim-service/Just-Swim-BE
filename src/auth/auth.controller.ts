@@ -48,7 +48,7 @@ export class AuthController {
       sameSite: 'none',
       domain: '.just-swim.kr',
       path: '/',
-      maxAge: 1000 * 60 * 15,
+      maxAge: 1000 * 60 * 60 * 2,
     });
 
     return res.json({ message: 'accessToken 재발급 완료' });

@@ -97,7 +97,7 @@ describe('AuthController - /auth/refresh', () => {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 1000 * 60 * 15,
+        maxAge: 1000 * 60 * 60 * 2,
       }),
     );
 

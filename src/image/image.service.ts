@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ImageRepository } from './image.repository';
 import { Image } from './entity/image.entity';
+import { AwsService } from 'src/common/aws/aws.service';
+import { DeleteImageDto } from './dto/delete-image.dto';
 
 @Injectable()
 export class ImageService {
-  constructor(private readonly imageRepository: ImageRepository) {}
+  constructor(
+    private readonly imageRepository: ImageRepository,
+    private readonly awsService: AwsService,
+  ) {}
 
   // feedback image 저장
   async createImage(feedbackId: number, fileUrl: string) {
@@ -25,5 +30,17 @@ export class ImageService {
   // image 삭제
   async deleteImage(imageId: number): Promise<void> {
     return await this.imageRepository.deleteImage(imageId);
+  }
+
+  // imageURL에 따라 이미지 삭제
+  async deleteFeedbackImageFromS3(
+    deleteImageDto: DeleteImageDto,
+  ): Promise<void> {
+    const fileURL = deleteImageDto.fileURL;
+
+    const url = new URL(fileURL);
+    const fileName = url.pathname.split('/').slice(-3).join('/');
+
+    await this.awsService.deleteImageFromS3(fileName);
   }
 }

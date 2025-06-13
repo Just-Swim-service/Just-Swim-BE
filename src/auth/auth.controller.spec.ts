@@ -64,24 +64,11 @@ describe('AuthController - /auth/refresh', () => {
     );
   });
 
-  it('should throw if stored refreshToken validation fails', async () => {
-    mockRequest.headers.cookie = 'refreshToken=validToken';
-    (authService.verifyRefreshToken as jest.Mock).mockReturnValue({
-      userId: 1,
-    });
-    (usersService.validateRefreshToken as jest.Mock).mockResolvedValue(false);
-
-    await expect(controller.refresh(mockRequest, mockResponse)).rejects.toThrow(
-      UnauthorizedException,
-    );
-  });
-
   it('should issue new accessToken if refreshToken is valid', async () => {
     mockRequest.headers.cookie = 'refreshToken=validToken';
-    (authService.verifyRefreshToken as jest.Mock).mockReturnValue({
+    (authService.verifyRefreshToken as jest.Mock).mockResolvedValue({
       userId: 1,
     });
-    (usersService.validateRefreshToken as jest.Mock).mockResolvedValue(true);
     (authService.getToken as jest.Mock).mockResolvedValue({
       accessToken: 'newAccessToken',
     });

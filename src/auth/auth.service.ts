@@ -61,6 +61,11 @@ export class AuthService {
 
       return payload;
     } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        console.error('⏰ refreshToken 만료됨:', error);
+        throw new UnauthorizedException('refreshToken이 만료되었습니다.');
+      }
+
       console.error('Refresh token 검증 실패:', error);
       throw new UnauthorizedException('refreshToken이 유효하지 않습니다.');
     }

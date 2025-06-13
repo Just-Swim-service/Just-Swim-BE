@@ -31,15 +31,6 @@ export class AuthController {
     const payload = await this.authService.verifyRefreshToken(refreshToken);
     const userId = payload.userId;
 
-    const isValid = await this.usersService.validateRefreshToken(
-      userId,
-      refreshToken,
-    );
-
-    if (!isValid) {
-      throw new UnauthorizedException('유효하지 않은 refreshToken입니다.');
-    }
-
     const { accessToken } = await this.authService.getToken(userId);
 
     res.cookie('authorization', accessToken, {

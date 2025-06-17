@@ -122,6 +122,23 @@ describe('AuthService', () => {
     });
   });
 
+  describe('generateAccessToken', () => {
+    it('should return new access token', async () => {
+      const userId = 1;
+      const accessToken = 'new_access_token';
+      (jwt.sign as jest.Mock).mockReturnValue(accessToken);
+
+      const result = await service.generateAccessToken(userId);
+
+      expect(result).toEqual({ accessToken });
+      expect(jwt.sign).toHaveBeenCalledWith(
+        { userId },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '15m' },
+      );
+    });
+  });
+
   describe('createUser', () => {
     it('should create a new user with the provided data', async () => {
       const userData = {

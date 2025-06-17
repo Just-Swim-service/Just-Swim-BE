@@ -37,6 +37,15 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  /* generateAccessToken */
+  async generateAccessToken(userId: number): Promise<{ accessToken: string }> {
+    const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '15m',
+    });
+
+    return { accessToken };
+  }
+
   /* user 생성 */
   async createUser(userData: CreateUsersDto): Promise<Users> {
     return await this.usersService.createUser(userData);

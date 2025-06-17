@@ -31,7 +31,7 @@ export class AuthController {
     const payload = await this.authService.verifyRefreshToken(refreshToken);
     const userId = payload.userId;
 
-    const { accessToken } = await this.authService.getToken(userId);
+    const { accessToken } = await this.authService.generateAccessToken(userId);
 
     res.cookie('authorization', accessToken, {
       httpOnly: true,

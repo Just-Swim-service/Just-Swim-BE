@@ -27,6 +27,7 @@ describe('AuthController - /auth/refresh', () => {
           useValue: {
             verifyRefreshToken: jest.fn(),
             getToken: jest.fn(),
+            generateAccessToken: jest.fn(),
           },
         },
         {
@@ -69,7 +70,7 @@ describe('AuthController - /auth/refresh', () => {
     (authService.verifyRefreshToken as jest.Mock).mockResolvedValue({
       userId: 1,
     });
-    (authService.getToken as jest.Mock).mockResolvedValue({
+    (authService.generateAccessToken as jest.Mock).mockResolvedValue({
       accessToken: 'newAccessToken',
     });
 

@@ -21,6 +21,21 @@ export class Image {
   @Column({ type: 'mediumtext' })
   imagePath: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  fileType: string; // 'image' 또는 'video'
+
+  @Column({ type: 'varchar', nullable: true })
+  fileName: string; // 원본 파일명
+
+  @Column({ type: 'int', nullable: true })
+  fileSize: number; // 파일 크기 (bytes)
+
+  @Column({ type: 'varchar', nullable: true })
+  duration: string; // 동영상 길이 (초)
+
+  @Column({ type: 'varchar', nullable: true })
+  thumbnailPath: string; // 동영상 썸네일 경로
+
   @CreateDateColumn({ type: 'timestamp' })
   imageCreatedAt: Date;
 

@@ -12,6 +12,12 @@ async function bootstrap() {
 
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
+  expressApp.set('etag', false);
+  expressApp.set('x-powered-by', false);
+  expressApp.set('view cache', true);
+
+  const compression = require('compression');
+  expressApp.use(compression());
 
   const allowedOrigins = [
     'https://just-swim.kr',
@@ -36,7 +42,14 @@ async function bootstrap() {
   app.use(cookieParser());
   app.setGlobalPrefix('api'); // 글로벌 프리픽스 설정
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true, // 자동 변환 활성화
+      transformOptions: {
+        enableImplicitConversion: true, // 암시적 변환 활성화
+      },
+    }),
   ); // 유효성 검사 파이프라인
 
   // swagger 설정

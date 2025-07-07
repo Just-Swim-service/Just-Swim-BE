@@ -4,6 +4,11 @@ import { mockFeedback } from './mock-feedback.repository';
 export const mockImage: Image = {
   imageId: 1,
   feedback: mockFeedback,
+  fileType: 'image',
+  fileName: 'afaf',
+  fileSize: 123,
+  duration: '14초',
+  thumbnailPath: 'afaf',
   imagePath: 'imageURL',
   imageCreatedAt: new Date(),
   imageUpdatedAt: new Date(),

@@ -157,7 +157,7 @@ export class FeedbackService {
     throw new UnauthorizedException('feedback 상세 조회 권한이 없습니다.');
   }
 
-  /* feedback 이미지 업로드를 위한 presignedUrl 생성 */
+  /* feedback 파일 업로드를 위한 presignedUrl 생성 (이미지 + 동영상) */
   async generateFeedbackPresignedUrls(
     userId: number,
     feedbackImageDto: FeedbackImageDto,
@@ -172,13 +172,22 @@ export class FeedbackService {
         });
         const fileName = `feedback/${userId}/${Date.now().toString()}-${slugifiedName}.${ext}`;
 
+        // 파일 타입 확인
+        const fileType = ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(ext)
+          ? 'video'
+          : 'image';
+
         // presignedUrl 생성
         const presignedUrl = await this.awsService.getPresignedUrl(
           fileName,
           ext,
         );
 
-        return { presignedUrl, fileName };
+        return {
+          presignedUrl,
+          fileName,
+          fileType,
+        };
       }),
     );
 

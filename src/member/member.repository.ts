@@ -45,8 +45,8 @@ export class MemberRepository {
   async getAllMembersByLectureId(lectureId: number): Promise<any[]> {
     return await this.memberRepository
       .createQueryBuilder('member')
-      .leftJoinAndSelect('member.user', 'user')
-      .leftJoinAndSelect('member.lecture', 'lecture')
+      .leftJoin('member.user', 'user')
+      .leftJoin('member.lecture', 'lecture')
       .select([
         'member.memberId AS memberId',
         'user.userId AS userId',
@@ -57,7 +57,7 @@ export class MemberRepository {
         'user.profileImage AS profileImage',
       ])
       .where('member.lectureId = :lectureId', { lectureId })
-      .groupBy('member.memberId')
+      .orderBy('member.memberId', 'ASC')
       .getRawMany();
   }
 
@@ -65,8 +65,8 @@ export class MemberRepository {
   async getAllMembersByFeedback(userId: number): Promise<any[]> {
     return await this.memberRepository
       .createQueryBuilder('member')
-      .leftJoinAndSelect('member.user', 'user')
-      .leftJoinAndSelect('member.lecture', 'lecture')
+      .leftJoin('member.user', 'user')
+      .leftJoin('member.lecture', 'lecture')
       .select([
         'member.memberId AS memberId',
         'user.userId AS userId',
@@ -76,7 +76,7 @@ export class MemberRepository {
         'user.profileImage AS profileImage',
       ])
       .where('lecture.userId = :userId', { userId })
-      .groupBy('member.userId')
+      .orderBy('member.userId', 'ASC')
       .getRawMany();
   }
 
@@ -87,8 +87,8 @@ export class MemberRepository {
   ): Promise<any> {
     return await this.memberRepository
       .createQueryBuilder('member')
-      .leftJoinAndSelect('member.user', 'user')
-      .leftJoinAndSelect('member.lecture', 'lecture')
+      .leftJoin('member.user', 'user')
+      .leftJoin('member.lecture', 'lecture')
       .leftJoin(
         'feedback',
         'feedback',
@@ -98,23 +98,13 @@ export class MemberRepository {
           JOIN feedbackTarget T ON F.feedbackId = T.feedbackId
           WHERE T.userId = :memberUserId
             AND F.userId = :instructorUserId
+            AND F.feedbackDeletedAt IS NULL
           ORDER BY F.feedbackDate DESC
           LIMIT 1
         )`,
         { memberUserId, instructorUserId },
       )
-      .leftJoin(
-        'image',
-        'image',
-        `image.feedbackId = feedback.feedbackId AND
-          image.imageId = (
-          SELECT I.imageId
-          FROM image I
-          WHERE I.feedbackId = feedback.feedbackId
-          ORDER BY I.imageId DESC
-          LIMIT 1
-        )`,
-      )
+      .leftJoin('image', 'image', `image.feedbackId = feedback.feedbackId`)
       .select([
         'user.userId AS userId',
         'user.profileImage AS profileImage',
@@ -140,6 +130,7 @@ export class MemberRepository {
         'image.imagePath AS imagePath',
       ])
       .where('member.userId = :memberUserId', { memberUserId })
+      .orderBy('image.imageId', 'ASC')
       .getRawMany();
   }
 }

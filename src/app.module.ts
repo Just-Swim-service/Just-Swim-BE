@@ -48,6 +48,19 @@ import { CronModule } from './common/cron/cron.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
         // synchronize: false,
+
+        extra: {
+          connectionLimit: 20,
+          acquireTimeout: 60000,
+          timeout: 60000,
+          reconnect: true,
+        },
+        logging: false,
+        cache: {
+          duration: 30000,
+        },
+        poolSize: 20,
+        maxQueryExecutionTime: 10000,
       }),
       inject: [ConfigService],
     }),

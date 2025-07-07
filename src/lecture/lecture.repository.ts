@@ -22,8 +22,8 @@ export class LectureRepository {
   async getScheduleLecturesByInstructor(userId: number): Promise<any[]> {
     return await this.lectureRepository
       .createQueryBuilder('lecture')
-      .leftJoinAndSelect('lecture.member', 'member')
-      .leftJoinAndSelect('member.user', 'user')
+      .leftJoin('lecture.member', 'member')
+      .leftJoin('member.user', 'user')
       .select([
         'lecture.lectureId as lectureId',
         'lecture.lectureTitle as lectureTitle',
@@ -50,9 +50,9 @@ export class LectureRepository {
   async getAllLecturesByInstructor(userId: number): Promise<any[]> {
     return await this.lectureRepository
       .createQueryBuilder('lecture')
-      .leftJoinAndSelect('lecture.member', 'member')
-      .leftJoinAndSelect('member.user', 'user')
-      .leftJoinAndSelect('lecture.user', 'instructor')
+      .leftJoin('lecture.member', 'member')
+      .leftJoin('member.user', 'user')
+      .leftJoin('lecture.user', 'instructor')
       .select([
         'lecture.lectureId as lectureId',
         'lecture.lectureTitle as lectureTitle',
@@ -79,8 +79,8 @@ export class LectureRepository {
   async getScheduleLecturesByCustomer(userId: number): Promise<any[]> {
     return await this.lectureRepository
       .createQueryBuilder('lecture')
-      .leftJoinAndSelect('lecture.member', 'member')
-      .leftJoinAndSelect('lecture.user', 'instructor')
+      .leftJoin('lecture.member', 'member')
+      .leftJoin('lecture.user', 'instructor')
       .select([
         'lecture.lectureId as lectureId',
         'lecture.lectureTitle as lectureTitle',
@@ -106,8 +106,8 @@ export class LectureRepository {
   async getAllLecturesByCustomer(userId: number): Promise<any[]> {
     return await this.lectureRepository
       .createQueryBuilder('lecture')
-      .leftJoinAndSelect('lecture.member', 'member')
-      .leftJoinAndSelect('lecture.user', 'instructor')
+      .leftJoin('lecture.member', 'member')
+      .leftJoin('lecture.user', 'instructor')
       .select([
         'lecture.lectureId as lectureId',
         'lecture.lectureTitle as lectureTitle',

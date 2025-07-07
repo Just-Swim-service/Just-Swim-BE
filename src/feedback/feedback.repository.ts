@@ -32,7 +32,6 @@ export class FeedbackRepository {
       ])
       .where('feedback.userId = :userId', { userId })
       .andWhere('feedback.feedbackDeletedAt IS NULL')
-      .groupBy('feedback.feedbackId, feedbackTarget.userId')
       .orderBy('feedback.feedbackId', 'ASC')
       .addOrderBy('feedbackTarget.userId', 'ASC')
       .getRawMany();
@@ -57,17 +56,7 @@ export class FeedbackRepository {
       ])
       .where('feedbackTarget.userId = :userId', { userId })
       .andWhere('feedback.feedbackDeletedAt IS NULL')
-      .groupBy(
-        `
-        feedback.feedbackId,
-        lecture.lectureTitle,
-        feedback.feedbackContent,
-        feedback.feedbackDate,
-        feedback.feedbackType,
-        instructor.profileImage,
-        instructor.name
-      `,
-      )
+      .orderBy('feedback.feedbackId', 'ASC')
       .getRawMany();
   }
 
@@ -94,21 +83,7 @@ export class FeedbackRepository {
       ])
       .where('feedback.feedbackId = :feedbackId', { feedbackId })
       .andWhere('feedback.feedbackDeletedAt IS NULL')
-      .groupBy(
-        `
-        feedback.feedbackId,
-        feedback.userId,
-        feedback.feedbackType,
-        feedback.feedbackDate,
-        feedback.feedbackContent,
-        feedback.feedbackLink,
-        feedback.feedbackCreatedAt,
-        lecture.lectureTitle,
-        instructor.name,
-        instructor.profileImage,
-        image.imagePath
-      `,
-      )
+      .orderBy('image.imageId', 'ASC')
       .getRawMany();
   }
 

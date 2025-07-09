@@ -49,10 +49,10 @@ describe('MemberRepository', () => {
   it('should get all members by lecture ID', async () => {
     const mockGetRawMany = jest.fn().mockResolvedValue([{ memberId: 1 }]);
     const mockQB: any = {
-      leftJoinAndSelect: () => mockQB,
+      leftJoin: () => mockQB,
       select: () => mockQB,
       where: () => mockQB,
-      groupBy: () => mockQB,
+      orderBy: () => mockQB,
       getRawMany: mockGetRawMany,
     };
     repo.createQueryBuilder.mockReturnValue(mockQB);
@@ -65,10 +65,10 @@ describe('MemberRepository', () => {
   it('should get all members by feedback', async () => {
     const mockGetRawMany = jest.fn().mockResolvedValue([{ memberId: 1 }]);
     const mockQB: any = {
-      leftJoinAndSelect: () => mockQB,
+      leftJoin: () => mockQB,
       select: () => mockQB,
       where: () => mockQB,
-      groupBy: () => mockQB,
+      orderBy: () => mockQB,
       getRawMany: mockGetRawMany,
     };
     repo.createQueryBuilder.mockReturnValue(mockQB);
@@ -81,10 +81,10 @@ describe('MemberRepository', () => {
   it('should get member info', async () => {
     const mockGetRawMany = jest.fn().mockResolvedValue([{ userId: 1 }]);
     const mockQB: any = {
-      leftJoinAndSelect: () => mockQB,
       leftJoin: () => mockQB,
       select: () => mockQB,
       where: () => mockQB,
+      orderBy: () => mockQB,
       getRawMany: mockGetRawMany,
     };
     repo.createQueryBuilder.mockReturnValue(mockQB);

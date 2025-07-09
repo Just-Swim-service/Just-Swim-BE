@@ -57,6 +57,8 @@ describe('FeedbackRepository', () => {
       select: () => mockQB,
       where: () => mockQB,
       andWhere: () => mockQB,
+      orderBy: () => mockQB,
+      addOrderBy: () => mockQB,
       groupBy: () => mockQB,
       getRawMany: mockGetRawMany,
     };
@@ -74,6 +76,8 @@ describe('FeedbackRepository', () => {
       select: () => mockQB,
       where: () => mockQB,
       andWhere: () => mockQB,
+      orderBy: () => mockQB,
+      addOrderBy: () => mockQB,
       groupBy: () => mockQB,
       getRawMany: mockGetRawMany,
     };

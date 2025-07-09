@@ -21,7 +21,7 @@ describe('ImageService', () => {
           provide: AwsService,
           useValue: {
             uploadImageToS3: jest.fn(),
-            deleteImageFromS3: jest.fn(),
+            deleteFileFromS3: jest.fn(),
             uploadQRCodeToS3: jest.fn(),
             getPresignedUrl: jest.fn(),
           },
@@ -93,7 +93,7 @@ describe('ImageService', () => {
 
       await service.deleteFeedbackImageFromS3({ fileURL });
 
-      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+      expect(awsService.deleteFileFromS3).toHaveBeenCalledWith(
         'feedback/1/test-image.png',
       );
     });

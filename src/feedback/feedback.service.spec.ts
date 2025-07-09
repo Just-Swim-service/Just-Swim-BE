@@ -34,6 +34,7 @@ describe('FeedbackService', () => {
           provide: AwsService,
           useValue: {
             uploadImageToS3: jest.fn(),
+            deleteFileFromS3: jest.fn(),
             deleteImageFromS3: jest.fn(),
             uploadQRCodeToS3: jest.fn(),
             getPresignedUrl: jest.fn(),
@@ -201,12 +202,14 @@ describe('FeedbackService', () => {
         expect.arrayContaining([
           {
             presignedUrl: mockPresignedUrls[0],
+            fileType: 'image',
             fileName: expect.stringMatching(
               `feedback/${userId}/\\d+-test-image.jpg`,
             ),
           },
           {
             presignedUrl: mockPresignedUrls[1],
+            fileType: 'image',
             fileName: expect.stringMatching(
               `feedback/${userId}/\\d+-example-image.png`,
             ),

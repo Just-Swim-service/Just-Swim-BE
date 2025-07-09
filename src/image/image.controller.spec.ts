@@ -11,7 +11,7 @@ describe('ImageController', () => {
   let responseService: ResponseService;
 
   const mockImageService = {
-    deleteFeedbackImageFromS3: jest.fn(),
+    deleteFeedbackFileFromS3: jest.fn(),
   };
 
   const mockResponseService = {
@@ -50,12 +50,12 @@ describe('ImageController', () => {
 
       await controller.deleteImage(mockRes, deleteImageDto);
 
-      expect(imageService.deleteFeedbackImageFromS3).toHaveBeenCalledWith(
+      expect(imageService.deleteFeedbackFileFromS3).toHaveBeenCalledWith(
         deleteImageDto,
       );
       expect(responseService.success).toHaveBeenCalledWith(
         mockRes,
-        'feedbackImage 삭제 성공',
+        '파일 삭제 성공',
       );
     });
   });

@@ -24,7 +24,7 @@ export class AwsService {
   }
 
   /* 파일 타입 확인 */
-  private getContentType(fileName: string): string {
+  public getContentType(fileName: string): string {
     const ext = fileName.split('.').pop()?.toLowerCase();
 
     // 이미지 타입

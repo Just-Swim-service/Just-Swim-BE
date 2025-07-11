@@ -38,6 +38,7 @@ describe('FeedbackService', () => {
             deleteImageFromS3: jest.fn(),
             uploadQRCodeToS3: jest.fn(),
             getPresignedUrl: jest.fn(),
+            getContentType: jest.fn(),
           },
         },
         {
@@ -192,28 +193,40 @@ describe('FeedbackService', () => {
         .mockResolvedValueOnce(mockPresignedUrls[0])
         .mockResolvedValueOnce(mockPresignedUrls[1]);
 
+      jest
+        .spyOn(awsService, 'getContentType')
+        .mockImplementation((fileName: string) => {
+          if (fileName.endsWith('.jpg')) return 'image/jpeg';
+          if (fileName.endsWith('.png')) return 'image/png';
+          return 'application/octet-stream';
+        });
+
       const result = await service.generateFeedbackPresignedUrls(
         userId,
         feedbackImageDto,
       );
 
       expect(awsService.getPresignedUrl).toHaveBeenCalledTimes(2);
+      expect(awsService.getContentType).toHaveBeenCalledTimes(2);
+
       expect(result).toEqual(
         expect.arrayContaining([
-          {
+          expect.objectContaining({
             presignedUrl: mockPresignedUrls[0],
             fileType: 'image',
+            contentType: 'image/jpeg',
             fileName: expect.stringMatching(
               `feedback/${userId}/\\d+-test-image.jpg`,
             ),
-          },
-          {
+          }),
+          expect.objectContaining({
             presignedUrl: mockPresignedUrls[1],
             fileType: 'image',
+            contentType: 'image/png',
             fileName: expect.stringMatching(
               `feedback/${userId}/\\d+-example-image.png`,
             ),
-          },
+          }),
         ]),
       );
     });

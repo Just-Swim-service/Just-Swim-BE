@@ -6,4 +6,5 @@ export class FeedbackPresignedUrlDto {
   fileSize?: number; // 파일 크기 (bytes)
   duration?: string; // 동영상 길이 (초)
   thumbnailPath?: string; // 동영상 썸네일 경로
+  contentType: string;
 }

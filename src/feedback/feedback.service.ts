@@ -187,6 +187,7 @@ export class FeedbackService {
           presignedUrl,
           fileName,
           fileType,
+          contentType: this.awsService.getContentType(fileName),
         };
       }),
     );

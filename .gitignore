@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# dependencies
+.prettiercache
+.eslintcache
+
 # Logs
 logs
 *.log

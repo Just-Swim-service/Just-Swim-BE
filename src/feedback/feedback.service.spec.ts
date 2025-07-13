@@ -178,26 +178,33 @@ describe('FeedbackService', () => {
   });
 
   describe('generateFeedbackPresignedUrls', () => {
-    it('이미지 저장을 위해 FE에게 presigned url을 return', async () => {
+    it('이미지/동영상 저장을 위해 FE에게 presigned url을 return', async () => {
       const userId = 1;
       const feedbackImageDto = {
-        files: ['test-image.jpg', 'example-image.png'],
+        files: ['test-image.jpg', 'example-video.mp4'],
       };
 
       const mockPresignedUrls = [
         'https://s3.amazonaws.com/bucket/test-image-1.jpg',
-        'https://s3.amazonaws.com/bucket/test-image-2.png',
+        'https://s3.amazonaws.com/bucket/example-video-1.mp4',
       ];
+
       jest
         .spyOn(awsService, 'getPresignedUrl')
-        .mockResolvedValueOnce(mockPresignedUrls[0])
-        .mockResolvedValueOnce(mockPresignedUrls[1]);
+        .mockResolvedValueOnce({
+          presignedUrl: mockPresignedUrls[0],
+          contentType: 'image/jpeg',
+        })
+        .mockResolvedValueOnce({
+          presignedUrl: mockPresignedUrls[1],
+          contentType: 'video/mp4',
+        });
 
       jest
         .spyOn(awsService, 'getContentType')
         .mockImplementation((fileName: string) => {
           if (fileName.endsWith('.jpg')) return 'image/jpeg';
-          if (fileName.endsWith('.png')) return 'image/png';
+          if (fileName.endsWith('.mp4')) return 'video/mp4';
           return 'application/octet-stream';
         });
 
@@ -221,10 +228,10 @@ describe('FeedbackService', () => {
           }),
           expect.objectContaining({
             presignedUrl: mockPresignedUrls[1],
-            fileType: 'image',
-            contentType: 'image/png',
+            fileType: 'video',
+            contentType: 'video/mp4',
             fileName: expect.stringMatching(
-              `feedback/${userId}/\\d+-example-image.png`,
+              `feedback/${userId}/\\d+-example-video.mp4`,
             ),
           }),
         ]),

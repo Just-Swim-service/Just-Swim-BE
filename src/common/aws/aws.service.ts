@@ -111,7 +111,10 @@ export class AwsService {
   }
 
   /* presigned url (이미지 + 동영상) */
-  async getPresignedUrl(fileName: string, ext?: string): Promise<string> {
+  async getPresignedUrl(
+    fileName: string,
+    ext?: string,
+  ): Promise<{ presignedUrl: string; contentType: string }> {
     const contentType = ext
       ? this.getContentType(`${fileName}.${ext}`)
       : this.getContentType(fileName);
@@ -132,6 +135,6 @@ export class AwsService {
       expiresIn: 3600, // 1시간 유효
     });
 
-    return presignedUrl;
+    return { presignedUrl, contentType };
   }
 }

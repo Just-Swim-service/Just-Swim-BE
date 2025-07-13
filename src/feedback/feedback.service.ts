@@ -178,16 +178,14 @@ export class FeedbackService {
           : 'image';
 
         // presignedUrl 생성
-        const presignedUrl = await this.awsService.getPresignedUrl(
-          fileName,
-          ext,
-        );
+        const { presignedUrl, contentType } =
+          await this.awsService.getPresignedUrl(fileName, ext);
 
         return {
           presignedUrl,
           fileName,
           fileType,
-          contentType: this.awsService.getContentType(fileName),
+          contentType,
         };
       }),
     );

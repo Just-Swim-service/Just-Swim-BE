@@ -200,21 +200,15 @@ describe('FeedbackService', () => {
           contentType: 'video/mp4',
         });
 
-      jest
-        .spyOn(awsService, 'getContentType')
-        .mockImplementation((fileName: string) => {
-          if (fileName.endsWith('.jpg')) return 'image/jpeg';
-          if (fileName.endsWith('.mp4')) return 'video/mp4';
-          return 'application/octet-stream';
-        });
-
       const result = await service.generateFeedbackPresignedUrls(
         userId,
         feedbackImageDto,
       );
 
+      // getPresignedUrl은 2번 호출되어야 함
       expect(awsService.getPresignedUrl).toHaveBeenCalledTimes(2);
-      expect(awsService.getContentType).toHaveBeenCalledTimes(2);
+
+      // getContentType 호출은 제거했기 때문에 더 이상 필요 없음
 
       expect(result).toEqual(
         expect.arrayContaining([

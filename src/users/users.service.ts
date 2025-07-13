@@ -95,7 +95,10 @@ export class UsersService {
     const fileName = `profileImage/${Date.now().toString()}-${slugifiedName}.${ext}`;
 
     // presignedUrl 생성
-    const presignedUrl = await this.awsService.getPresignedUrl(fileName, ext);
+    const { presignedUrl } = await this.awsService.getPresignedUrl(
+      fileName,
+      ext,
+    );
 
     return presignedUrl;
   }

@@ -119,14 +119,9 @@ export class AwsService {
       ? this.getContentType(`${fileName}.${ext}`)
       : this.getContentType(fileName);
 
-    console.log('[DEBUG] Presigned ContentType:', contentType);
-    console.log('[DEBUG] Presigned FileName:', fileName);
-
     const command = new PutObjectCommand({
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
       Key: fileName,
-      ContentType: contentType,
-      // 동영상 파일을 위한 추가 설정
       ...(contentType.startsWith('video/') && {
         CacheControl: 'max-age=31536000', // 1년 캐시
         ContentDisposition: 'inline',
@@ -136,8 +131,6 @@ export class AwsService {
     const presignedUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn: 3600, // 1시간 유효
     });
-
-    console.log('[DEBUG] Presigned URL:', presignedUrl);
 
     return { presignedUrl, contentType };
   }

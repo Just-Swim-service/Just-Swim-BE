@@ -122,6 +122,7 @@ export class AwsService {
     const command = new PutObjectCommand({
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
       Key: fileName,
+      ContentType: contentType,
       ...(contentType.startsWith('video/') && {
         CacheControl: 'max-age=31536000', // 1년 캐시
         ContentDisposition: 'inline',

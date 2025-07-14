@@ -123,7 +123,6 @@ export class AwsService {
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
       Key: fileName,
       ContentType: contentType,
-      ACL: 'public-read',
       // 동영상 파일을 위한 추가 설정
       ...(contentType.startsWith('video/') && {
         CacheControl: 'max-age=31536000', // 1년 캐시

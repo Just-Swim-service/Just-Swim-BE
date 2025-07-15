@@ -39,14 +39,23 @@ export class FeedbackService {
         (f) => f.feedbackId === feedback.feedbackId,
       );
 
-      if (existingFeedback) {
-        // 이미 해당 강의가 존재하면 member 정보를 추가
-        if (feedback.memberUserId) {
-          existingFeedback.members.push({
+      const member = feedback.memberUserId
+        ? {
             memberUserId: feedback.memberUserId,
             memberProfileImage: feedback.memberProfileImage,
             memberName: feedback.memberNickname,
-          });
+          }
+        : null;
+
+      if (existingFeedback) {
+        // 중복된 멤버인지 확인 후 추가
+        if (
+          member &&
+          !existingFeedback.members.some(
+            (m) => m.memberUserId === member.memberUserId,
+          )
+        ) {
+          existingFeedback.members.push(member);
         }
       } else {
         acc.push({
@@ -55,17 +64,10 @@ export class FeedbackService {
           feedbackDate: feedback.feedbackDate,
           feedbackContent: feedback.feedbackContent,
           lectureTitle: feedback.lectureTitle,
-          members: feedback.memberUserId
-            ? [
-                {
-                  memberUserId: feedback.memberUserId,
-                  memberProfileImage: feedback.memberProfileImage,
-                  memberName: feedback.memberNickname,
-                },
-              ]
-            : [],
+          members: member ? [member] : [],
         });
       }
+
       return acc;
     }, []);
 

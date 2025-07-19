@@ -135,6 +135,9 @@ export class AwsService {
       expiresIn: 3600, // 1시간 유효
     });
 
+    console.log('[DEBUG] safeFileName:', safeFileName);
+    console.log('[DEBUG] contentType:', contentType);
+
     return { presignedUrl, contentType };
   }
 }

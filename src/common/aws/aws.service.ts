@@ -125,10 +125,9 @@ export class AwsService {
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
       Key: safeFileName,
       ContentType: contentType,
-      ...(contentType.startsWith('video/') && {
-        CacheControl: 'max-age=31536000', // 1년 캐시
-        ContentDisposition: 'inline',
-      }),
+      CacheControl: contentType.startsWith('video/')
+        ? 'max-age=31536000'
+        : undefined,
     });
 
     const presignedUrl = await getSignedUrl(this.s3Client, command, {

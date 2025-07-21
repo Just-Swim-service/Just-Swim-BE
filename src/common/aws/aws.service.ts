@@ -117,7 +117,9 @@ export class AwsService {
   ): Promise<{ presignedUrl: string; contentType: string }> {
     const safeFileName = fileName.normalize('NFKD').replace(/[^\w.-]/g, '_');
 
-    const contentType = this.getContentType(fileName);
+    const contentType = ext
+      ? this.getContentType(`${fileName}.${ext}`)
+      : this.getContentType(fileName);
 
     const command = new PutObjectCommand({
       Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),

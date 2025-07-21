@@ -10,6 +10,7 @@ import {
 import { FeedbackType } from '../enum/feedback-type.enum';
 import { Type } from 'class-transformer';
 import { FeedbackTargetDto } from './feedback-target.dto';
+import { CreateFeedbackImageDto } from './create-feedback-image.dto';
 
 export class CreateFeedbackDto {
   @ApiProperty({
@@ -62,12 +63,13 @@ export class CreateFeedbackDto {
   readonly feedbackTarget: FeedbackTargetDto[];
 
   @ApiProperty({
-    example: ['이미지 주소 1.png', '이미지 주소 2.png'],
-    description:
-      'presigned url을 통해 저장한 이미지의 주소를 배열 형태로 받는다.',
+    description: '이미지 또는 동영상 정보 배열',
+    type: [CreateFeedbackImageDto],
     required: false,
   })
   @IsOptional()
   @IsArray()
-  readonly feedbackImage?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => CreateFeedbackImageDto)
+  readonly feedbackImage?: CreateFeedbackImageDto[];
 }

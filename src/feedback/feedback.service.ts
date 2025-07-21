@@ -209,7 +209,7 @@ export class FeedbackService {
     ) {
       filesJsonArray = createFeedbackDto.feedbackImage.map((file: any) => {
         return {
-          filePath: file.imageUrl,
+          filePath: file.filePath,
           fileType: file.fileType,
           fileName: file.fileName,
           fileSize: file.fileSize,

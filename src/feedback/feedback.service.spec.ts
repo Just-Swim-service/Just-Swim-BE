@@ -238,25 +238,32 @@ describe('FeedbackService', () => {
       const userId = 1;
       const feedbackDto = {
         feedbackType: FeedbackType.Group,
-        feedbackContent:
-          '회원님! 오늘 자세는 좋았으나 마지막 스퍼트가 부족해 보였어요 호흡하실 때에도 팔 각도를 조정해 주시면...',
+        feedbackContent: '내용',
         feedbackDate: '2024.04.22',
         feedbackLink: 'URL',
-        feedbackTarget: [
-          { lectureId: 1, userIds: [2, 3] },
-          { lectureId: 2, userIds: [4, 5, 13] },
+        feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
+        feedbackImage: [
+          {
+            fileName: 'test.jpg',
+            filePath: 'https://example.com/test.jpg',
+            fileType: 'image' as const,
+            fileSize: 123456,
+            duration: null,
+            thumbnailPath: null,
+          },
         ],
-        feedbackImage: ['https://example.com/test.jpg'],
       };
 
       const result = await service.createFeedback(userId, feedbackDto);
 
-      expect(feedbackRepository.createFeedback).toHaveBeenCalledWith(
-        userId,
-        feedbackDto,
-        JSON.stringify(feedbackDto.feedbackTarget),
-        JSON.stringify([{ filePath: feedbackDto.feedbackImage[0] }]),
-      );
+      const callArgs = (feedbackRepository.createFeedback as jest.Mock).mock
+        .calls[0];
+
+      expect(callArgs[0]).toBe(userId);
+      expect(callArgs[1]).toEqual(feedbackDto);
+      expect(JSON.parse(callArgs[2])).toEqual(feedbackDto.feedbackTarget);
+      expect(JSON.parse(callArgs[3])).toEqual(feedbackDto.feedbackImage);
+
       expect(result).toEqual(mockFeedback);
     });
   });

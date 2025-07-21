@@ -207,9 +207,14 @@ export class FeedbackService {
       createFeedbackDto.feedbackImage &&
       createFeedbackDto.feedbackImage.length > 0
     ) {
-      filesJsonArray = createFeedbackDto.feedbackImage.map((imageUrl) => {
+      filesJsonArray = createFeedbackDto.feedbackImage.map((file: any) => {
         return {
-          filePath: imageUrl,
+          filePath: file.imageUrl,
+          fileType: file.fileType,
+          fileName: file.fileName,
+          fileSize: file.fileSize,
+          duration: file.duration ?? null,
+          thumbnailPath: file.thumbnailPath ?? null,
         };
       });
     }

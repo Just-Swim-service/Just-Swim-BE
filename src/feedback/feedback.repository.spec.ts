@@ -91,13 +91,24 @@ describe('FeedbackRepository', () => {
   it('should create feedback via stored procedure', async () => {
     repo.query.mockResolvedValue([[{ feedbackId: 1 }]]);
 
+    const feedbackImage = [
+      {
+        filePath: 'https://example.com/image1.png',
+        fileType: 'image',
+        fileName: 'image1.png',
+        fileSize: 123456,
+        duration: null,
+        thumbnailPath: null,
+      },
+    ];
+
     const dto: CreateFeedbackDto = {
       feedbackType: FeedbackType.Group,
       feedbackDate: '2024.04.22',
       feedbackLink: 'https://youtube.com',
       feedbackContent: '내용',
       feedbackTarget: [{ lectureId: 1, userIds: [1, 2] }],
-      feedbackImage: ['image1.png'],
+      feedbackImage,
     };
 
     const result = await feedbackRepository.createFeedback(

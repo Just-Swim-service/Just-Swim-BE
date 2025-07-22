@@ -276,7 +276,16 @@ describe('FeedbackService', () => {
         feedbackDate: '2024-04-23',
         feedbackLink: 'URL',
         feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
-        feedbackImage: ['https://example.com/updated.jpg'],
+        feedbackImage: [
+          {
+            fileName: 'test.jpg',
+            filePath: 'https://example.com/test.jpg',
+            fileType: 'image' as const,
+            fileSize: 123456,
+            duration: null,
+            thumbnailPath: null,
+          },
+        ],
       };
 
       const mockFeedback = {
@@ -306,17 +315,18 @@ describe('FeedbackService', () => {
         mockFeedback.feedbackId,
         editFeedbackDto,
       );
-      expect(imageService.getImagesByFeedbackId).toHaveBeenCalledWith(
-        mockFeedback.feedbackId,
+
+      const [calledFeedbackId, calledDto, calledTargetJson, calledFilesJson] = (
+        feedbackRepository.updateFeedback as jest.Mock
+      ).mock.calls[0];
+
+      expect(calledFeedbackId).toBe(mockFeedback.feedbackId);
+      expect(calledDto).toEqual(editFeedbackDto);
+      expect(JSON.parse(calledTargetJson)).toEqual(
+        editFeedbackDto.feedbackTarget,
       );
-      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
-        'feedback/1/1234567890-test.jpg',
-      );
-      expect(feedbackRepository.updateFeedback).toHaveBeenCalledWith(
-        mockFeedback.feedbackId,
-        editFeedbackDto,
-        JSON.stringify(editFeedbackDto.feedbackTarget),
-        JSON.stringify([{ filePath: 'https://example.com/updated.jpg' }]),
+      expect(JSON.parse(calledFilesJson)).toEqual(
+        editFeedbackDto.feedbackImage,
       );
     });
   });

@@ -136,13 +136,24 @@ describe('FeedbackRepository', () => {
   it('should update feedback via stored procedure', async () => {
     repo.query.mockResolvedValue([]);
 
+    const feedbackImage = [
+      {
+        filePath: 'https://example.com/image1.png',
+        fileType: 'image',
+        fileName: 'image1.png',
+        fileSize: 123456,
+        duration: null,
+        thumbnailPath: null,
+      },
+    ];
+
     const dto: EditFeedbackDto = {
       feedbackType: FeedbackType.Group,
       feedbackDate: '2024.05.01',
       feedbackLink: 'https://youtube.com',
       feedbackContent: '수정된 내용',
       feedbackTarget: [{ lectureId: 2, userIds: [3] }],
-      feedbackImage: ['img2.jpg'],
+      feedbackImage,
     };
 
     await feedbackRepository.updateFeedback(

@@ -119,6 +119,11 @@ export class FeedbackService {
         if (feedback.imagePath) {
           existingFeedback.images.push({
             imagePath: feedback.imagePath,
+            thumbnailPath: feedback.thumbnailPath,
+            fileType: feedback.fileType,
+            fileName: feedback.fileName,
+            fileSize: feedback.fileSize,
+            duration: feedback.duration,
           });
         }
       } else {
@@ -135,7 +140,18 @@ export class FeedbackService {
             instructorName: feedback.instructorName,
             instructorProfileImage: feedback.instructorProfileImage,
           },
-          images: feedback.imagePath ? [{ imagePath: feedback.imagePath }] : [],
+          images: feedback.imagePath
+            ? [
+                {
+                  imagePath: feedback.imagePath,
+                  thumbnailPath: feedback.thumbnailPath,
+                  fileType: feedback.fileType,
+                  fileName: feedback.fileName,
+                  fileSize: feedback.fileSize,
+                  duration: feedback.duration,
+                },
+              ]
+            : [],
         });
       }
       return acc;
@@ -261,9 +277,14 @@ export class FeedbackService {
       editFeedbackDto.feedbackImage &&
       editFeedbackDto.feedbackImage.length > 0
     ) {
-      filesJsonArray = editFeedbackDto.feedbackImage.map((imageUrl) => {
+      filesJsonArray = editFeedbackDto.feedbackImage.map((file: any) => {
         return {
-          filePath: imageUrl,
+          filePath: file.filePath,
+          fileType: file.fileType,
+          fileName: file.fileName,
+          fileSize: file.fileSize,
+          duration: file.duration ?? null,
+          thumbnailPath: file.thumbnailPath ?? null,
         };
       });
 
@@ -271,10 +292,29 @@ export class FeedbackService {
         await this.imageService.getImagesByFeedbackId(feedbackId);
       if (existingImages && existingImages.length > 0) {
         await Promise.all(
-          existingImages.map(async (image) => {
-            const url = new URL(image.imagePath);
-            const fileName = url.pathname.split('/').slice(-3).join('/');
-            await this.awsService.deleteImageFromS3(fileName);
+          existingImages.flatMap((image) => {
+            const deleteTasks: Promise<void>[] = [];
+
+            // 이미지/영상 파일 삭제
+            if (image.imagePath) {
+              const url = new URL(image.imagePath);
+              const fileName = url.pathname.split('/').slice(-3).join('/');
+              deleteTasks.push(this.awsService.deleteImageFromS3(fileName));
+            }
+
+            // 썸네일이 있을 경우 삭제
+            if (image.thumbnailPath) {
+              const thumbUrl = new URL(image.thumbnailPath);
+              const thumbFileName = thumbUrl.pathname
+                .split('/')
+                .slice(-3)
+                .join('/');
+              deleteTasks.push(
+                this.awsService.deleteImageFromS3(thumbFileName),
+              );
+            }
+
+            return deleteTasks;
           }),
         );
       }
@@ -319,10 +359,27 @@ export class FeedbackService {
       await this.imageService.getImagesByFeedbackId(feedbackId);
     if (existingImages && existingImages.length > 0) {
       await Promise.all(
-        existingImages.map((image) => {
-          const url = new URL(image.imagePath);
-          const fileName = url.pathname.split('/').slice(-3).join('/');
-          return this.awsService.deleteImageFromS3(fileName);
+        existingImages.flatMap((image) => {
+          const deleteTasks: Promise<void>[] = [];
+
+          // 이미지/영상 파일 삭제
+          if (image.imagePath) {
+            const url = new URL(image.imagePath);
+            const fileName = url.pathname.split('/').slice(-3).join('/');
+            deleteTasks.push(this.awsService.deleteImageFromS3(fileName));
+          }
+
+          // 썸네일이 있을 경우 삭제
+          if (image.thumbnailPath) {
+            const thumbUrl = new URL(image.thumbnailPath);
+            const thumbFileName = thumbUrl.pathname
+              .split('/')
+              .slice(-3)
+              .join('/');
+            deleteTasks.push(this.awsService.deleteImageFromS3(thumbFileName));
+          }
+
+          return deleteTasks;
         }),
       );
     }

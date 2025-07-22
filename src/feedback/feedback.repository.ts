@@ -80,6 +80,11 @@ export class FeedbackRepository {
         'instructor.name AS instructorName',
         'instructor.profileImage AS instructorProfileImage',
         'image.imagePath AS imagePath',
+        'image.thumnailPath AS thumnailPath',
+        'image.fileType AS fileType',
+        'image.fileName AS fileName',
+        'image.fileSize AS fileSize',
+        'image.duration AS duration',
       ])
       .where('feedback.feedbackId = :feedbackId', { feedbackId })
       .andWhere('feedback.feedbackDeletedAt IS NULL')

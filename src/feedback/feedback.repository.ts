@@ -80,7 +80,7 @@ export class FeedbackRepository {
         'instructor.name AS instructorName',
         'instructor.profileImage AS instructorProfileImage',
         'image.imagePath AS imagePath',
-        'image.thumnailPath AS thumnailPath',
+        'image.thumbnailPath AS thumbnailPath',
         'image.fileType AS fileType',
         'image.fileName AS fileName',
         'image.fileSize AS fileSize',

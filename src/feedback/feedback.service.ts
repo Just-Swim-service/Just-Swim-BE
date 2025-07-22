@@ -114,17 +114,26 @@ export class FeedbackService {
         (f) => f.feedbackId === feedback.feedbackId,
       );
 
-      if (existingFeedback) {
-        // 이미 해당 강의가 존재하면 image 정보를 추가
-        if (feedback.imagePath) {
-          existingFeedback.images.push({
+      const newImage = feedback.imagePath
+        ? {
             imagePath: feedback.imagePath,
             thumbnailPath: feedback.thumbnailPath,
             fileType: feedback.fileType,
             fileName: feedback.fileName,
             fileSize: feedback.fileSize,
             duration: feedback.duration,
-          });
+          }
+        : null;
+
+      if (existingFeedback) {
+        // 이미지 중복 방지: imagePath 기준
+        if (
+          newImage &&
+          !existingFeedback.images.some(
+            (img) => img.imagePath === newImage.imagePath,
+          )
+        ) {
+          existingFeedback.images.push(newImage);
         }
       } else {
         acc.push({
@@ -140,20 +149,10 @@ export class FeedbackService {
             instructorName: feedback.instructorName,
             instructorProfileImage: feedback.instructorProfileImage,
           },
-          images: feedback.imagePath
-            ? [
-                {
-                  imagePath: feedback.imagePath,
-                  thumbnailPath: feedback.thumbnailPath,
-                  fileType: feedback.fileType,
-                  fileName: feedback.fileName,
-                  fileSize: feedback.fileSize,
-                  duration: feedback.duration,
-                },
-              ]
-            : [],
+          images: newImage ? [newImage] : [],
         });
       }
+
       return acc;
     }, []);
 

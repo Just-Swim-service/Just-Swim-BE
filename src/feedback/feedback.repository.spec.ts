@@ -79,6 +79,7 @@ describe('FeedbackRepository', () => {
       orderBy: () => mockQB,
       addOrderBy: () => mockQB,
       groupBy: () => mockQB,
+      distinct: () => mockQB,
       getRawMany: mockGetRawMany,
     };
     repo.createQueryBuilder.mockReturnValue(mockQB);

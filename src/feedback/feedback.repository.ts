@@ -68,6 +68,7 @@ export class FeedbackRepository {
       .leftJoin('feedback.image', 'image')
       .leftJoin('feedback.feedbackTarget', 'feedbackTarget')
       .leftJoin('feedbackTarget.lecture', 'lecture')
+      .distinct(true)
       .select([
         'feedback.userId AS instructorUserId',
         'feedback.feedbackId AS feedbackId',

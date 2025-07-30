@@ -34,23 +34,6 @@ export class UsersRepository {
     return await this.usersRepository.findOne({ where: { userId } });
   }
 
-  /* userId를 이용해서 user 조회 (민감한 데이터 제외) */
-  async findUserByPkForResponse(userId: number): Promise<Partial<Users>> {
-    return await this.usersRepository.findOne({
-      where: { userId },
-      select: [
-        'userId',
-        'userType',
-        'provider',
-        'email',
-        'name',
-        'profileImage',
-        'userCreatedAt',
-        'userUpdatedAt',
-      ],
-    });
-  }
-
   /* userType을 지정 */
   async selectUserType(userId: number, userType: UserType): Promise<void> {
     await this.usersRepository.update({ userId }, { userType });

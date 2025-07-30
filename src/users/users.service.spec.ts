@@ -145,42 +145,7 @@ describe('UsersService', () => {
     });
   });
 
-  describe('findUserByPkForResponse', () => {
-    it('userId에 맞는 user return (민감한 데이터 제외)', async () => {
-      const userId = 1;
-      const mockUserForResponse = {
-        userId: mockUser.userId,
-        userType: mockUser.userType,
-        provider: mockUser.provider,
-        email: mockUser.email,
-        name: mockUser.name,
-        profileImage: mockUser.profileImage,
-        userCreatedAt: mockUser.userCreatedAt,
-        userUpdatedAt: mockUser.userUpdatedAt,
-      };
-      (usersRepository.findUserByPkForResponse as jest.Mock).mockResolvedValue(
-        mockUserForResponse,
-      );
 
-      const result = await usersService.findUserByPkForResponse(userId);
-
-      expect(result).toEqual(mockUserForResponse);
-      expect(usersRepository.findUserByPkForResponse).toHaveBeenCalledWith(
-        userId,
-      );
-    });
-
-    it('userId에 맞는 user가 없으면 NotFoundException throw', async () => {
-      const userId = 10;
-      (usersRepository.findUserByPkForResponse as jest.Mock).mockResolvedValue(
-        undefined,
-      );
-
-      await expect(
-        usersService.findUserByPkForResponse(userId),
-      ).rejects.toThrow(NotFoundException);
-    });
-  });
 
   describe('selectUserType', () => {
     it('userType이 null인 경우, Customer로 설정하고 createCustomer 호출', async () => {

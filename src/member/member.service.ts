@@ -132,20 +132,5 @@ export class MemberService {
     return memberInfo;
   }
 
-  /* instructor가 강의 상세 조회 때 수강생의 강의에 대한 정보 조회 (민감한 데이터 제외) */
-  async getMemberInfoForResponse(
-    memberUserId: number,
-    instructorUserId: number,
-  ): Promise<any> {
-    const memberData = await this.memberRepository.getMemberInfo(
-      memberUserId,
-      instructorUserId,
-    );
 
-    if (!memberData || memberData.length === 0) {
-      throw new NotFoundException('수강생 정보를 찾을 수 없습니다.');
-    }
-
-    return memberData;
-  }
 }

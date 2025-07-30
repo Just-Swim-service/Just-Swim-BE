@@ -14,7 +14,6 @@ import { ConfigService } from '@nestjs/config';
 const mockUsersService = {
   findUserByEmail: jest.fn(),
   findUserByPk: jest.fn(),
-  findUserByPkForResponse: jest.fn(),
   selectUserType: jest.fn(),
   editUserProfile: jest.fn(),
   logout: jest.fn(),
@@ -65,7 +64,7 @@ describe('UsersController', () => {
   });
 
   describe('findUserProfile', () => {
-    it('user 프로필 조회 (민감한 데이터 제외)', async () => {
+    it('user 프로필 조회', async () => {
       const mockUserProfile = {
         userId: 1,
         userType: 'instructor',
@@ -83,13 +82,11 @@ describe('UsersController', () => {
         json: jest.fn(),
       };
 
-      mockUsersService.findUserByPkForResponse.mockResolvedValue(
-        mockUserProfile,
-      );
+      mockUsersService.findUserByPk.mockResolvedValue(mockUserProfile);
 
       await controller.findUserProfile(res as Response);
 
-      expect(mockUsersService.findUserByPkForResponse).toHaveBeenCalledWith(1);
+      expect(mockUsersService.findUserByPk).toHaveBeenCalledWith(1);
       expect(mockResponseService.success).toHaveBeenCalledWith(
         res,
         '프로필 조회 성공',

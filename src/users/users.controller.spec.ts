@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 const mockUsersService = {
   findUserByEmail: jest.fn(),
   findUserByPk: jest.fn(),
+  findUserByPkForResponse: jest.fn(),
   selectUserType: jest.fn(),
   editUserProfile: jest.fn(),
   logout: jest.fn(),
@@ -61,6 +62,40 @@ describe('UsersController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('findUserProfile', () => {
+    it('user 프로필 조회 (민감한 데이터 제외)', async () => {
+      const mockUserProfile = {
+        userId: 1,
+        userType: 'instructor',
+        provider: 'kakao',
+        email: 'test@example.com',
+        name: '홍길동',
+        profileImage: 'profile.jpg',
+        userCreatedAt: new Date(),
+        userUpdatedAt: new Date(),
+      };
+
+      const res: Partial<Response> = {
+        locals: { user: { userId: 1 } },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      mockUsersService.findUserByPkForResponse.mockResolvedValue(
+        mockUserProfile,
+      );
+
+      await controller.findUserProfile(res as Response);
+
+      expect(mockUsersService.findUserByPkForResponse).toHaveBeenCalledWith(1);
+      expect(mockResponseService.success).toHaveBeenCalledWith(
+        res,
+        '프로필 조회 성공',
+        mockUserProfile,
+      );
+    });
   });
 
   describe('editUserProfile', () => {

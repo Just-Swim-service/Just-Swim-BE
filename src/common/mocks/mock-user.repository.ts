@@ -26,6 +26,16 @@ export const mockUser: Users = {
 export const MockUsersRepository = {
   findUserByEmail: jest.fn().mockResolvedValue(mockUser),
   findUserByPk: jest.fn().mockResolvedValue(mockUser),
+  findUserByPkForResponse: jest.fn().mockResolvedValue({
+    userId: mockUser.userId,
+    userType: mockUser.userType,
+    provider: mockUser.provider,
+    email: mockUser.email,
+    name: mockUser.name,
+    profileImage: mockUser.profileImage,
+    userCreatedAt: mockUser.userCreatedAt,
+    userUpdatedAt: mockUser.userUpdatedAt,
+  }),
   createUser: jest.fn().mockResolvedValue(mockUser),
   selectUserType: jest.fn().mockResolvedValue(mockUser),
   editUserProfile: jest.fn().mockResolvedValue(mockUser),

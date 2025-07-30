@@ -96,4 +96,42 @@ describe('MemberService', () => {
       );
     });
   });
+
+  describe('getMemberInfoForResponse', () => {
+    it('강사가 특정 수강생의 정보를 조회 (민감한 데이터 제외)', async () => {
+      const mockMemberData = [
+        {
+          userId: 1,
+          profileImage: 'image.jpg',
+          name: '홍길동',
+          lectureId: 10,
+          lectureTitle: '강의 제목',
+          lectureContent: '강의 내용',
+          lectureLocation: '강의실 101',
+          lectureColor: '#FF0000',
+          lectureDays: ['월', '수'],
+          lectureTime: '10:00~12:00',
+          feedbackId: 100,
+          feedbackDate: '2024-01-01',
+          feedbackType: '긍정적',
+          feedbackContent: '좋았어요!',
+          imagePath: 'img1.jpg',
+        },
+      ];
+
+      (repository.getMemberInfo as jest.Mock).mockResolvedValue(mockMemberData);
+
+      const result = await service.getMemberInfoForResponse(1, 1);
+
+      expect(result).toEqual(mockMemberData);
+      expect(repository.getMemberInfo).toHaveBeenCalledWith(1, 1);
+    });
+
+    it('수강생 정보가 없으면 NotFoundException 발생', async () => {
+      (repository.getMemberInfo as jest.Mock).mockResolvedValue([]);
+      await expect(service.getMemberInfoForResponse(1, 1)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });

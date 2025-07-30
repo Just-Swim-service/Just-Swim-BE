@@ -58,6 +58,51 @@ export class MyLogger implements LoggerService {
   }
 
   private format(message: string, params: any[]) {
-    return params.length ? `${message} | ${JSON.stringify(params)}` : message;
+    if (!params.length) return message;
+
+    // 민감한 데이터 필터링
+    const sanitizedParams = this.sanitizeSensitiveData(params);
+    return `${message} | ${JSON.stringify(sanitizedParams)}`;
+  }
+
+  private sanitizeSensitiveData(data: any[]): any[] {
+    const sensitiveFields = [
+      'password',
+      'token',
+      'secret',
+      'key',
+      'refreshToken',
+      'phoneNumber',
+      'birth',
+      'email',
+      'accessToken',
+    ];
+
+    const sanitize = (obj: any): any => {
+      if (typeof obj !== 'object' || obj === null) return obj;
+
+      if (Array.isArray(obj)) {
+        return obj.map(sanitize);
+      }
+
+      const sanitized: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        const lowerKey = key.toLowerCase();
+        const isSensitive = sensitiveFields.some((field) =>
+          lowerKey.includes(field.toLowerCase()),
+        );
+
+        if (isSensitive) {
+          sanitized[key] = '[REDACTED]';
+        } else if (typeof value === 'object' && value !== null) {
+          sanitized[key] = sanitize(value);
+        } else {
+          sanitized[key] = value;
+        }
+      }
+      return sanitized;
+    };
+
+    return data.map(sanitize);
   }
 }

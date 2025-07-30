@@ -49,6 +49,15 @@ export class UsersService {
     return result;
   }
 
+  /* userId를 이용해 user 조회 (클라이언트 응답용 - 민감한 데이터 제외) */
+  async findUserByPkForResponse(userId: number): Promise<Partial<Users>> {
+    const user = await this.usersRepository.findUserByPkForResponse(userId);
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+    return user;
+  }
+
   /* user의 userType 지정 */
   async selectUserType(
     userId: number,

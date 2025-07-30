@@ -155,7 +155,7 @@ export class MemberController {
     const { userId } = res.locals.user;
     const instructorUserId = userId;
 
-    const memberInfo = await this.memberService.getMemberInfo(
+    const memberInfo = await this.memberService.getMemberInfoForResponse(
       memberUserId,
       instructorUserId,
     );

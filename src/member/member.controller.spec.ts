@@ -13,6 +13,7 @@ class MockMemberService {
   insertMemberFromQR = jest.fn();
   getAllMembersByFeedback = jest.fn();
   getMemberInfo = jest.fn();
+  getMemberInfoForResponse = jest.fn();
 }
 
 class MockUsersService {
@@ -221,7 +222,7 @@ describe('MemberController', () => {
   });
 
   describe('getMemberInfo', () => {
-    it('memberInfo 반환', async () => {
+    it('memberInfo 반환 (민감한 데이터 제외)', async () => {
       const res: Partial<Response> = {
         locals: {
           user: {
@@ -232,11 +233,14 @@ describe('MemberController', () => {
         json: jest.fn(),
       };
 
-      memberService.getMemberInfo.mockResolvedValue(mockMember);
+      memberService.getMemberInfoForResponse.mockResolvedValue(mockMember);
 
       await controller.getMemberInfo(res as Response, 1); // 1 = memberUserId
 
-      expect(memberService.getMemberInfo).toHaveBeenCalledWith(1, 99);
+      expect(memberService.getMemberInfoForResponse).toHaveBeenCalledWith(
+        1,
+        99,
+      );
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '수강생 정보 조회 성공',

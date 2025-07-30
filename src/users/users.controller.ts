@@ -527,12 +527,12 @@ export class UsersController {
   /* 나의 프로필 조회 */
   @Get('user/myProfile')
   @ApiOperation({ summary: '프로필 조회' })
-  @ApiOkResponse({ type: CreateUsersDto, description: '프로필 조회 성공' })
+  @ApiOkResponse({ description: '프로필 조회 성공' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async findUserProfile(@Res() res: Response) {
     const { userId } = res.locals.user;
-    const userProfile = await this.usersService.findUserByPk(userId);
+    const userProfile = await this.usersService.findUserByPkForResponse(userId);
 
     return this.responseService.success(res, '프로필 조회 성공', userProfile);
   }

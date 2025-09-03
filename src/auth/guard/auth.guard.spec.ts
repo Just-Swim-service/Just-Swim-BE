@@ -111,9 +111,18 @@ describe('AuthGuard', () => {
 
   it('should set request.user and response.locals.user if token and user are valid', async () => {
     mockRequest.headers = { authorization: 'Bearer validtoken' };
-    const mockUser = { id: 1, name: 'Test User' };
+    const mockUser = { userId: 1, userType: 'instructor', name: 'Test User' };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      jti: 'test-jti',
+      iat: Math.floor(Date.now() / 1000),
+    };
 
-    (jwtService.verifyAsync as jest.Mock).mockResolvedValue({ userId: 1 });
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
     (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
 
     const result = await guard.canActivate(mockContext);
@@ -121,5 +130,116 @@ describe('AuthGuard', () => {
     expect(result).toBe(true);
     expect(mockRequest.user).toEqual(mockUser);
     expect(mockResponse.locals.user).toEqual(mockUser);
+  });
+
+  it('should throw UnauthorizedException if token issuer is invalid', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'invalid-issuer',
+      aud: 'just-swim-client',
+      jti: 'test-jti',
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      '잘못된 토큰 발급자입니다.',
+    );
+  });
+
+  it('should throw UnauthorizedException if token audience is invalid', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'just-swim-service',
+      aud: 'invalid-audience',
+      jti: 'test-jti',
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      '잘못된 토큰 대상자입니다.',
+    );
+  });
+
+  it('should throw UnauthorizedException if token is missing required claims', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      // Missing jti and iat
+    };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      '토큰에 필수 클레임이 없습니다.',
+    );
+  });
+
+  it('should throw UnauthorizedException if token is too old', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      jti: 'test-jti',
+      iat: Math.floor(Date.now() / 1000) - 400, // 400 seconds ago (over 5 minutes)
+    };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      '토큰이 너무 오래되었습니다.',
+    );
+  });
+
+  it('should throw UnauthorizedException if user type does not match', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockUser = { userId: 1, userType: 'customer' };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      jti: 'test-jti',
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
+    (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      '사용자 타입이 일치하지 않습니다.',
+    );
   });
 });

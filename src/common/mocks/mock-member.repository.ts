@@ -60,4 +60,5 @@ export const MockMemberRepository = {
   getAllMembersByLectureId: jest.fn().mockResolvedValue([mockMember]),
   getAllMembersByFeedback: jest.fn().mockResolvedValue([mockMember]),
   getMemberInfo: jest.fn().mockResolvedValue(mockMemberInfoRaw),
+  checkMemberExists: jest.fn().mockResolvedValue(true),
 };

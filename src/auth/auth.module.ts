@@ -10,6 +10,7 @@ import { LoggerModule } from 'src/common/logger/logger.module';
 import { MyLogger } from 'src/common/logger/logger.service';
 import { AuthGuard } from './guard/auth.guard';
 import { RedirectAuthGuard } from './guard/redirect-auth.guard';
+import { UserTypeGuard } from './guard/user-type.guard';
 import { AuthController } from './auth.controller';
 
 @Module({
@@ -28,7 +29,8 @@ import { AuthController } from './auth.controller';
     MyLogger,
     AuthGuard,
     RedirectAuthGuard,
+    UserTypeGuard,
   ],
-  exports: [AuthService, PassportModule, JwtService],
+  exports: [AuthService, PassportModule, JwtService, UserTypeGuard],
 })
 export class AuthModule {}

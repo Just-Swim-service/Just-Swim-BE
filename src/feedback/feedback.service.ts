@@ -16,6 +16,7 @@ import { FeedbackPresignedUrlDto } from './dto/feedback-presigned-url.dto';
 import { InstructorFeedbackDto } from './dto/instructor-feedback.dto';
 import { CustomerFeedbackDto } from './dto/customer-feedback.dto';
 import { FeedbackDetail } from './dto/feedback-detail.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class FeedbackService {
@@ -24,6 +25,7 @@ export class FeedbackService {
     private readonly feedbackRepository: FeedbackRepository,
     private readonly feedbackTargetRepository: FeedbackTargetRepository,
     private readonly imageService: ImageService,
+    private readonly usersService: UsersService,
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
@@ -385,5 +387,42 @@ export class FeedbackService {
 
     // 피드백 삭제
     await this.feedbackRepository.softDeleteFeedback(feedbackId);
+  }
+
+  // 피드백 접근 권한 확인
+  async checkFeedbackAccess(
+    userId: number,
+    feedbackId: number,
+  ): Promise<boolean> {
+    try {
+      const user = await this.usersService.findUserByPk(userId);
+      if (!user) {
+        return false;
+      }
+
+      const feedback =
+        await this.feedbackRepository.getFeedbackByPk(feedbackId);
+      if (!feedback || feedback.length === 0) {
+        return false;
+      }
+
+      if (user.userType === 'instructor') {
+        // 강사는 자신이 작성한 피드백만 접근 가능
+        return feedback[0].instructor.instructorUserId === userId;
+      } else if (user.userType === 'customer') {
+        // 수강생은 자신이 대상인 피드백만 접근 가능
+        const feedbackTargetList =
+          await this.feedbackTargetRepository.getFeedbackTargetByFeedbackId(
+            feedbackId,
+          );
+        return feedbackTargetList.some(
+          (target) => target.memberUserId === userId,
+        );
+      }
+
+      return false;
+    } catch (error) {
+      return false;
+    }
   }
 }

@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  IsHexColor,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateLectureDto {
   @ApiProperty({
@@ -9,6 +17,8 @@ export class CreateLectureDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Length(1, 100, { message: '강의 제목은 1-100자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly lectureTitle: string;
 
   @ApiProperty({
@@ -18,6 +28,8 @@ export class CreateLectureDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Length(1, 1000, { message: '강의 내용은 1-1000자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly lectureContent: string;
 
   @ApiProperty({
@@ -27,6 +39,13 @@ export class CreateLectureDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Matches(
+    /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]-([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+    {
+      message: '강의 시간은 HH:MM-HH:MM 형식이어야 합니다.',
+    },
+  )
+  @Transform(({ value }) => value?.trim())
   readonly lectureTime: string;
 
   @ApiProperty({
@@ -36,6 +55,10 @@ export class CreateLectureDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[월화수목금토일]+$/, {
+    message: '강의 요일은 월화수목금토일만 포함할 수 있습니다.',
+  })
+  @Transform(({ value }) => value?.trim())
   readonly lectureDays: string;
 
   @ApiProperty({
@@ -45,6 +68,8 @@ export class CreateLectureDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Length(1, 200, { message: '강의 위치는 1-200자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly lectureLocation: string;
 
   @ApiProperty({
@@ -54,6 +79,8 @@ export class CreateLectureDto {
   })
   @IsNotEmpty()
   @IsString()
+  @IsHexColor({ message: '유효한 헥스 색상 코드여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly lectureColor: string;
 
   @ApiProperty({
@@ -63,6 +90,8 @@ export class CreateLectureDto {
   })
   @IsOptional()
   @IsString()
+  @Length(0, 500, { message: 'QR 코드 정보는 500자 이하여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly lectureQRCode: string;
 
   @ApiProperty({
@@ -72,5 +101,9 @@ export class CreateLectureDto {
   })
   @IsOptional()
   @IsString()
+  @Matches(/^\d{4}\.\d{2}\.\d{2}$/, {
+    message: '강의 종료 날짜는 YYYY.MM.DD 형식이어야 합니다.',
+  })
+  @Transform(({ value }) => value?.trim())
   readonly lectureEndDate: string;
 }

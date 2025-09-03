@@ -5,6 +5,7 @@ import { FeedbackTargetRepository } from './feedback-target.repository';
 import { FeedbackType } from './enum/feedback-type.enum';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
+import { UsersService } from 'src/users/users.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 import {
@@ -21,6 +22,7 @@ describe('FeedbackService', () => {
   let feedbackTargetRepository: FeedbackTargetRepository;
   let awsService: AwsService;
   let imageService: ImageService;
+  let usersService: UsersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -49,6 +51,12 @@ describe('FeedbackService', () => {
           provide: FeedbackTargetRepository,
           useValue: MockFeedbackTargetRepository,
         },
+        {
+          provide: UsersService,
+          useValue: {
+            findUserByPk: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -59,6 +67,7 @@ describe('FeedbackService', () => {
     );
     awsService = module.get<AwsService>(AwsService);
     imageService = module.get<ImageService>(ImageService);
+    usersService = module.get<UsersService>(UsersService);
   });
 
   it('should be defined', () => {
@@ -372,6 +381,111 @@ describe('FeedbackService', () => {
       expect(feedbackRepository.softDeleteFeedback).toHaveBeenCalledWith(
         mockFeedback.feedbackId,
       );
+    });
+  });
+
+  describe('checkFeedbackAccess', () => {
+    it('강사가 자신이 작성한 피드백에 접근할 수 있어야 함', async () => {
+      const userId = 1;
+      const feedbackId = 1;
+      const mockUser = { userId: 1, userType: 'instructor' };
+      const mockFeedback = [{ instructor: { instructorUserId: 1 } }];
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+        mockFeedback,
+      );
+
+      const result = await service.checkFeedbackAccess(userId, feedbackId);
+
+      expect(result).toBe(true);
+      expect(usersService.findUserByPk).toHaveBeenCalledWith(userId);
+      expect(feedbackRepository.getFeedbackByPk).toHaveBeenCalledWith(
+        feedbackId,
+      );
+    });
+
+    it('강사가 다른 사람이 작성한 피드백에 접근할 수 없어야 함', async () => {
+      const userId = 1;
+      const feedbackId = 1;
+      const mockUser = { userId: 1, userType: 'instructor' };
+      const mockFeedback = [{ instructor: { instructorUserId: 2 } }];
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+        mockFeedback,
+      );
+
+      const result = await service.checkFeedbackAccess(userId, feedbackId);
+
+      expect(result).toBe(false);
+    });
+
+    it('수강생이 자신이 대상인 피드백에 접근할 수 있어야 함', async () => {
+      const userId = 1;
+      const feedbackId = 1;
+      const mockUser = { userId: 1, userType: 'customer' };
+      const mockFeedback = [{ instructor: { instructorUserId: 2 } }];
+      const mockTargets = [{ memberUserId: 1 }, { memberUserId: 2 }];
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+        mockFeedback,
+      );
+      (
+        feedbackTargetRepository.getFeedbackTargetByFeedbackId as jest.Mock
+      ).mockResolvedValue(mockTargets);
+
+      const result = await service.checkFeedbackAccess(userId, feedbackId);
+
+      expect(result).toBe(true);
+      expect(
+        feedbackTargetRepository.getFeedbackTargetByFeedbackId,
+      ).toHaveBeenCalledWith(feedbackId);
+    });
+
+    it('수강생이 자신이 대상이 아닌 피드백에 접근할 수 없어야 함', async () => {
+      const userId = 1;
+      const feedbackId = 1;
+      const mockUser = { userId: 1, userType: 'customer' };
+      const mockFeedback = [{ instructor: { instructorUserId: 2 } }];
+      const mockTargets = [{ memberUserId: 2 }, { memberUserId: 3 }];
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
+        mockFeedback,
+      );
+      (
+        feedbackTargetRepository.getFeedbackTargetByFeedbackId as jest.Mock
+      ).mockResolvedValue(mockTargets);
+
+      const result = await service.checkFeedbackAccess(userId, feedbackId);
+
+      expect(result).toBe(false);
+    });
+
+    it('사용자가 존재하지 않으면 false를 반환해야 함', async () => {
+      const userId = 1;
+      const feedbackId = 1;
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(null);
+
+      const result = await service.checkFeedbackAccess(userId, feedbackId);
+
+      expect(result).toBe(false);
+    });
+
+    it('피드백이 존재하지 않으면 false를 반환해야 함', async () => {
+      const userId = 1;
+      const feedbackId = 1;
+      const mockUser = { userId: 1, userType: 'instructor' };
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue([]);
+
+      const result = await service.checkFeedbackAccess(userId, feedbackId);
+
+      expect(result).toBe(false);
     });
   });
 });

@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import {
@@ -20,6 +21,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { FeedbackAccessGuard } from 'src/auth/guard/feedback-access.guard';
+import { UserTypeGuard, RequireUserType } from 'src/auth/guard/user-type.guard';
+import { UserType } from 'src/users/enum/user-type.enum';
 import {
   feedbackDetailByCustomer,
   feedbackDetailByInstructor,
@@ -87,6 +91,7 @@ export class FeedbackController {
 
   /* feedback 상세 조회 */
   @Get(':feedbackId')
+  @UseGuards(FeedbackAccessGuard)
   @ApiOperation({
     summary: 'feedback 상세 조회',
     description: 'feedbackId를 통해 feedback을 상세 조회한다',
@@ -108,6 +113,7 @@ export class FeedbackController {
     },
   })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getFeedbackDetail(
@@ -128,6 +134,8 @@ export class FeedbackController {
 
   /* feedback 생성 */
   @Post()
+  @UseGuards(UserTypeGuard)
+  @RequireUserType([UserType.Instructor])
   @ApiOperation({
     summary: 'feedback을 생성 한다',
     description: `수강생을 선택하여 feedback을 남긴다. 
@@ -141,20 +149,15 @@ export class FeedbackController {
   @ApiResponse({ status: 200, description: 'feedback 생성 성공' })
   @ApiResponse({ status: 400, description: 'feedback 생성 실패' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async createFeedback(
     @Res() res: Response,
     @Body() createFeedbackDto: CreateFeedbackDto,
   ) {
-    const { userId, userType } = res.locals.user;
+    const { userId } = res.locals.user;
 
-    if (userType !== 'instructor') {
-      return this.responseService.unauthorized(
-        res,
-        'feedback 작성 권한이 없습니다.',
-      );
-    }
     if (createFeedbackDto.feedbackTarget.length === 0) {
       return this.responseService.error(
         res,

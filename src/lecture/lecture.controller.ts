@@ -9,6 +9,7 @@ import {
   Res,
   HttpStatus,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LectureService } from './lecture.service';
@@ -23,6 +24,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { MemberService } from 'src/member/member.service';
+import { LectureOwnershipGuard } from 'src/auth/guard/lecture-ownership.guard';
+import { UserTypeGuard, RequireUserType } from 'src/auth/guard/user-type.guard';
+import { UserType } from 'src/users/enum/user-type.enum';
 import {
   lectureDetailByCustomer,
   lectureDetailByInstructor,
@@ -128,6 +132,7 @@ export class LectureController {
 
   /* 강의 상세 조회 */
   @Get(':lectureId')
+  @UseGuards(LectureOwnershipGuard)
   @ApiOperation({
     summary: '강의 상세 조회',
     description: '강의를 상세한 내용을 조회한다',
@@ -149,6 +154,7 @@ export class LectureController {
     },
   })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getLectureDetail(
@@ -163,10 +169,13 @@ export class LectureController {
 
   /* 강의 수정 */
   @Patch(':lectureId')
+  @UseGuards(LectureOwnershipGuard, UserTypeGuard)
+  @RequireUserType([UserType.Instructor])
   @ApiBody({ description: '강의 수정을 위한 정보', type: EditLectureDto })
   @ApiOperation({ summary: '강의 수정', description: '강의 내용을 수정' })
   @ApiResponse({ status: 200, description: '강의 수정 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async updateLecture(
@@ -183,12 +192,15 @@ export class LectureController {
 
   /* 강의 삭제(소프트 삭제) */
   @Delete('/:lectureId')
+  @UseGuards(LectureOwnershipGuard, UserTypeGuard)
+  @RequireUserType([UserType.Instructor])
   @ApiOperation({
     summary: '강의 삭제',
     description: 'instructor가 강의를 삭제합니다.(soft Delete)',
   })
   @ApiResponse({ status: 200, description: '강의 삭제 성공' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async softDeleteLecture(
@@ -204,6 +216,8 @@ export class LectureController {
 
   /* 강의 생성 */
   @Post()
+  @UseGuards(UserTypeGuard)
+  @RequireUserType([UserType.Instructor])
   @ApiOperation({
     summary: '강의 생성',
     description: 'instructor가 강의를 새롭게 생성합니다.',
@@ -212,20 +226,14 @@ export class LectureController {
   @ApiResponse({ status: 200, description: '강의 생성 완료' })
   @ApiResponse({ status: 400, description: '강의 생성 실패' })
   @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async createLecture(
     @Res() res: Response,
     @Body() createLectureDto: CreateLectureDto,
   ) {
-    const { userId, userType } = res.locals.user;
-
-    if (userType !== 'instructor') {
-      return this.responseService.unauthorized(
-        res,
-        '강의 생성 권한이 없습니다.',
-      );
-    }
+    const { userId } = res.locals.user;
 
     const newLecture = await this.lectureService.createLecture(
       userId,
@@ -246,6 +254,8 @@ export class LectureController {
 
   /* 강의에 해당하는 수강생 목록 */
   @Get('memberList/:lectureId')
+  @UseGuards(LectureOwnershipGuard, UserTypeGuard)
+  @RequireUserType([UserType.Instructor])
   @ApiOperation({
     summary: '수강생 목록을 조회',
     description: 'instructor가 개설한 강의 목록에 참여한 수강생 list를 조회',
@@ -265,6 +275,7 @@ export class LectureController {
       },
     },
   })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
   @ApiBearerAuth('accessToken')
   async getAllMemberByInstructor(
     @Res() res: Response,

@@ -13,12 +13,16 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { InstructorLectureDto } from './dto/instructor-lecture.dto';
 import { CustomerLectureDto } from './dto/customer-lecture.dto';
 import { LectureDetailDto } from './dto/lecture-detail.dto';
+import { UsersService } from 'src/users/users.service';
+import { MemberRepository } from 'src/member/member.repository';
 
 @Injectable()
 export class LectureService {
   constructor(
     private readonly awsService: AwsService,
     private readonly lectureRepository: LectureRepository,
+    private readonly usersService: UsersService,
+    private readonly memberRepository: MemberRepository,
   ) {}
 
   /* 강의 전체 조회 */
@@ -308,5 +312,32 @@ export class LectureService {
   // 강의 QR 코드 생성
   async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
     await this.lectureRepository.saveQRCode(lectureId, lectureQRCode);
+  }
+
+  // 강의 접근 권한 확인
+  async checkLectureAccess(
+    userId: number,
+    lectureId: number,
+  ): Promise<boolean> {
+    try {
+      const user = await this.usersService.findUserByPk(userId);
+      if (!user) {
+        return false;
+      }
+
+      if (user.userType === 'instructor') {
+        // 강사는 자신의 강의만 접근 가능
+        const lecture =
+          await this.lectureRepository.getLectureForAuth(lectureId);
+        return lecture && lecture.user.userId === userId;
+      } else if (user.userType === 'customer') {
+        // 수강생은 등록된 강의만 접근 가능
+        return await this.memberRepository.checkMemberExists(userId, lectureId);
+      }
+
+      return false;
+    } catch (error) {
+      return false;
+    }
   }
 }

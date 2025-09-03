@@ -133,4 +133,16 @@ export class MemberRepository {
       .orderBy('image.imageId', 'ASC')
       .getRawMany();
   }
+
+  /* 수강생이 특정 강의에 등록되어 있는지 확인 */
+  async checkMemberExists(userId: number, lectureId: number): Promise<boolean> {
+    const member = await this.memberRepository.findOne({
+      where: {
+        user: { userId },
+        lecture: { lectureId },
+        memberDeletedAt: null,
+      },
+    });
+    return !!member;
+  }
 }

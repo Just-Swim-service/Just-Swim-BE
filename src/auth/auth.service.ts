@@ -22,16 +22,48 @@ export class AuthService {
   async getToken(
     userId: number,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '15m',
-    });
+    const user = await this.usersService.findUserByPk(userId);
+    if (!user) {
+      throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const jti = `${userId}_${now}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const accessTokenPayload = {
+      userId,
+      userType: user.userType,
+      email: user.email,
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      jti,
+      iat: now,
+    };
+
+    const refreshTokenPayload = {
+      userId,
+      jti,
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      iat: now,
+    };
+
+    const accessToken = jwt.sign(
+      accessTokenPayload,
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: '15m',
+      },
+    );
+
     const refreshToken = jwt.sign(
-      { userId },
+      refreshTokenPayload,
       process.env.REFRESH_TOKEN_SECRET,
       {
         expiresIn: '14d',
       },
     );
+
     await this.usersService.updateRefreshToken(userId, refreshToken);
 
     return { accessToken, refreshToken };
@@ -39,9 +71,31 @@ export class AuthService {
 
   /* generateAccessToken */
   async generateAccessToken(userId: number): Promise<{ accessToken: string }> {
-    const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '15m',
-    });
+    const user = await this.usersService.findUserByPk(userId);
+    if (!user) {
+      throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const jti = `${userId}_${now}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const accessTokenPayload = {
+      userId,
+      userType: user.userType,
+      email: user.email,
+      iss: 'just-swim-service',
+      aud: 'just-swim-client',
+      jti,
+      iat: now,
+    };
+
+    const accessToken = jwt.sign(
+      accessTokenPayload,
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: '15m',
+      },
+    );
 
     return { accessToken };
   }

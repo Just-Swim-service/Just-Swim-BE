@@ -13,6 +13,7 @@ describe('MemberRepository', () => {
       transaction: jest.fn(),
     },
     createQueryBuilder: jest.fn(),
+    findOne: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -92,5 +93,88 @@ describe('MemberRepository', () => {
     const result = await memberRepository.getMemberInfo(1, 2);
     expect(result).toEqual([{ userId: 1 }]);
     expect(mockGetRawMany).toHaveBeenCalled();
+  });
+
+  describe('checkMemberExists', () => {
+    it('should return true when member exists', async () => {
+      const mockMember = {
+        memberId: 1,
+        user: { userId: 1 },
+        lecture: { lectureId: 1 },
+        memberNickname: 'test-nickname',
+        memberCreatedAt: new Date(),
+        memberUpdatedAt: new Date(),
+        memberDeletedAt: null,
+      } as any;
+
+      repo.findOne.mockResolvedValue(mockMember);
+
+      const result = await memberRepository.checkMemberExists(1, 1);
+
+      expect(result).toBe(true);
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: {
+          user: { userId: 1 },
+          lecture: { lectureId: 1 },
+          memberDeletedAt: null,
+        },
+      });
+    });
+
+    it('should return false when member does not exist', async () => {
+      repo.findOne.mockResolvedValue(null);
+
+      const result = await memberRepository.checkMemberExists(1, 1);
+
+      expect(result).toBe(false);
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: {
+          user: { userId: 1 },
+          lecture: { lectureId: 1 },
+          memberDeletedAt: null,
+        },
+      });
+    });
+
+    it('should return false when member is deleted', async () => {
+      // 삭제된 멤버는 memberDeletedAt: null 조건으로 조회되지 않으므로 null 반환
+      repo.findOne.mockResolvedValue(null);
+
+      const result = await memberRepository.checkMemberExists(1, 1);
+
+      expect(result).toBe(false);
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: {
+          user: { userId: 1 },
+          lecture: { lectureId: 1 },
+          memberDeletedAt: null,
+        },
+      });
+    });
+
+    it('should handle different user and lecture IDs', async () => {
+      const mockMember = {
+        memberId: 2,
+        user: { userId: 5 },
+        lecture: { lectureId: 10 },
+        memberNickname: 'test-nickname',
+        memberCreatedAt: new Date(),
+        memberUpdatedAt: new Date(),
+        memberDeletedAt: null,
+      } as any;
+
+      repo.findOne.mockResolvedValue(mockMember);
+
+      const result = await memberRepository.checkMemberExists(5, 10);
+
+      expect(result).toBe(true);
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: {
+          user: { userId: 5 },
+          lecture: { lectureId: 10 },
+          memberDeletedAt: null,
+        },
+      });
+    });
   });
 });

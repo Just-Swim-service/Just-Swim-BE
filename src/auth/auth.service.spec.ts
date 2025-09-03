@@ -23,6 +23,7 @@ describe('AuthService', () => {
             findUserByEmail: jest.fn(),
             createUser: jest.fn(),
             updateRefreshToken: jest.fn(),
+            findUserByPk: jest.fn(),
           },
         },
         {
@@ -93,8 +94,15 @@ describe('AuthService', () => {
   describe('getToken', () => {
     it('userId를 포함하는 token return', async () => {
       const userId = 1;
+      const mockUser = {
+        userId: 1,
+        userType: UserType.Instructor,
+        email: 'test@example.com',
+      } as Users;
       const accessToken = 'mocked_access_token';
       const refreshToken = 'mocked_refresh_token';
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
       (jwt.sign as jest.Mock)
         .mockReturnValueOnce(accessToken)
         .mockReturnValueOnce(refreshToken);
@@ -102,12 +110,21 @@ describe('AuthService', () => {
       const result = await service.getToken(userId);
 
       expect(result).toEqual({ accessToken, refreshToken });
+      expect(usersService.findUserByPk).toHaveBeenCalledWith(userId);
       expect(jwt.sign).toHaveBeenCalledTimes(2);
 
-      // 첫 번째 호출은 accessToken 생성
+      // 첫 번째 호출은 accessToken 생성 (확장된 클레임 포함)
       expect(jwt.sign).toHaveBeenNthCalledWith(
         1,
-        { userId },
+        expect.objectContaining({
+          userId,
+          userType: mockUser.userType,
+          email: mockUser.email,
+          iss: 'just-swim-service',
+          aud: 'just-swim-client',
+          jti: expect.any(String),
+          iat: expect.any(Number),
+        }),
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' },
       );
@@ -115,7 +132,13 @@ describe('AuthService', () => {
       // 두 번째 호출은 refreshToken 생성
       expect(jwt.sign).toHaveBeenNthCalledWith(
         2,
-        { userId },
+        expect.objectContaining({
+          userId,
+          jti: expect.any(String),
+          iss: 'just-swim-service',
+          aud: 'just-swim-client',
+          iat: expect.any(Number),
+        }),
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: '14d' },
       );
@@ -125,14 +148,30 @@ describe('AuthService', () => {
   describe('generateAccessToken', () => {
     it('should return new access token', async () => {
       const userId = 1;
+      const mockUser = {
+        userId: 1,
+        userType: UserType.Instructor,
+        email: 'test@example.com',
+      } as Users;
       const accessToken = 'new_access_token';
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
       (jwt.sign as jest.Mock).mockReturnValue(accessToken);
 
       const result = await service.generateAccessToken(userId);
 
       expect(result).toEqual({ accessToken });
+      expect(usersService.findUserByPk).toHaveBeenCalledWith(userId);
       expect(jwt.sign).toHaveBeenCalledWith(
-        { userId },
+        expect.objectContaining({
+          userId,
+          userType: mockUser.userType,
+          email: mockUser.email,
+          iss: 'just-swim-service',
+          aud: 'just-swim-client',
+          jti: expect.any(String),
+          iat: expect.any(Number),
+        }),
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' },
       );

@@ -4,6 +4,7 @@ import { LectureRepository } from './lecture.repository';
 import { LectureService } from './lecture.service';
 import { MemberRepository } from 'src/member/member.repository';
 import { AwsService } from 'src/common/aws/aws.service';
+import { UsersService } from 'src/users/users.service';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import {
@@ -21,6 +22,7 @@ describe('LectureService', () => {
   let lectureRepository: LectureRepository;
   let memberRepository: MemberRepository;
   let awsService: AwsService;
+  let usersService: UsersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,6 +44,12 @@ describe('LectureService', () => {
           provide: MemberRepository,
           useValue: MockMemberRepository,
         },
+        {
+          provide: UsersService,
+          useValue: {
+            findUserByPk: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -49,6 +57,7 @@ describe('LectureService', () => {
     lectureRepository = module.get<LectureRepository>(LectureRepository);
     memberRepository = module.get<MemberRepository>(MemberRepository);
     awsService = module.get<AwsService>(AwsService);
+    usersService = module.get<UsersService>(UsersService);
   });
 
   it('should be defined', () => {
@@ -341,6 +350,87 @@ describe('LectureService', () => {
         newLecture.lectureId,
         expect.any(String),
       );
+    });
+  });
+
+  describe('checkLectureAccess', () => {
+    it('강사가 자신의 강의에 접근할 수 있어야 함', async () => {
+      const userId = 1;
+      const lectureId = 1;
+      const mockUser = { userId: 1, userType: 'instructor' };
+      const mockLecture = { lectureId: 1, user: { userId: 1 } };
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        mockLecture,
+      );
+
+      const result = await service.checkLectureAccess(userId, lectureId);
+
+      expect(result).toBe(true);
+      expect(usersService.findUserByPk).toHaveBeenCalledWith(userId);
+      expect(lectureRepository.getLectureForAuth).toHaveBeenCalledWith(
+        lectureId,
+      );
+    });
+
+    it('강사가 다른 사람의 강의에 접근할 수 없어야 함', async () => {
+      const userId = 1;
+      const lectureId = 1;
+      const mockUser = { userId: 1, userType: 'instructor' };
+      const mockLecture = { lectureId: 1, user: { userId: 2 } };
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        mockLecture,
+      );
+
+      const result = await service.checkLectureAccess(userId, lectureId);
+
+      expect(result).toBe(false);
+    });
+
+    it('수강생이 등록된 강의에 접근할 수 있어야 함', async () => {
+      const userId = 1;
+      const lectureId = 1;
+      const mockUser = { userId: 1, userType: 'customer' };
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (memberRepository.checkMemberExists as jest.Mock).mockResolvedValue(true);
+
+      const result = await service.checkLectureAccess(userId, lectureId);
+
+      expect(result).toBe(true);
+      expect(memberRepository.checkMemberExists).toHaveBeenCalledWith(
+        userId,
+        lectureId,
+      );
+    });
+
+    it('수강생이 등록되지 않은 강의에 접근할 수 없어야 함', async () => {
+      const userId = 1;
+      const lectureId = 1;
+      const mockUser = { userId: 1, userType: 'customer' };
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (memberRepository.checkMemberExists as jest.Mock).mockResolvedValue(
+        false,
+      );
+
+      const result = await service.checkLectureAccess(userId, lectureId);
+
+      expect(result).toBe(false);
+    });
+
+    it('사용자가 존재하지 않으면 false를 반환해야 함', async () => {
+      const userId = 1;
+      const lectureId = 1;
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(null);
+
+      const result = await service.checkLectureAccess(userId, lectureId);
+
+      expect(result).toBe(false);
     });
   });
 });

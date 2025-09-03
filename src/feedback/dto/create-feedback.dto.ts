@@ -6,9 +6,14 @@ import {
   IsOptional,
   IsString,
   ValidateNested,
+  Length,
+  Matches,
+  IsUrl,
+  ArrayMinSize,
+  ArrayMaxSize,
 } from 'class-validator';
 import { FeedbackType } from '../enum/feedback-type.enum';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { FeedbackTargetDto } from './feedback-target.dto';
 import { CreateFeedbackImageDto } from './create-feedback-image.dto';
 
@@ -30,6 +35,10 @@ export class CreateFeedbackDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Matches(/^\d{4}\.\d{2}\.\d{2}$/, {
+    message: '피드백 날짜는 YYYY.MM.DD 형식이어야 합니다.',
+  })
+  @Transform(({ value }) => value?.trim())
   readonly feedbackDate: string;
 
   @ApiProperty({
@@ -39,6 +48,9 @@ export class CreateFeedbackDto {
   })
   @IsOptional()
   @IsString()
+  @IsUrl({}, { message: '유효한 URL 형식이어야 합니다.' })
+  @Length(0, 500, { message: '링크는 500자 이하여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly feedbackLink: string;
 
   @ApiProperty({
@@ -49,6 +61,8 @@ export class CreateFeedbackDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Length(1, 2000, { message: '피드백 내용은 1-2000자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   readonly feedbackContent: string;
 
   @ApiProperty({
@@ -58,6 +72,8 @@ export class CreateFeedbackDto {
   })
   @IsNotEmpty()
   @IsArray()
+  @ArrayMinSize(1, { message: '피드백 대상은 최소 1개 이상이어야 합니다.' })
+  @ArrayMaxSize(10, { message: '피드백 대상은 최대 10개까지 가능합니다.' })
   @ValidateNested({ each: true })
   @Type(() => FeedbackTargetDto)
   readonly feedbackTarget: FeedbackTargetDto[];
@@ -69,6 +85,7 @@ export class CreateFeedbackDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(4, { message: '피드백 이미지는 최대 4개까지 가능합니다.' })
   @ValidateNested({ each: true })
   @Type(() => CreateFeedbackImageDto)
   readonly feedbackImage?: CreateFeedbackImageDto[];

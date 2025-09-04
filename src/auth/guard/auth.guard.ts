@@ -140,6 +140,7 @@ export class AuthGuard implements CanActivate {
           request,
           SecurityEventType.TOKEN_EXPIRED,
           'JWT token expired',
+          undefined,
         );
         throw new UnauthorizedException('accessToken이 만료되었습니다.');
       }

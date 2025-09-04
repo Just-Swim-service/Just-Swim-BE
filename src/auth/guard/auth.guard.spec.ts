@@ -6,7 +6,10 @@ import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { MyLogger } from 'src/common/logger/logger.service';
 import { UnauthorizedException } from '@nestjs/common';
-import { SecurityLoggerService } from 'src/common/security/security-logger.service';
+import {
+  SecurityLoggerService,
+  SecurityEventType,
+} from 'src/common/security/security-logger.service';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
@@ -149,7 +152,7 @@ describe('AuthGuard', () => {
       userType: 'instructor',
       email: 'test@example.com',
       iss: 'invalid-issuer',
-      aud: 'just-swim-client',
+      aud: 'https://just-swim.kr',
       jti: 'test-jti',
       iat: Math.floor(Date.now() / 1000),
     };
@@ -170,7 +173,7 @@ describe('AuthGuard', () => {
       userId: 1,
       userType: 'instructor',
       email: 'test@example.com',
-      iss: 'just-swim-service',
+      iss: 'https://api.just-swim.kr',
       aud: 'invalid-audience',
       jti: 'test-jti',
       iat: Math.floor(Date.now() / 1000),
@@ -288,7 +291,7 @@ describe('AuthGuard', () => {
         userType: 'instructor',
         email: 'test@example.com',
         iss: 'invalid-issuer',
-        aud: 'just-swim-client',
+        aud: 'https://just-swim.kr',
         jti: 'test-jti',
         iat: Math.floor(Date.now() / 1000),
       };
@@ -311,8 +314,10 @@ describe('AuthGuard', () => {
       mockRequest.headers = { authorization: 'Bearer expiredtoken' };
       const logSpy = jest.spyOn(securityLogger, 'logTokenEvent');
 
+      const tokenExpiredError = new Error('Token expired');
+      tokenExpiredError.name = 'TokenExpiredError';
       (jwtService.verifyAsync as jest.Mock).mockRejectedValue(
-        new Error('TokenExpiredError'),
+        tokenExpiredError,
       );
 
       await expect(guard.canActivate(mockContext)).rejects.toThrow(
@@ -320,8 +325,9 @@ describe('AuthGuard', () => {
       );
       expect(logSpy).toHaveBeenCalledWith(
         mockRequest,
-        'TOKEN_EXPIRED',
+        SecurityEventType.TOKEN_EXPIRED,
         'JWT token expired',
+        undefined,
       );
     });
   });

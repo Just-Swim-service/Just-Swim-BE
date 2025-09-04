@@ -258,11 +258,11 @@ export class SessionManagerService {
     );
 
     let oldestSessionId: string | null = null;
-    let oldestTime = new Date();
+    let oldestTime: Date | null = null;
 
     for (const sessionId of userSessions) {
       const session = this.activeSessions.get(sessionId);
-      if (session && session.loginTime < oldestTime) {
+      if (session && (!oldestTime || session.loginTime < oldestTime)) {
         oldestTime = session.loginTime;
         oldestSessionId = sessionId;
       }

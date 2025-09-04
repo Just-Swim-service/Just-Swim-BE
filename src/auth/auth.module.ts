@@ -12,12 +12,14 @@ import { AuthGuard } from './guard/auth.guard';
 import { RedirectAuthGuard } from './guard/redirect-auth.guard';
 import { UserTypeGuard } from './guard/user-type.guard';
 import { AuthController } from './auth.controller';
+import { SecurityModule } from 'src/common/security/security.module';
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     LoggerModule,
+    SecurityModule, // SecurityModule에서 SecurityLoggerService와 SessionManagerService 가져오기
   ],
   controllers: [AuthController],
   providers: [

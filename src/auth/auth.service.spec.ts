@@ -5,6 +5,7 @@ import { UsersService } from 'src/users/users.service';
 import { Users } from 'src/users/entity/users.entity';
 import { MyLogger } from 'src/common/logger/logger.service';
 import { UserType } from 'src/users/enum/user-type.enum';
+import { SessionManagerService } from 'src/common/security/session-manager.service';
 
 jest.mock('jsonwebtoken');
 
@@ -12,6 +13,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let usersService: UsersService;
   let logger: MyLogger;
+  let sessionManager: SessionManagerService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -36,12 +38,21 @@ describe('AuthService', () => {
             verbose: jest.fn(),
           },
         },
+        {
+          provide: SessionManagerService,
+          useValue: {
+            createSession: jest.fn(),
+            validateSession: jest.fn(),
+            invalidateSession: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
     logger = module.get<MyLogger>(MyLogger);
+    sessionManager = module.get<SessionManagerService>(SessionManagerService);
   });
 
   it('should be defined', () => {
@@ -120,8 +131,8 @@ describe('AuthService', () => {
           userId,
           userType: mockUser.userType,
           email: mockUser.email,
-          iss: 'just-swim-service',
-          aud: 'just-swim-client',
+          iss: 'https://api.just-swim.kr',
+          aud: 'https://just-swim.kr',
           jti: expect.any(String),
           iat: expect.any(Number),
         }),
@@ -135,13 +146,66 @@ describe('AuthService', () => {
         expect.objectContaining({
           userId,
           jti: expect.any(String),
-          iss: 'just-swim-service',
-          aud: 'just-swim-client',
+          iss: 'https://api.just-swim.kr',
+          aud: 'https://just-swim.kr',
           iat: expect.any(Number),
         }),
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: '14d' },
       );
+    });
+
+    it('should create session when IP and User-Agent provided', async () => {
+      const userId = 1;
+      const mockUser = {
+        userId: 1,
+        userType: UserType.Instructor,
+        email: 'test@example.com',
+      } as Users;
+      const accessToken = 'mocked_access_token';
+      const refreshToken = 'mocked_refresh_token';
+      const sessionId = 'mocked_session_id';
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (jwt.sign as jest.Mock)
+        .mockReturnValueOnce(accessToken)
+        .mockReturnValueOnce(refreshToken);
+      (sessionManager.createSession as jest.Mock).mockReturnValue(sessionId);
+
+      const result = await service.getToken(
+        userId,
+        '192.168.1.1',
+        'Mozilla/5.0',
+      );
+
+      expect(result).toEqual({ accessToken, refreshToken, sessionId });
+      expect(sessionManager.createSession).toHaveBeenCalledWith(
+        userId,
+        mockUser.userType,
+        '192.168.1.1',
+        'Mozilla/5.0',
+      );
+    });
+
+    it('should not create session when IP or User-Agent not provided', async () => {
+      const userId = 1;
+      const mockUser = {
+        userId: 1,
+        userType: UserType.Instructor,
+        email: 'test@example.com',
+      } as Users;
+      const accessToken = 'mocked_access_token';
+      const refreshToken = 'mocked_refresh_token';
+
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      (jwt.sign as jest.Mock)
+        .mockReturnValueOnce(accessToken)
+        .mockReturnValueOnce(refreshToken);
+
+      const result = await service.getToken(userId);
+
+      expect(result).toEqual({ accessToken, refreshToken });
+      expect(sessionManager.createSession).not.toHaveBeenCalled();
     });
   });
 
@@ -167,8 +231,8 @@ describe('AuthService', () => {
           userId,
           userType: mockUser.userType,
           email: mockUser.email,
-          iss: 'just-swim-service',
-          aud: 'just-swim-client',
+          iss: 'https://api.just-swim.kr',
+          aud: 'https://just-swim.kr',
           jti: expect.any(String),
           iat: expect.any(Number),
         }),

@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { MyLogger } from './common/logger/logger.service';
+import helmet from 'helmet';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,13 +18,58 @@ async function bootstrap() {
   expressApp.set('x-powered-by', false);
   expressApp.set('view cache', true);
 
-  const compression = require('compression');
-  expressApp.use(compression());
+  // 보안 헤더 설정
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://fonts.googleapis.com',
+          ],
+          scriptSrc: ["'self'", 'https://apis.google.com'],
+          imgSrc: [
+            "'self'",
+            'data:',
+            'https:',
+            'https://just-swim.kr',
+            'https://api.just-swim.kr',
+          ],
+          connectSrc: [
+            "'self'",
+            'https://api.just-swim.kr',
+            'https://just-swim.kr',
+          ],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
+          frameSrc: ["'none'"],
+          formAction: ["'self'", 'https://just-swim.kr'],
+        },
+      },
+      crossOriginEmbedderPolicy: false, // CORS와 호환성을 위해 비활성화
+      hsts: {
+        maxAge: 31536000, // 1년
+        includeSubDomains: true,
+        preload: true,
+      },
+      noSniff: true,
+      xssFilter: true,
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      frameguard: { action: 'deny' },
+    }),
+  );
+
+  app.use(compression());
 
   const allowedOrigins = [
     'https://just-swim.kr',
     'https://www.just-swim.kr',
+    'https://api.just-swim.kr',
     'http://localhost:3000',
+    'http://localhost:3001',
   ];
 
   app.enableCors({

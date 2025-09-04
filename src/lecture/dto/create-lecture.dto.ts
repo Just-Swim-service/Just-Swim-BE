@@ -8,6 +8,7 @@ import {
   IsHexColor,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { Sanitize } from 'src/common/security/sanitization.util';
 
 export class CreateLectureDto {
   @ApiProperty({
@@ -19,6 +20,7 @@ export class CreateLectureDto {
   @IsString()
   @Length(1, 100, { message: '강의 제목은 1-100자 사이여야 합니다.' })
   @Transform(({ value }) => value?.trim())
+  @Sanitize()
   readonly lectureTitle: string;
 
   @ApiProperty({
@@ -30,6 +32,7 @@ export class CreateLectureDto {
   @IsString()
   @Length(1, 1000, { message: '강의 내용은 1-1000자 사이여야 합니다.' })
   @Transform(({ value }) => value?.trim())
+  @Sanitize()
   readonly lectureContent: string;
 
   @ApiProperty({
@@ -70,6 +73,7 @@ export class CreateLectureDto {
   @IsString()
   @Length(1, 200, { message: '강의 위치는 1-200자 사이여야 합니다.' })
   @Transform(({ value }) => value?.trim())
+  @Sanitize()
   readonly lectureLocation: string;
 
   @ApiProperty({

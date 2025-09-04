@@ -9,6 +9,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import { SkipAuth } from './decorator/skip-auth.decorator';
+import { Throttle } from '@nestjs/throttler';
 import * as cookie from 'cookie';
 
 @Controller('auth')
@@ -19,6 +20,7 @@ export class AuthController {
   ) {}
 
   @SkipAuth()
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 1분당 5회만 refresh 허용
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const cookies = cookie.parse(req.headers.cookie || '');

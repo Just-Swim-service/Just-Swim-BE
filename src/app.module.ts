@@ -16,15 +16,36 @@ import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
 import { ResponseModule } from './common/response/response.module';
 import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.module';
+import { SecurityModule } from './common/security/security.module';
 import * as Joi from 'joi';
 import { envVariables } from './common/const/env.const';
 import { AuthGuard } from './auth/guard/auth.guard';
 import { CronModule } from './common/cron/cron.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
     CronModule,
     LoggerModule,
+    SecurityModule, // 보안 서비스 모듈 추가
+    // Rate Limiting 설정
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1초
+        limit: 10, // 1초당 10회 요청
+      },
+      {
+        name: 'medium',
+        ttl: 60000, // 1분
+        limit: 100, // 1분당 100회 요청
+      },
+      {
+        name: 'long',
+        ttl: 900000, // 15분
+        limit: 1000, // 15분당 1000회 요청
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -84,6 +105,7 @@ import { CronModule } from './common/cron/cron.module';
   ],
   providers: [
     JwtService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard }, // Rate Limiting 가드 (AuthGuard보다 먼저 실행)
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],

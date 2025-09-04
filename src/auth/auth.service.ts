@@ -4,10 +4,14 @@ import { UsersService } from 'src/users/users.service';
 import * as jwt from 'jsonwebtoken';
 import { CreateUsersDto } from 'src/users/dto/create-users.dto';
 import * as bcrypt from 'bcrypt';
+import { SessionManagerService } from 'src/common/security/session-manager.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly sessionManager: SessionManagerService,
+  ) {}
 
   /* 사용자 검증 */
   async validateUser(email: string, provider: string): Promise<Users | null> {
@@ -21,7 +25,13 @@ export class AuthService {
   /* token */
   async getToken(
     userId: number,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    sessionId?: string;
+  }> {
     const user = await this.usersService.findUserByPk(userId);
     if (!user) {
       throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
@@ -34,8 +44,8 @@ export class AuthService {
       userId,
       userType: user.userType,
       email: user.email,
-      iss: 'just-swim-service',
-      aud: 'just-swim-client',
+      iss: 'https://api.just-swim.kr',
+      aud: 'https://just-swim.kr',
       jti,
       iat: now,
     };
@@ -43,8 +53,8 @@ export class AuthService {
     const refreshTokenPayload = {
       userId,
       jti,
-      iss: 'just-swim-service',
-      aud: 'just-swim-client',
+      iss: 'https://api.just-swim.kr',
+      aud: 'https://just-swim.kr',
       iat: now,
     };
 
@@ -66,7 +76,18 @@ export class AuthService {
 
     await this.usersService.updateRefreshToken(userId, refreshToken);
 
-    return { accessToken, refreshToken };
+    // 세션 생성 (IP와 User-Agent가 제공된 경우)
+    let sessionId: string | undefined;
+    if (ipAddress && userAgent) {
+      sessionId = this.sessionManager.createSession(
+        userId,
+        user.userType,
+        ipAddress,
+        userAgent,
+      );
+    }
+
+    return { accessToken, refreshToken, sessionId };
   }
 
   /* generateAccessToken */
@@ -83,8 +104,8 @@ export class AuthService {
       userId,
       userType: user.userType,
       email: user.email,
-      iss: 'just-swim-service',
-      aud: 'just-swim-client',
+      iss: 'https://api.just-swim.kr',
+      aud: 'https://just-swim.kr',
       jti,
       iat: now,
     };

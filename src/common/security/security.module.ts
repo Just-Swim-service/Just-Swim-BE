@@ -7,3 +7,4 @@ import { SessionManagerService } from './session-manager.service';
   exports: [SecurityLoggerService, SessionManagerService],
 })
 export class SecurityModule {}
+

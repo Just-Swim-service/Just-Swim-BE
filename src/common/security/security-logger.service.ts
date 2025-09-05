@@ -257,3 +257,4 @@ export class SecurityLoggerService {
     return criticalEvents.includes(eventType);
   }
 }
+

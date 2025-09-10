@@ -123,6 +123,7 @@ describe('FeedbackService', () => {
 
   describe('getFeedbackByPk', () => {
     it('feedbackId에 해당하는 feedback을 상세 조회해서 return', async () => {
+      const mockInstructorUser = { ...mockUser, userType: 'instructor' };
       const mockFeedback = {
         feedbackId: 1,
         feedbackContent: 'Great lecture!',
@@ -153,7 +154,7 @@ describe('FeedbackService', () => {
       ).mockResolvedValue([mockFeedbackTarget]);
 
       const result = await service.getFeedbackByPk(
-        mockUser.userId,
+        mockInstructorUser.userId,
         mockFeedback.feedbackId,
       );
       expect(result).toEqual({
@@ -389,7 +390,7 @@ describe('FeedbackService', () => {
       const userId = 1;
       const feedbackId = 1;
       const mockUser = { userId: 1, userType: 'instructor' };
-      const mockFeedback = [{ instructor: { instructorUserId: 1 } }];
+      const mockFeedback = [{ instructorUserId: 1 }];
 
       (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
       (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
@@ -409,7 +410,7 @@ describe('FeedbackService', () => {
       const userId = 1;
       const feedbackId = 1;
       const mockUser = { userId: 1, userType: 'instructor' };
-      const mockFeedback = [{ instructor: { instructorUserId: 2 } }];
+      const mockFeedback = [{ instructorUserId: 2 }];
 
       (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
       (feedbackRepository.getFeedbackByPk as jest.Mock).mockResolvedValue(
@@ -425,7 +426,7 @@ describe('FeedbackService', () => {
       const userId = 1;
       const feedbackId = 1;
       const mockUser = { userId: 1, userType: 'customer' };
-      const mockFeedback = [{ instructor: { instructorUserId: 2 } }];
+      const mockFeedback = [{ instructorUserId: 2 }];
       const mockTargets = [{ memberUserId: 1 }, { memberUserId: 2 }];
 
       (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockUser);

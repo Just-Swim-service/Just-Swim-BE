@@ -408,7 +408,7 @@ export class FeedbackService {
 
       if (user.userType === 'instructor') {
         // 강사는 자신이 작성한 피드백만 접근 가능
-        return feedback[0].instructor.instructorUserId === userId;
+        return feedback[0].instructorUserId === userId;
       } else if (user.userType === 'customer') {
         // 수강생은 자신이 대상인 피드백만 접근 가능
         const feedbackTargetList =

@@ -17,6 +17,9 @@ import { AwsModule } from './common/aws/aws.module';
 import { ResponseModule } from './common/response/response.module';
 import { WithdrawalReasonModule } from './withdrawal-reason/withdrawal-reason.module';
 import { SecurityModule } from './common/security/security.module';
+import { HealthModule } from './health/health.module';
+import { MetricsModule } from './common/metrics/metrics.module';
+import { SecurityGuard } from './common/guards/security.guard';
 import * as Joi from 'joi';
 import { envVariables } from './common/const/env.const';
 import { AuthGuard } from './auth/guard/auth.guard';
@@ -102,10 +105,13 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     AwsModule,
     ResponseModule,
     WithdrawalReasonModule,
+    HealthModule,
+    MetricsModule,
   ],
   providers: [
     JwtService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard }, // Rate Limiting 가드 (AuthGuard보다 먼저 실행)
+    { provide: APP_GUARD, useClass: SecurityGuard }, // 보안 가드 (가장 먼저 실행)
+    { provide: APP_GUARD, useClass: ThrottlerGuard }, // Rate Limiting 가드
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],

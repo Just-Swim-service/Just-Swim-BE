@@ -101,22 +101,66 @@ async function bootstrap() {
 
   // swagger 설정
   const config = new DocumentBuilder()
-    .setTitle('Just-Swim API Document')
-    .setDescription('Just-Swim API')
-    .setVersion('1.0')
+    .setTitle('Just-Swim API Documentation')
+    .setDescription(
+      `
+      ## Just-Swim 수영 강습 관리 시스템 API
+
+      ### 주요 기능
+      - **사용자 관리**: 강사/수강생 회원가입, 로그인, 프로필 관리
+      - **강의 관리**: 강의 생성, 수정, 삭제, 일정 관리
+      - **피드백 시스템**: 강의 피드백 작성, 조회, 관리
+      - **이미지 관리**: 프로필 이미지, 피드백 이미지 업로드
+      - **QR 코드**: 수강생 등록을 위한 QR 코드 생성
+
+      ### 인증 방식
+      - JWT 토큰 기반 인증
+      - OAuth 2.0 (Google, Kakao, Naver) 지원
+
+      ### API 버전
+      - 현재 버전: v1.0
+      - 기본 경로: /api
+
+      ### 에러 코드
+      - 200: 성공
+      - 400: 잘못된 요청
+      - 401: 인증 실패
+      - 403: 권한 없음
+      - 404: 리소스 없음
+      - 409: 충돌 (중복)
+      - 500: 서버 오류
+    `,
+    )
+    .setVersion('1.0.0')
+    .setContact(
+      'Just-Swim Team',
+      'https://just-swim.kr',
+      'contact@just-swim.kr',
+    )
+    .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addBearerAuth(
       {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        name: 'authorization',
-        description: 'Enter JWT Token',
+        name: 'Authorization',
+        description: 'JWT 토큰을 입력하세요. Bearer 접두사는 생략 가능합니다.',
         in: 'header',
       },
       'accessToken',
     )
-    .addServer('https://api.just-swim.kr', '서버 주소')
-    .addServer('http://localhost:3001', '로컬 주소')
+    .addTag('Health', '서비스 상태 확인')
+    .addTag('Auth', '인증 및 인가')
+    .addTag('Users', '사용자 관리')
+    .addTag('Customer', '수강생 관리')
+    .addTag('Instructor', '강사 관리')
+    .addTag('Lecture', '강의 관리')
+    .addTag('Member', '수강생 등록 관리')
+    .addTag('Feedback', '피드백 관리')
+    .addTag('Image', '이미지 관리')
+    .addTag('Withdrawal', '회원 탈퇴 관리')
+    .addServer('https://api.just-swim.kr', 'Production Server')
+    .addServer('http://localhost:3001', 'Development Server')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

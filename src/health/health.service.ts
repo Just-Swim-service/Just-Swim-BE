@@ -28,7 +28,7 @@ export class HealthService {
     try {
       // 데이터베이스 연결 상태 확인
       const dbStatus = await this.checkDatabaseConnection();
-      const dbResponseTime = Date.now() - startTime;
+      const dbResponseTime = Math.max(Date.now() - startTime, 1); // 최소 1ms 보장
 
       return {
         status: dbStatus ? 'ok' : 'error',

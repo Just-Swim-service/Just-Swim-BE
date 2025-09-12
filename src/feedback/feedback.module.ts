@@ -9,6 +9,7 @@ import { FeedbackTargetRepository } from './feedback-target.repository';
 import { AwsModule } from 'src/common/aws/aws.module';
 import { ImageModule } from 'src/image/image.module';
 import { UsersModule } from 'src/users/users.module';
+import { NotificationModule } from 'src/notification/notification.module';
 import { FeedbackAccessGuard } from 'src/auth/guard/feedback-access.guard';
 import { UserTypeGuard } from 'src/auth/guard/user-type.guard';
 
@@ -18,6 +19,7 @@ import { UserTypeGuard } from 'src/auth/guard/user-type.guard';
     AwsModule,
     forwardRef(() => ImageModule),
     forwardRef(() => UsersModule),
+    forwardRef(() => NotificationModule),
   ],
   controllers: [FeedbackController],
   providers: [

@@ -6,6 +6,7 @@ import { FeedbackType } from './enum/feedback-type.enum';
 import { AwsService } from 'src/common/aws/aws.service';
 import { ImageService } from 'src/image/image.service';
 import { UsersService } from 'src/users/users.service';
+import { NotificationService } from 'src/notification/notification.service';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { EditFeedbackDto } from './dto/edit-feedback.dto';
 import {
@@ -23,6 +24,7 @@ describe('FeedbackService', () => {
   let awsService: AwsService;
   let imageService: ImageService;
   let usersService: UsersService;
+  let notificationService: NotificationService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -57,6 +59,12 @@ describe('FeedbackService', () => {
             findUserByPk: jest.fn(),
           },
         },
+        {
+          provide: NotificationService,
+          useValue: {
+            createFeedbackNotification: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -68,6 +76,7 @@ describe('FeedbackService', () => {
     awsService = module.get<AwsService>(AwsService);
     imageService = module.get<ImageService>(ImageService);
     usersService = module.get<UsersService>(UsersService);
+    notificationService = module.get<NotificationService>(NotificationService);
   });
 
   it('should be defined', () => {
@@ -275,6 +284,79 @@ describe('FeedbackService', () => {
       expect(JSON.parse(callArgs[3])).toEqual(feedbackDto.feedbackImage);
 
       expect(result).toEqual(mockFeedback);
+    });
+
+    it('피드백 생성 시 알림이 발송되어야 함', async () => {
+      const userId = 1;
+      const feedbackDto = {
+        feedbackType: FeedbackType.Group,
+        feedbackContent: '테스트 피드백 내용입니다.',
+        feedbackDate: '2024.04.22',
+        feedbackLink: 'URL',
+        feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
+        feedbackImage: [],
+      };
+
+      const mockCreatedFeedback = {
+        ...mockFeedback,
+        feedbackId: 123,
+      };
+
+      (feedbackRepository.createFeedback as jest.Mock).mockResolvedValue(
+        mockCreatedFeedback,
+      );
+      (
+        notificationService.createFeedbackNotification as jest.Mock
+      ).mockResolvedValue(undefined);
+
+      await service.createFeedback(userId, feedbackDto);
+
+      expect(
+        notificationService.createFeedbackNotification,
+      ).toHaveBeenCalledWith(
+        userId,
+        [2, 3], // targetUserIds
+        123, // feedbackId
+        '강의', // lectureTitle
+        '테스트 피드백 내용입니다.', // feedbackContent
+      );
+    });
+
+    it('알림 발송 실패 시에도 피드백 생성은 성공해야 함', async () => {
+      const userId = 1;
+      const feedbackDto = {
+        feedbackType: FeedbackType.Group,
+        feedbackContent: '테스트 피드백 내용입니다.',
+        feedbackDate: '2024.04.22',
+        feedbackLink: 'URL',
+        feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
+        feedbackImage: [],
+      };
+
+      const mockCreatedFeedback = {
+        ...mockFeedback,
+        feedbackId: 123,
+      };
+
+      (feedbackRepository.createFeedback as jest.Mock).mockResolvedValue(
+        mockCreatedFeedback,
+      );
+      (
+        notificationService.createFeedbackNotification as jest.Mock
+      ).mockRejectedValue(new Error('알림 발송 실패'));
+
+      // console.error가 호출되는지 확인하기 위해 spy 설정
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const result = await service.createFeedback(userId, feedbackDto);
+
+      expect(result).toEqual(mockCreatedFeedback);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to send feedback notification:',
+        expect.any(Error),
+      );
+
+      consoleSpy.mockRestore();
     });
   });
 

@@ -17,6 +17,7 @@ import { InstructorFeedbackDto } from './dto/instructor-feedback.dto';
 import { CustomerFeedbackDto } from './dto/customer-feedback.dto';
 import { FeedbackDetail } from './dto/feedback-detail.dto';
 import { UsersService } from 'src/users/users.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class FeedbackService {
@@ -26,6 +27,7 @@ export class FeedbackService {
     private readonly feedbackTargetRepository: FeedbackTargetRepository,
     private readonly imageService: ImageService,
     private readonly usersService: UsersService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /* 강사용 전체 feedback 조회(feedbackDeletedAt is null) */
@@ -248,6 +250,25 @@ export class FeedbackService {
       feedbackTargetJson,
       filesJson,
     );
+
+    // 피드백 생성 후 알림 발송
+    try {
+      const targetUserIds = createFeedbackDto.feedbackTarget.flatMap(
+        (target) => target.userIds,
+      );
+      const lectureTitle = '강의'; // 실제로는 lecture 정보를 조회해야 함
+
+      await this.notificationService.createFeedbackNotification(
+        userId,
+        targetUserIds,
+        feedback.feedbackId,
+        lectureTitle,
+        createFeedbackDto.feedbackContent,
+      );
+    } catch (error) {
+      // 알림 발송 실패는 피드백 생성에 영향을 주지 않음
+      console.error('Failed to send feedback notification:', error);
+    }
 
     return feedback;
   }

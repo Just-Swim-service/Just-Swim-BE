@@ -21,6 +21,7 @@ export const mockUser: Users = {
   feedback: [],
   feedbackTarget: [],
   withdrawalReason: [],
+  notification: [],
 };
 
 export const MockUsersRepository = {

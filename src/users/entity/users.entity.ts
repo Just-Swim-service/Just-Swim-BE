@@ -15,6 +15,7 @@ import {
 } from 'typeorm';
 import { UserType } from '../enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
+import { Notification } from 'src/notification/entity/notification.entity';
 
 @Entity('users')
 export class Users {
@@ -77,4 +78,7 @@ export class Users {
     (withdrawalReason) => withdrawalReason.user,
   )
   withdrawalReason: WithdrawalReason[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notification: Notification[];
 }

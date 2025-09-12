@@ -116,6 +116,7 @@ describe('UsersService', () => {
         feedback: [],
         feedbackTarget: [],
         withdrawalReason: [],
+        notification: [],
       };
       (usersRepository.createUser as jest.Mock).mockResolvedValue(newUser);
 
@@ -144,8 +145,6 @@ describe('UsersService', () => {
       );
     });
   });
-
-
 
   describe('selectUserType', () => {
     it('userType이 null인 경우, Customer로 설정하고 createCustomer 호출', async () => {

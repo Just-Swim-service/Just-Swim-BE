@@ -83,6 +83,7 @@ describe('AuthService', () => {
         feedback: [],
         feedbackTarget: [],
         withdrawalReason: [],
+        notification: [],
       };
       (usersService.findUserByEmail as jest.Mock).mockResolvedValue(exUser);
 
@@ -267,6 +268,7 @@ describe('AuthService', () => {
         feedback: [],
         feedbackTarget: [],
         withdrawalReason: [],
+        notification: [],
       };
       (usersService.createUser as jest.Mock).mockResolvedValue(newUser);
 

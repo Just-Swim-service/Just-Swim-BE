@@ -285,7 +285,7 @@ describe('NotificationRepository', () => {
         notificationScheduledAt: new Date(
           updateNotificationDto.notificationScheduledAt!,
         ),
-        notificationReadAt: new Date(),
+        notificationReadAt: expect.any(Date),
       });
     });
 

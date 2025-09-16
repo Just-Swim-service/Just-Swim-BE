@@ -247,8 +247,8 @@ describe('NotificationController', () => {
         '알림 삭제 성공',
       );
       expect(notificationService.deleteNotification).toHaveBeenCalledWith(
-        mockUser.userId,
         notificationId,
+        mockUser.userId,
       );
     });
   });

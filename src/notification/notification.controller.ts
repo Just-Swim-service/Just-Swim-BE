@@ -83,6 +83,38 @@ export class NotificationController {
     return this.responseService.success(res, '알림 목록 조회 성공', result);
   }
 
+  /* 읽지 않은 알림 개수 조회 */
+  @Get('unread-count')
+  @ApiOperation({
+    summary: '읽지 않은 알림 개수 조회',
+    description: '사용자의 읽지 않은 알림 개수를 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '읽지 않은 알림 개수 조회 성공',
+    schema: {
+      type: 'object',
+      properties: {
+        unreadCount: {
+          type: 'number',
+          description: '읽지 않은 알림 개수',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async getUnreadCount(@Res() res: Response) {
+    const { userId } = res.locals.user;
+
+    const unreadCount = await this.notificationService.getUnreadCount(userId);
+
+    return this.responseService.success(res, '읽지 않은 알림 개수 조회 성공', {
+      unreadCount,
+    });
+  }
+
   /* 알림 상세 조회 */
   @Get(':notificationId')
   @ApiOperation({
@@ -191,37 +223,5 @@ export class NotificationController {
     await this.notificationService.deleteNotification(userId, notificationId);
 
     return this.responseService.success(res, '알림 삭제 성공');
-  }
-
-  /* 읽지 않은 알림 개수 조회 */
-  @Get('unread-count')
-  @ApiOperation({
-    summary: '읽지 않은 알림 개수 조회',
-    description: '사용자의 읽지 않은 알림 개수를 조회합니다.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '읽지 않은 알림 개수 조회 성공',
-    schema: {
-      type: 'object',
-      properties: {
-        unreadCount: {
-          type: 'number',
-          description: '읽지 않은 알림 개수',
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: '인증 실패' })
-  @ApiResponse({ status: 500, description: '서버 오류' })
-  @ApiBearerAuth('accessToken')
-  async getUnreadCount(@Res() res: Response) {
-    const { userId } = res.locals.user;
-
-    const unreadCount = await this.notificationService.getUnreadCount(userId);
-
-    return this.responseService.success(res, '읽지 않은 알림 개수 조회 성공', {
-      unreadCount,
-    });
   }
 }

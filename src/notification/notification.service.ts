@@ -9,6 +9,7 @@ import { Notification } from './entity/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationListDto } from './dto/notification-list.dto';
+import { NotificationQueryDto } from './dto/notification-query.dto';
 import { NotificationResponseDto } from './dto/notification-response.dto';
 import { NotificationStatus } from './enum/notification-status.enum';
 import { NotificationType } from './enum/notification-type.enum';
@@ -21,6 +22,33 @@ export class NotificationService {
     private readonly notificationRepository: NotificationRepository,
     private readonly usersService: UsersService,
   ) {}
+
+  /* 알림 목록 조회 (Controller용) */
+  async getNotifications(
+    userId: number,
+    query: NotificationQueryDto,
+  ): Promise<{
+    notifications: NotificationResponseDto[];
+    totalCount: number;
+    unreadCount: number;
+  }> {
+    const page = query.page || 1;
+    const limit = query.limit || 20;
+
+    const result = await this.getNotificationsByUserId(
+      userId,
+      page,
+      limit,
+      query.status,
+      query.type,
+    );
+
+    return {
+      notifications: result.notifications,
+      totalCount: result.totalCount,
+      unreadCount: result.unreadCount,
+    };
+  }
 
   /* 사용자별 알림 목록 조회 */
   async getNotificationsByUserId(
@@ -62,6 +90,14 @@ export class NotificationService {
       totalPages,
       pageSize,
     };
+  }
+
+  /* 알림 상세 조회 (Controller용) */
+  async getNotification(
+    userId: number,
+    notificationId: number,
+  ): Promise<NotificationResponseDto> {
+    return this.getNotificationById(notificationId, userId);
   }
 
   /* 알림 상세 조회 */

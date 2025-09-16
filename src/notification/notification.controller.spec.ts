@@ -6,10 +6,11 @@ import { Response } from 'express';
 import { NotificationStatus } from './enum/notification-status.enum';
 import { NotificationType } from './enum/notification-type.enum';
 import { NotificationPriority } from './enum/notification-priority.enum';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { NotificationQueryDto } from './dto/notification-query.dto';
 
 class MockNotificationService {
+  getNotifications = jest.fn();
+  getNotification = jest.fn();
   getNotificationsByUserId = jest.fn();
   getNotificationById = jest.fn();
   createNotification = jest.fn();
@@ -67,6 +68,12 @@ describe('NotificationController', () => {
     pageSize: 10,
   };
 
+  const mockNotificationResponse = {
+    notifications: [mockNotification],
+    totalCount: 1,
+    unreadCount: 1,
+  };
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationController],
@@ -102,23 +109,22 @@ describe('NotificationController', () => {
         json: jest.fn(),
       };
 
-      notificationService.getNotificationsByUserId.mockResolvedValue(
-        mockNotificationList,
+      const query: NotificationQueryDto = { page: 1, limit: 20 };
+
+      notificationService.getNotifications.mockResolvedValue(
+        mockNotificationResponse,
       );
 
-      await controller.getNotifications(res as Response);
+      await controller.getNotifications(res as Response, query);
 
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '알림 목록 조회 성공',
-        mockNotificationList,
+        mockNotificationResponse,
       );
-      expect(notificationService.getNotificationsByUserId).toHaveBeenCalledWith(
+      expect(notificationService.getNotifications).toHaveBeenCalledWith(
         mockUser.userId,
-        1,
-        10,
-        undefined,
-        undefined,
+        query,
       );
     });
 
@@ -129,29 +135,27 @@ describe('NotificationController', () => {
         json: jest.fn(),
       };
 
-      notificationService.getNotificationsByUserId.mockResolvedValue(
-        mockNotificationList,
+      const query: NotificationQueryDto = {
+        page: 2,
+        limit: 20,
+        status: NotificationStatus.Unread,
+        type: NotificationType.Feedback,
+      };
+
+      notificationService.getNotifications.mockResolvedValue(
+        mockNotificationResponse,
       );
 
-      await controller.getNotifications(
-        res as Response,
-        '2',
-        '20',
-        NotificationStatus.Unread,
-        NotificationType.Feedback,
-      );
+      await controller.getNotifications(res as Response, query);
 
-      expect(notificationService.getNotificationsByUserId).toHaveBeenCalledWith(
+      expect(notificationService.getNotifications).toHaveBeenCalledWith(
         mockUser.userId,
-        2,
-        20,
-        NotificationStatus.Unread,
-        NotificationType.Feedback,
+        query,
       );
     });
   });
 
-  describe('getNotificationDetail', () => {
+  describe('getNotification', () => {
     it('알림 상세 정보를 조회해야 함', async () => {
       const res: Partial<Response> = {
         locals: { user: mockUser },
@@ -161,101 +165,18 @@ describe('NotificationController', () => {
 
       const notificationId = 1;
 
-      notificationService.getNotificationById.mockResolvedValue(
-        mockNotification,
-      );
+      notificationService.getNotification.mockResolvedValue(mockNotification);
 
-      await controller.getNotificationDetail(res as Response, notificationId);
+      await controller.getNotification(res as Response, notificationId);
 
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '알림 상세 조회 성공',
         mockNotification,
       );
-      expect(notificationService.getNotificationById).toHaveBeenCalledWith(
-        notificationId,
+      expect(notificationService.getNotification).toHaveBeenCalledWith(
         mockUser.userId,
-      );
-    });
-  });
-
-  describe('createNotification', () => {
-    it('새로운 알림을 생성해야 함', async () => {
-      const res: Partial<Response> = {
-        locals: { user: mockUser },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      const createNotificationDto: CreateNotificationDto = {
-        userId: 1,
-        notificationType: NotificationType.Feedback,
-        notificationTitle: '새로운 피드백이 도착했습니다',
-        notificationContent: '김강사님이 새로운 피드백을 작성했습니다.',
-        notificationLink: '/feedback/123',
-        notificationPriority: NotificationPriority.Medium,
-        notificationData: { feedbackId: 123 },
-      };
-
-      notificationService.createNotification.mockResolvedValue(
-        mockNotification,
-      );
-
-      await controller.createNotification(
-        res as Response,
-        createNotificationDto,
-      );
-
-      expect(responseService.success).toHaveBeenCalledWith(
-        res,
-        '알림 생성 성공',
-        mockNotification,
-      );
-      expect(notificationService.createNotification).toHaveBeenCalledWith(
-        createNotificationDto,
-      );
-    });
-  });
-
-  describe('updateNotification', () => {
-    it('알림을 수정해야 함', async () => {
-      const res: Partial<Response> = {
-        locals: { user: mockUser },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      const notificationId = 1;
-      const updateNotificationDto: UpdateNotificationDto = {
-        notificationStatus: NotificationStatus.Read,
-        notificationTitle: '수정된 제목',
-      };
-
-      const updatedNotification = {
-        ...mockNotification,
-        notificationStatus: NotificationStatus.Read,
-        notificationTitle: '수정된 제목',
-      };
-
-      notificationService.updateNotification.mockResolvedValue(
-        updatedNotification,
-      );
-
-      await controller.updateNotification(
-        res as Response,
         notificationId,
-        updateNotificationDto,
-      );
-
-      expect(responseService.success).toHaveBeenCalledWith(
-        res,
-        '알림 수정 성공',
-        updatedNotification,
-      );
-      expect(notificationService.updateNotification).toHaveBeenCalledWith(
-        notificationId,
-        mockUser.userId,
-        updateNotificationDto,
       );
     });
   });
@@ -279,8 +200,8 @@ describe('NotificationController', () => {
         '알림 읽음 처리 성공',
       );
       expect(notificationService.markAsRead).toHaveBeenCalledWith(
-        notificationId,
         mockUser.userId,
+        notificationId,
       );
     });
   });
@@ -326,30 +247,8 @@ describe('NotificationController', () => {
         '알림 삭제 성공',
       );
       expect(notificationService.deleteNotification).toHaveBeenCalledWith(
+        mockUser.userId,
         notificationId,
-        mockUser.userId,
-      );
-    });
-  });
-
-  describe('deleteAllNotifications', () => {
-    it('모든 알림을 삭제해야 함', async () => {
-      const res: Partial<Response> = {
-        locals: { user: mockUser },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      notificationService.deleteAllNotifications.mockResolvedValue(undefined);
-
-      await controller.deleteAllNotifications(res as Response);
-
-      expect(responseService.success).toHaveBeenCalledWith(
-        res,
-        '모든 알림 삭제 성공',
-      );
-      expect(notificationService.deleteAllNotifications).toHaveBeenCalledWith(
-        mockUser.userId,
       );
     });
   });
@@ -374,36 +273,6 @@ describe('NotificationController', () => {
         { unreadCount },
       );
       expect(notificationService.getUnreadCount).toHaveBeenCalledWith(
-        mockUser.userId,
-      );
-    });
-  });
-
-  describe('getNotificationStats', () => {
-    it('알림 통계를 조회해야 함', async () => {
-      const res: Partial<Response> = {
-        locals: { user: mockUser },
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      const stats = {
-        total: 10,
-        unread: 3,
-        byType: { feedback: 5, lecture: 3, system: 2 },
-        byPriority: { low: 2, medium: 6, high: 2 },
-      };
-
-      notificationService.getNotificationStats.mockResolvedValue(stats);
-
-      await controller.getNotificationStats(res as Response);
-
-      expect(responseService.success).toHaveBeenCalledWith(
-        res,
-        '알림 통계 조회 성공',
-        stats,
-      );
-      expect(notificationService.getNotificationStats).toHaveBeenCalledWith(
         mockUser.userId,
       );
     });

@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { NotificationController } from './notification.controller';
+import { NotificationStatsController } from './notification-stats.controller';
 import { NotificationService } from './notification.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './entity/notification.entity';
@@ -13,7 +14,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     forwardRef(() => UsersModule),
     ScheduleModule.forRoot(),
   ],
-  controllers: [NotificationController],
+  controllers: [NotificationController, NotificationStatsController],
   providers: [NotificationService, NotificationRepository],
   exports: [NotificationService, NotificationRepository],
 })

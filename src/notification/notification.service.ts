@@ -248,12 +248,29 @@ export class NotificationService {
 
   /* 읽지 않은 알림 개수 조회 */
   async getUnreadCount(userId: number): Promise<number> {
-    const user = await this.usersService.findUserByPk(userId);
-    if (!user) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.');
-    }
+    console.log(
+      '🔔 [NotificationService] getUnreadCount 호출됨, userId:',
+      userId,
+    );
 
-    return await this.notificationRepository.getUnreadCount(userId);
+    try {
+      const user = await this.usersService.findUserByPk(userId);
+      console.log('🔔 [NotificationService] 사용자 조회 결과:', !!user);
+
+      if (!user) {
+        console.log('🔔 [NotificationService] 사용자를 찾을 수 없음');
+        throw new NotFoundException('사용자를 찾을 수 없습니다.');
+      }
+
+      const unreadCount =
+        await this.notificationRepository.getUnreadCount(userId);
+      console.log('🔔 [NotificationService] 읽지 않은 알림 개수:', unreadCount);
+
+      return unreadCount;
+    } catch (error) {
+      console.error('🔔 [NotificationService] getUnreadCount 에러:', error);
+      throw error;
+    }
   }
 
   /* 알림 통계 조회 */

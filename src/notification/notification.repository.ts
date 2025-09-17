@@ -174,14 +174,27 @@ export class NotificationRepository {
 
   /* 읽지 않은 알림 개수 조회 */
   async getUnreadCount(userId: number): Promise<number> {
-    return await this.notificationRepository
-      .createQueryBuilder('notification')
-      .where('notification.userId = :userId', { userId })
-      .andWhere('notification.notificationStatus = :status', {
-        status: NotificationStatus.Unread,
-      })
-      .andWhere('notification.notificationDeletedAt IS NULL')
-      .getCount();
+    console.log(
+      '🔔 [NotificationRepository] getUnreadCount 호출됨, userId:',
+      userId,
+    );
+
+    try {
+      const count = await this.notificationRepository
+        .createQueryBuilder('notification')
+        .where('notification.userId = :userId', { userId })
+        .andWhere('notification.notificationStatus = :status', {
+          status: NotificationStatus.Unread,
+        })
+        .andWhere('notification.notificationDeletedAt IS NULL')
+        .getCount();
+
+      console.log('🔔 [NotificationRepository] 읽지 않은 알림 개수:', count);
+      return count;
+    } catch (error) {
+      console.error('🔔 [NotificationRepository] getUnreadCount 에러:', error);
+      throw error;
+    }
   }
 
   /* 예약된 알림 조회 (스케줄러용) */

@@ -69,8 +69,7 @@ describe('LectureRepository (with mock)', () => {
       lectureDays: '화목',
       lectureLocation: '새 강의실',
       lectureColor: '#000000',
-      lectureQRCode: 'new_qr',
-      lectureEndDate: '2025-01-01',
+      lectureEndDate: '2025.01.01',
     };
 
     await lectureRepository.updateLecture(1, dto);

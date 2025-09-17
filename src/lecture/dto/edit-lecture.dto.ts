@@ -113,22 +113,6 @@ export class EditLectureDto {
   readonly lectureColor: string;
 
   @ApiProperty({
-    example: 'QR 코드',
-    description: '수정할 QR 코드 정보',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  @Length(0, 500, { message: 'QR 코드 정보는 500자 이하여야 합니다.' })
-  @Transform(({ value }) => {
-    if (!value || value.trim() === '') {
-      return null;
-    }
-    return value.trim();
-  })
-  readonly lectureQRCode: string;
-
-  @ApiProperty({
     example: '2024.05.31',
     description: '수정할 강의 종료 날짜',
     required: false,

@@ -365,7 +365,7 @@ describe('FeedbackService', () => {
       const editFeedbackDto: EditFeedbackDto = {
         feedbackType: FeedbackType.Personal,
         feedbackContent: 'Updated feedback content',
-        feedbackDate: '2024-04-23',
+        feedbackDate: '2024.04.23',
         feedbackLink: 'URL',
         feedbackTarget: [{ lectureId: 1, userIds: [2, 3] }],
         feedbackImage: [

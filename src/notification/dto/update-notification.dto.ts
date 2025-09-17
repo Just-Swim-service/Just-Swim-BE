@@ -5,7 +5,9 @@ import {
   IsString,
   IsObject,
   IsDateString,
+  Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { NotificationStatus } from '../enum/notification-status.enum';
 import { NotificationPriority } from '../enum/notification-priority.enum';
 
@@ -37,6 +39,13 @@ export class UpdateNotificationDto {
   })
   @IsString()
   @IsOptional()
+  @Length(1, 200, { message: '알림 제목은 1-200자 사이여야 합니다.' })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   notificationTitle?: string;
 
   @ApiProperty({
@@ -46,6 +55,13 @@ export class UpdateNotificationDto {
   })
   @IsString()
   @IsOptional()
+  @Length(1, 1000, { message: '알림 내용은 1-1000자 사이여야 합니다.' })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   notificationContent?: string;
 
   @ApiProperty({
@@ -55,6 +71,13 @@ export class UpdateNotificationDto {
   })
   @IsString()
   @IsOptional()
+  @Length(0, 500, { message: '알림 링크는 500자 이하여야 합니다.' })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   notificationLink?: string;
 
   @ApiProperty({

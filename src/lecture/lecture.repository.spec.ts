@@ -47,7 +47,7 @@ describe('LectureRepository (with mock)', () => {
       lectureLocation: '강의실 1',
       lectureColor: '#FFFFFF',
       lectureQRCode: 'qr',
-      lectureEndDate: '2024-12-31',
+      lectureEndDate: '2024.12.31',
     };
 
     const created = { ...dto, user: { userId: 1 } };

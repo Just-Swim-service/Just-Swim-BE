@@ -6,6 +6,7 @@ import {
   Length,
   Matches,
   IsHexColor,
+  IsEmpty,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Sanitize } from 'src/common/security/sanitization.util';
@@ -95,7 +96,12 @@ export class CreateLectureDto {
   @IsOptional()
   @IsString()
   @Length(0, 500, { message: 'QR 코드 정보는 500자 이하여야 합니다.' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   readonly lectureQRCode: string;
 
   @ApiProperty({
@@ -108,6 +114,11 @@ export class CreateLectureDto {
   @Matches(/^\d{4}\.\d{2}\.\d{2}$/, {
     message: '강의 종료 날짜는 YYYY.MM.DD 형식이어야 합니다.',
   })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   readonly lectureEndDate: string;
 }

@@ -44,13 +44,18 @@ export class CreateFeedbackDto {
   @ApiProperty({
     example: 'URL',
     description: 'feedback에 남길 관련 링크',
-    required: true,
+    required: false,
   })
   @IsOptional()
   @IsString()
   @IsUrl({}, { message: '유효한 URL 형식이어야 합니다.' })
   @Length(0, 500, { message: '링크는 500자 이하여야 합니다.' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   readonly feedbackLink: string;
 
   @ApiProperty({

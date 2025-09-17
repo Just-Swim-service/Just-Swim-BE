@@ -6,7 +6,9 @@ import {
   IsString,
   IsObject,
   IsDateString,
+  Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { NotificationType } from '../enum/notification-type.enum';
 import { NotificationPriority } from '../enum/notification-priority.enum';
 
@@ -49,6 +51,13 @@ export class CreateNotificationDto {
   })
   @IsString()
   @IsOptional()
+  @Length(0, 500, { message: '알림 링크는 500자 이하여야 합니다.' })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   notificationLink?: string;
 
   @ApiProperty({

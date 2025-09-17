@@ -5,10 +5,13 @@ import {
   IsOptional,
   IsString,
   ValidateNested,
+  Length,
+  Matches,
+  IsUrl,
 } from 'class-validator';
 import { FeedbackType } from '../enum/feedback-type.enum';
 import { FeedbackTargetDto } from './feedback-target.dto';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { CreateFeedbackImageDto } from './create-feedback-image.dto';
 
 export class EditFeedbackDto {
@@ -29,6 +32,15 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsString()
+  @Matches(/^\d{4}\.\d{2}\.\d{2}$/, {
+    message: '피드백 날짜는 YYYY.MM.DD 형식이어야 합니다.',
+  })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   readonly feedbackDate?: string;
 
   @ApiProperty({
@@ -38,6 +50,14 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsString()
+  @IsUrl({}, { message: '유효한 URL 형식이어야 합니다.' })
+  @Length(0, 500, { message: '링크는 500자 이하여야 합니다.' })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   readonly feedbackLink?: string;
 
   @ApiProperty({
@@ -48,6 +68,13 @@ export class EditFeedbackDto {
   })
   @IsOptional()
   @IsString()
+  @Length(1, 2000, { message: '피드백 내용은 1-2000자 사이여야 합니다.' })
+  @Transform(({ value }) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+    return value.trim();
+  })
   readonly feedbackContent?: string;
 
   @ApiProperty({

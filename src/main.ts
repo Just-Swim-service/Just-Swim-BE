@@ -18,24 +18,6 @@ async function bootstrap() {
   expressApp.set('x-powered-by', false);
   expressApp.set('view cache', true);
 
-  // UTF-8 인코딩 설정
-  expressApp.set('json spaces', 2);
-
-  // JSON 파싱 설정 (UTF-8 보장)
-  expressApp.use(
-    expressApp.json({
-      limit: '10mb',
-      type: 'application/json',
-    }),
-  );
-  expressApp.use(
-    expressApp.urlencoded({
-      extended: true,
-      limit: '10mb',
-      type: 'application/x-www-form-urlencoded',
-    }),
-  );
-
   // 보안 헤더 설정
   app.use(
     helmet({
@@ -103,13 +85,6 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     optionsSuccessStatus: 204,
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'X-Requested-With',
-    ],
-    exposedHeaders: ['Content-Type', 'Authorization'],
   });
   app.use(cookieParser());
   app.setGlobalPrefix('api'); // 글로벌 프리픽스 설정

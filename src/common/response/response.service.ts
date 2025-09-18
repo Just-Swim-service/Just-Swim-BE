@@ -4,7 +4,6 @@ import { Response } from 'express';
 @Injectable()
 export class ResponseService {
   success(res: Response, message: string, data: any = null) {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return res.status(200).json({
       success: true,
       message: message,
@@ -19,7 +18,6 @@ export class ResponseService {
     errors: any = null,
   ) {
     if (res.headersSent || res.writableEnded) return;
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return res.status(statusCode).json({
       success: false,
       message,

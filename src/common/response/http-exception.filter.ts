@@ -30,13 +30,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const message =
       typeof error === 'string' ? error : (error as any).message || '예외 발생';
 
-        this.logger.error(
+    this.logger.error(
       `HTTP 예외 발생: ${req.method} ${req.url} - ${message}`,
       exception.stack,
     );
 
+    // UTF-8 인코딩 보장
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return this.responseService.error(res, message, status);
   }
-
-
 }

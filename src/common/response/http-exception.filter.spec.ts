@@ -20,7 +20,6 @@ describe('HttpExceptionFilter', () => {
     const mockRes = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
-      setHeader: jest.fn(),
     };
 
     const mockReq = {
@@ -37,10 +36,6 @@ describe('HttpExceptionFilter', () => {
 
     filter.catch(mockException, mockContext);
 
-    expect(mockRes.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/json; charset=utf-8',
-    );
     expect(logger.error).toHaveBeenCalledWith(
       'HTTP 예외 발생: GET /test-url - 예외 메시지',
       expect.any(String),
@@ -59,7 +54,6 @@ describe('HttpExceptionFilter', () => {
     const mockRes = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
-      setHeader: jest.fn(),
     };
 
     const mockReq = {
@@ -76,10 +70,6 @@ describe('HttpExceptionFilter', () => {
 
     filter.catch(mockException, mockContext);
 
-    expect(mockRes.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/json; charset=utf-8',
-    );
     expect(logger.error).toHaveBeenCalledWith(
       'HTTP 예외 발생: POST /resource - 객체 메시지',
       expect.any(String),

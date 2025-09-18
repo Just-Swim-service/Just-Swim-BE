@@ -35,8 +35,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
       exception.stack,
     );
 
-    // UTF-8 인코딩 보장
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     return this.responseService.error(res, message, status);
   }
 }

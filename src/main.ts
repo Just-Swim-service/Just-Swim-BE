@@ -20,10 +20,6 @@ async function bootstrap() {
 
   // UTF-8 인코딩 설정
   expressApp.set('json spaces', 2);
-  expressApp.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
-  });
 
   // JSON 파싱 설정 (UTF-8 보장)
   expressApp.use(

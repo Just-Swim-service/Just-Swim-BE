@@ -256,7 +256,25 @@ export class FeedbackService {
       const targetUserIds = createFeedbackDto.feedbackTarget.flatMap(
         (target) => target.userIds,
       );
-      const lectureTitle = '강의'; // 실제로는 lecture 정보를 조회해야 함
+      const lectureTitle = '강의';
+
+      console.log('🔔 [FeedbackService] createFeedback - 알림 발송 시작');
+      console.log(
+        '🔔 [FeedbackService] createFeedback - feedbackTarget:',
+        JSON.stringify(createFeedbackDto.feedbackTarget, null, 2),
+      );
+      console.log(
+        '🔔 [FeedbackService] createFeedback - targetUserIds:',
+        targetUserIds,
+      );
+      console.log(
+        '🔔 [FeedbackService] createFeedback - instructorUserId:',
+        userId,
+      );
+      console.log(
+        '🔔 [FeedbackService] createFeedback - feedbackId:',
+        feedback.feedbackId,
+      );
 
       await this.notificationService.createFeedbackNotification(
         userId,
@@ -265,9 +283,14 @@ export class FeedbackService {
         lectureTitle,
         createFeedbackDto.feedbackContent,
       );
+
+      console.log('🔔 [FeedbackService] createFeedback - 알림 발송 완료');
     } catch (error) {
       // 알림 발송 실패는 피드백 생성에 영향을 주지 않음
-      console.error('Failed to send feedback notification:', error);
+      console.error(
+        '🔔 [FeedbackService] createFeedback - 알림 발송 실패:',
+        error,
+      );
     }
 
     return feedback;

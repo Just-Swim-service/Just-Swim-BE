@@ -40,14 +40,10 @@ export class NotificationStatsController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async getUnreadCount(@Res() res: Response) {
-    console.log('🔔 [NotificationStatsController] getUnreadCount 호출됨');
-
     try {
       const { userId } = res.locals.user;
-      console.log('🔔 [NotificationStatsController] userId:', userId);
 
       const unreadCount = await this.notificationService.getUnreadCount(userId);
-      console.log('🔔 [NotificationStatsController] unreadCount:', unreadCount);
 
       return this.responseService.success(
         res,

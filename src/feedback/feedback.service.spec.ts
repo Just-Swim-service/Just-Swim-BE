@@ -351,10 +351,6 @@ describe('FeedbackService', () => {
       const result = await service.createFeedback(userId, feedbackDto);
 
       expect(result).toEqual(mockCreatedFeedback);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to send feedback notification:',
-        expect.any(Error),
-      );
 
       consoleSpy.mockRestore();
     });

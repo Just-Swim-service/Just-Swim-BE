@@ -248,23 +248,15 @@ export class NotificationService {
 
   /* 읽지 않은 알림 개수 조회 */
   async getUnreadCount(userId: number): Promise<number> {
-    console.log(
-      '🔔 [NotificationService] getUnreadCount 호출됨, userId:',
-      userId,
-    );
-
     try {
       const user = await this.usersService.findUserByPk(userId);
-      console.log('🔔 [NotificationService] 사용자 조회 결과:', !!user);
 
       if (!user) {
-        console.log('🔔 [NotificationService] 사용자를 찾을 수 없음');
         throw new NotFoundException('사용자를 찾을 수 없습니다.');
       }
 
       const unreadCount =
         await this.notificationRepository.getUnreadCount(userId);
-      console.log('🔔 [NotificationService] 읽지 않은 알림 개수:', unreadCount);
 
       return unreadCount;
     } catch (error) {
@@ -296,6 +288,20 @@ export class NotificationService {
     lectureTitle: string,
     feedbackContent: string,
   ): Promise<void> {
+    console.log('🔔 [NotificationService] createFeedbackNotification - 시작');
+    console.log(
+      '🔔 [NotificationService] createFeedbackNotification - instructorUserId:',
+      instructorUserId,
+    );
+    console.log(
+      '🔔 [NotificationService] createFeedbackNotification - targetUserIds:',
+      targetUserIds,
+    );
+    console.log(
+      '🔔 [NotificationService] createFeedbackNotification - feedbackId:',
+      feedbackId,
+    );
+
     const notifications = targetUserIds.map((userId) => ({
       userId,
       notificationType: NotificationType.Feedback,
@@ -313,10 +319,19 @@ export class NotificationService {
       },
     }));
 
+    console.log(
+      '🔔 [NotificationService] createFeedbackNotification - 생성된 알림들:',
+      JSON.stringify(notifications, null, 2),
+    );
+
     await Promise.all(
       notifications.map((notification) =>
         this.notificationRepository.createNotification(notification),
       ),
+    );
+
+    console.log(
+      '🔔 [NotificationService] createFeedbackNotification - 알림 저장 완료',
     );
   }
 

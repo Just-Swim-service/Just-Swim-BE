@@ -203,6 +203,13 @@ export class NotificationRepository {
         .andWhere('notification.notificationDeletedAt IS NULL')
         .getCount();
 
+      console.log(
+        '🔔 [NotificationRepository] getUnreadCount - userId:',
+        userId,
+        '-> 읽지 않은 알림 개수:',
+        count,
+      );
+
       return count;
     } catch (error) {
       console.error('🔔 [NotificationRepository] getUnreadCount 에러:', error);

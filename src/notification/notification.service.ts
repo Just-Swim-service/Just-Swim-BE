@@ -307,7 +307,7 @@ export class NotificationService {
       notificationType: NotificationType.Feedback,
       notificationTitle: '새로운 피드백이 도착했습니다',
       notificationContent: `${lectureTitle} 수업에 대한 피드백이 작성되었습니다.`,
-      notificationLink: `/feedback/${feedbackId}`,
+      notificationLink: `/feedback/feedbackDetail/${feedbackId}`,
       notificationPriority: 'medium' as any,
       notificationData: {
         feedbackId,

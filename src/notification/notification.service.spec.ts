@@ -244,7 +244,7 @@ describe('NotificationService', () => {
         notificationType: NotificationType.Feedback,
         notificationTitle: '새로운 피드백이 도착했습니다',
         notificationContent: '김강사님이 새로운 피드백을 작성했습니다.',
-        notificationLink: '/feedback/123',
+        notificationLink: '/feedback/feedbackDetail/123',
         notificationPriority: NotificationPriority.Medium,
         notificationData: { feedbackId: 123 },
       };
@@ -544,7 +544,7 @@ describe('NotificationService', () => {
         notificationType: NotificationType.Feedback,
         notificationTitle: '새로운 피드백이 도착했습니다',
         notificationContent: '수영 기초 수업에 대한 피드백이 작성되었습니다.',
-        notificationLink: '/feedback/123',
+        notificationLink: '/feedback/feedbackDetail/123',
         notificationPriority: 'medium',
         notificationData: {
           feedbackId: 123,

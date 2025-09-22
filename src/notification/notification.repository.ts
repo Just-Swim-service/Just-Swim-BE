@@ -54,8 +54,9 @@ export class NotificationRepository {
       .andWhere('notification.notificationDeletedAt IS NULL')
       .getCount();
 
-    // 알림 목록 조회 (최신순)
+    // 알림 목록 조회 (최신순) - user 관계 포함
     const notifications = await queryBuilder
+      .leftJoinAndSelect('notification.user', 'user')
       .orderBy('notification.notificationCreatedAt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize)

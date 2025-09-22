@@ -36,6 +36,7 @@ describe('NotificationRepository', () => {
     orderBy: jest.fn().mockReturnThis(),
     skip: jest.fn().mockReturnThis(),
     take: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
     getMany: jest.fn(),
     getCount: jest.fn(),
     getOne: jest.fn(),
@@ -107,6 +108,10 @@ describe('NotificationRepository', () => {
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'notification.notificationDeletedAt IS NULL',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'notification.user',
+        'user',
       );
       expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
         'notification.notificationCreatedAt',

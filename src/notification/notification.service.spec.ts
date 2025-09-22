@@ -38,6 +38,11 @@ describe('NotificationService', () => {
     user: mockUser,
   };
 
+  const mockNotificationWithoutUser = {
+    ...mockNotification,
+    user: undefined,
+  };
+
   const mockNotificationRepository = {
     getNotificationsByUserId: jest.fn(),
     getNotificationById: jest.fn(),
@@ -155,6 +160,43 @@ describe('NotificationService', () => {
       await expect(
         service.getNotificationsByUserId(userId, 1, 101),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('user 관계가 없는 알림도 안전하게 처리해야 함', async () => {
+      const userId = 1;
+      const page = 1;
+      const pageSize = 10;
+      const mockResult = {
+        notifications: [mockNotificationWithoutUser],
+        totalCount: 1,
+        unreadCount: 1,
+      };
+
+      mockUsersService.findUserByPk.mockResolvedValue(mockUser);
+      mockNotificationRepository.getNotificationsByUserId.mockResolvedValue(
+        mockResult,
+      );
+
+      const result = await service.getNotificationsByUserId(
+        userId,
+        page,
+        pageSize,
+      );
+
+      expect(result).toEqual({
+        notifications: [
+          expect.objectContaining({
+            notificationId: mockNotificationWithoutUser.notificationId,
+            userId: mockNotificationWithoutUser.userId, // user 관계가 없어도 userId가 직접 사용됨
+            notificationType: mockNotificationWithoutUser.notificationType,
+          }),
+        ],
+        totalCount: 1,
+        unreadCount: 1,
+        currentPage: 1,
+        totalPages: 1,
+        pageSize: 10,
+      });
     });
   });
 

@@ -421,7 +421,7 @@ export class NotificationService {
   ): NotificationResponseDto {
     return {
       notificationId: notification.notificationId,
-      userId: notification.user.userId,
+      userId: notification.user?.userId || (notification as any).userId,
       notificationType: notification.notificationType,
       notificationStatus: notification.notificationStatus,
       notificationPriority: notification.notificationPriority,

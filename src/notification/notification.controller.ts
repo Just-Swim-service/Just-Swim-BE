@@ -142,7 +142,7 @@ export class NotificationController {
   ) {
     const { userId } = res.locals.user;
 
-    await this.notificationService.markAsRead(userId, notificationId);
+    await this.notificationService.markAsRead(notificationId, userId);
 
     return this.responseService.success(res, '알림 읽음 처리 성공');
   }
@@ -187,8 +187,37 @@ export class NotificationController {
   ) {
     const { userId } = res.locals.user;
 
-    await this.notificationService.deleteNotification(userId, notificationId);
+    await this.notificationService.deleteNotification(notificationId, userId);
 
     return this.responseService.success(res, '알림 삭제 성공');
+  }
+
+  /* 읽지 않은 알림 개수 조회 */
+  @Get('stats/unread-count')
+  @ApiOperation({
+    summary: '읽지 않은 알림 개수 조회',
+    description: '사용자의 읽지 않은 알림 개수를 조회합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '읽지 않은 알림 개수 조회 성공',
+    schema: {
+      type: 'object',
+      properties: {
+        unreadCount: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async getUnreadCount(@Res() res: Response) {
+    const { userId } = res.locals.user;
+
+    const unreadCount = await this.notificationService.getUnreadCount(userId);
+
+    return this.responseService.success(res, '읽지 않은 알림 개수 조회 성공', {
+      unreadCount,
+    });
   }
 }

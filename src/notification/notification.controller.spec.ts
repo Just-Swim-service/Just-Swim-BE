@@ -200,8 +200,8 @@ describe('NotificationController', () => {
         '알림 읽음 처리 성공',
       );
       expect(notificationService.markAsRead).toHaveBeenCalledWith(
-        mockUser.userId,
         notificationId,
+        mockUser.userId,
       );
     });
   });
@@ -248,6 +248,31 @@ describe('NotificationController', () => {
       );
       expect(notificationService.deleteNotification).toHaveBeenCalledWith(
         notificationId,
+        mockUser.userId,
+      );
+    });
+  });
+
+  describe('getUnreadCount', () => {
+    it('읽지 않은 알림 개수를 조회해야 함', async () => {
+      const res: Partial<Response> = {
+        locals: { user: mockUser },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      const unreadCount = 5;
+
+      notificationService.getUnreadCount.mockResolvedValue(unreadCount);
+
+      await controller.getUnreadCount(res as Response);
+
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '읽지 않은 알림 개수 조회 성공',
+        { unreadCount },
+      );
+      expect(notificationService.getUnreadCount).toHaveBeenCalledWith(
         mockUser.userId,
       );
     });

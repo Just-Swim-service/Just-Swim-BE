@@ -139,6 +139,7 @@ describe('UsersController', () => {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
+        maxAge: 0,
       });
 
       // refreshToken 쿠키 삭제 확인
@@ -148,6 +149,7 @@ describe('UsersController', () => {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
+        maxAge: 0,
       });
 
       expect(mockResponseService.success).toHaveBeenCalledWith(
@@ -179,6 +181,7 @@ describe('UsersController', () => {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
+        maxAge: 0,
       });
 
       // refreshToken 쿠키 삭제 확인
@@ -188,6 +191,7 @@ describe('UsersController', () => {
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
+        maxAge: 0,
       });
 
       expect(mockResponseService.success).toHaveBeenCalledWith(

@@ -122,7 +122,7 @@ describe('UsersController', () => {
   });
 
   describe('logout', () => {
-    it('clearcookie를 통해 로그아웃', async () => {
+    it('authorization과 refreshToken 쿠키 모두 삭제하여 로그아웃', async () => {
       const res: Partial<Response> = {
         locals: { user: { userId: 1 } },
         clearCookie: jest.fn(),
@@ -132,7 +132,24 @@ describe('UsersController', () => {
 
       await controller.logout(res as Response);
 
-      expect(res.clearCookie).toHaveBeenCalledWith('authorization');
+      // authorization 쿠키 삭제 확인
+      expect(res.clearCookie).toHaveBeenCalledWith('authorization', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+      });
+
+      // refreshToken 쿠키 삭제 확인
+      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+      });
+
       expect(mockResponseService.success).toHaveBeenCalledWith(
         res,
         'logout 완료',
@@ -141,7 +158,7 @@ describe('UsersController', () => {
   });
 
   describe('withdrawUser', () => {
-    it('회원 탈퇴 처리', async () => {
+    it('회원 탈퇴 처리 및 authorization과 refreshToken 쿠키 모두 삭제', async () => {
       const withdrawalReasonDto: CreateWithdrawalReasonDto = {
         withdrawalReasonContent: '기능이 유용하지 않아요.',
       };
@@ -155,7 +172,24 @@ describe('UsersController', () => {
 
       await controller.withdrawUser(res as Response, withdrawalReasonDto);
 
-      expect(res.clearCookie).toHaveBeenCalledWith('authorization');
+      // authorization 쿠키 삭제 확인
+      expect(res.clearCookie).toHaveBeenCalledWith('authorization', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+      });
+
+      // refreshToken 쿠키 삭제 확인
+      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.just-swim.kr',
+        path: '/',
+      });
+
       expect(mockResponseService.success).toHaveBeenCalledWith(
         res,
         '회원 탈퇴 완료',

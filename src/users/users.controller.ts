@@ -595,7 +595,21 @@ export class UsersController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async logout(@Res() res: Response) {
-    res.clearCookie('authorization');
+    // authorization과 refreshToken 쿠키 모두 삭제
+    res.clearCookie('authorization', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: '.just-swim.kr',
+      path: '/',
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: '.just-swim.kr',
+      path: '/',
+    });
     return this.responseService.success(res, 'logout 완료');
   }
 
@@ -615,8 +629,21 @@ export class UsersController {
   ) {
     const { userId } = res.locals.user;
     await this.usersService.withdrawUser(userId, createWithdrawalReasonDto);
-    res.clearCookie('authorization');
-    res.clearCookie('refreshToken');
+    // authorization과 refreshToken 쿠키 모두 삭제 - 로그아웃과 동일한 옵션 사용
+    res.clearCookie('authorization', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: '.just-swim.kr',
+      path: '/',
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: '.just-swim.kr',
+      path: '/',
+    });
     return this.responseService.success(res, '회원 탈퇴 완료');
   }
 }

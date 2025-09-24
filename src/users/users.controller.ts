@@ -595,14 +595,17 @@ export class UsersController {
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async logout(@Res() res: Response) {
-    // authorization과 refreshToken 쿠키 모두 삭제 - 설정 시와 동일한 옵션 사용
+    const { userId } = res.locals.user;
+
+    await this.usersService.removeRefreshToken(userId);
+
     res.clearCookie('authorization', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.just-swim.kr',
       path: '/',
-      maxAge: 0, // 즉시 만료
+      expires: new Date(0), // 즉시 만료
     });
     res.clearCookie('refreshToken', {
       httpOnly: true,
@@ -610,7 +613,7 @@ export class UsersController {
       sameSite: 'none',
       domain: '.just-swim.kr',
       path: '/',
-      maxAge: 0, // 즉시 만료
+      expires: new Date(0), // 즉시 만료
     });
     return this.responseService.success(res, 'logout 완료');
   }
@@ -630,15 +633,21 @@ export class UsersController {
     @Body() createWithdrawalReasonDto: CreateWithdrawalReasonDto,
   ) {
     const { userId } = res.locals.user;
+
+    // 1. 회원 탈퇴 처리
     await this.usersService.withdrawUser(userId, createWithdrawalReasonDto);
-    // authorization과 refreshToken 쿠키 모두 삭제 - 설정 시와 동일한 옵션 사용
+
+    // 2. 데이터베이스에서 refreshToken을 null로 처리
+    await this.usersService.removeRefreshToken(userId);
+
+    // 3. authorization과 refreshToken 쿠키 모두 삭제 - 설정 시와 동일한 옵션 사용
     res.clearCookie('authorization', {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: '.just-swim.kr',
       path: '/',
-      maxAge: 0, // 즉시 만료
+      expires: new Date(0), // 즉시 만료
     });
     res.clearCookie('refreshToken', {
       httpOnly: true,
@@ -646,7 +655,7 @@ export class UsersController {
       sameSite: 'none',
       domain: '.just-swim.kr',
       path: '/',
-      maxAge: 0, // 즉시 만료
+      expires: new Date(0), // 즉시 만료
     });
     return this.responseService.success(res, '회원 탈퇴 완료');
   }

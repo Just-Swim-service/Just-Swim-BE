@@ -18,6 +18,7 @@ const mockUsersService = {
   editUserProfile: jest.fn(),
   logout: jest.fn(),
   withdrawUser: jest.fn(),
+  removeRefreshToken: jest.fn(),
 };
 
 const mockAuthService = {
@@ -122,7 +123,7 @@ describe('UsersController', () => {
   });
 
   describe('logout', () => {
-    it('authorization과 refreshToken 쿠키 모두 삭제하여 로그아웃', async () => {
+    it('데이터베이스 refreshToken null 처리 및 쿠키 삭제하여 로그아웃', async () => {
       const res: Partial<Response> = {
         locals: { user: { userId: 1 } },
         clearCookie: jest.fn(),
@@ -132,24 +133,27 @@ describe('UsersController', () => {
 
       await controller.logout(res as Response);
 
-      // authorization 쿠키 삭제 확인
+      // 1. 데이터베이스에서 refreshToken null 처리 확인
+      expect(mockUsersService.removeRefreshToken).toHaveBeenCalledWith(1);
+
+      // 2. authorization 쿠키 삭제 확인
       expect(res.clearCookie).toHaveBeenCalledWith('authorization', {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 0,
+        expires: new Date(0), // maxAge 대신 expires 사용
       });
 
-      // refreshToken 쿠키 삭제 확인
+      // 3. refreshToken 쿠키 삭제 확인
       expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 0,
+        expires: new Date(0), // maxAge 대신 expires 사용
       });
 
       expect(mockResponseService.success).toHaveBeenCalledWith(
@@ -160,7 +164,7 @@ describe('UsersController', () => {
   });
 
   describe('withdrawUser', () => {
-    it('회원 탈퇴 처리 및 authorization과 refreshToken 쿠키 모두 삭제', async () => {
+    it('회원 탈퇴 처리, refreshToken null 처리 및 쿠키 삭제', async () => {
       const withdrawalReasonDto: CreateWithdrawalReasonDto = {
         withdrawalReasonContent: '기능이 유용하지 않아요.',
       };
@@ -174,24 +178,33 @@ describe('UsersController', () => {
 
       await controller.withdrawUser(res as Response, withdrawalReasonDto);
 
-      // authorization 쿠키 삭제 확인
+      // 1. 회원 탈퇴 처리 확인
+      expect(mockUsersService.withdrawUser).toHaveBeenCalledWith(
+        1,
+        withdrawalReasonDto,
+      );
+
+      // 2. 데이터베이스에서 refreshToken null 처리 확인
+      expect(mockUsersService.removeRefreshToken).toHaveBeenCalledWith(1);
+
+      // 3. authorization 쿠키 삭제 확인
       expect(res.clearCookie).toHaveBeenCalledWith('authorization', {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 0,
+        expires: new Date(0), // maxAge 대신 expires 사용
       });
 
-      // refreshToken 쿠키 삭제 확인
+      // 4. refreshToken 쿠키 삭제 확인
       expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
         domain: '.just-swim.kr',
         path: '/',
-        maxAge: 0,
+        expires: new Date(0), // maxAge 대신 expires 사용
       });
 
       expect(mockResponseService.success).toHaveBeenCalledWith(

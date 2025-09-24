@@ -107,12 +107,6 @@ export class NotificationRepository {
   async createNotification(
     createNotificationDto: CreateNotificationDto,
   ): Promise<Notification> {
-    console.log('🔔 [NotificationRepository] createNotification - 시작');
-    console.log(
-      '🔔 [NotificationRepository] createNotification - createNotificationDto:',
-      JSON.stringify(createNotificationDto, null, 2),
-    );
-
     const notification = this.notificationRepository.create({
       ...createNotificationDto,
       notificationScheduledAt: createNotificationDto.notificationScheduledAt
@@ -120,18 +114,8 @@ export class NotificationRepository {
         : null,
     });
 
-    console.log(
-      '🔔 [NotificationRepository] createNotification - 생성된 notification 객체:',
-      JSON.stringify(notification, null, 2),
-    );
-
     const savedNotification =
       await this.notificationRepository.save(notification);
-
-    console.log(
-      '🔔 [NotificationRepository] createNotification - 저장된 notification:',
-      JSON.stringify(savedNotification, null, 2),
-    );
 
     return savedNotification;
   }
@@ -209,13 +193,6 @@ export class NotificationRepository {
         })
         .andWhere('notification.notificationDeletedAt IS NULL')
         .getCount();
-
-      console.log(
-        '🔔 [NotificationRepository] getUnreadCount - userId:',
-        userId,
-        '-> 읽지 않은 알림 개수:',
-        count,
-      );
 
       return count;
     } catch (error) {

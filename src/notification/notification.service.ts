@@ -288,20 +288,6 @@ export class NotificationService {
     lectureTitle: string,
     feedbackContent: string,
   ): Promise<void> {
-    console.log('🔔 [NotificationService] createFeedbackNotification - 시작');
-    console.log(
-      '🔔 [NotificationService] createFeedbackNotification - instructorUserId:',
-      instructorUserId,
-    );
-    console.log(
-      '🔔 [NotificationService] createFeedbackNotification - targetUserIds:',
-      targetUserIds,
-    );
-    console.log(
-      '🔔 [NotificationService] createFeedbackNotification - feedbackId:',
-      feedbackId,
-    );
-
     const notifications = targetUserIds.map((userId) => ({
       userId,
       notificationType: NotificationType.Feedback,
@@ -328,10 +314,6 @@ export class NotificationService {
       notifications.map((notification) =>
         this.notificationRepository.createNotification(notification),
       ),
-    );
-
-    console.log(
-      '🔔 [NotificationService] createFeedbackNotification - 알림 저장 완료',
     );
   }
 
@@ -410,9 +392,7 @@ export class NotificationService {
   /* 오래된 알림 정리 (스케줄러) */
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async cleanupOldNotifications(): Promise<void> {
-    const deletedCount =
-      await this.notificationRepository.deleteOldNotifications(30);
-    console.log(`Cleaned up ${deletedCount} old notifications`);
+    await this.notificationRepository.deleteOldNotifications(30);
   }
 
   /* Entity를 ResponseDto로 변환 */

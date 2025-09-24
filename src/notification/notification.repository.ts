@@ -31,9 +31,15 @@ export class NotificationRepository {
       .where('notification.userId = :userId', { userId })
       .andWhere('notification.notificationDeletedAt IS NULL');
 
-    if (status) {
+    // status가 명시적으로 제공되지 않으면 기본적으로 unread만 조회
+    if (status !== undefined) {
       queryBuilder.andWhere('notification.notificationStatus = :status', {
         status,
+      });
+    } else {
+      // 기본적으로 read 상태는 제외하고 조회
+      queryBuilder.andWhere('notification.notificationStatus != :readStatus', {
+        readStatus: NotificationStatus.Read,
       });
     }
 
@@ -41,7 +47,7 @@ export class NotificationRepository {
       queryBuilder.andWhere('notification.notificationType = :type', { type });
     }
 
-    // 전체 개수 조회
+    // 필터링된 알림 개수 조회 (read 상태 제외)
     const totalCount = await queryBuilder.getCount();
 
     // 읽지 않은 알림 개수 조회

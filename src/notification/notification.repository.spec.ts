@@ -109,6 +109,11 @@ describe('NotificationRepository', () => {
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'notification.notificationDeletedAt IS NULL',
       );
+      // 기본적으로 read 상태는 제외되어야 함
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'notification.notificationStatus != :readStatus',
+        { readStatus: NotificationStatus.Read },
+      );
       expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
         'notification.user',
         'user',
@@ -148,6 +153,26 @@ describe('NotificationRepository', () => {
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'notification.notificationType = :type',
         { type },
+      );
+    });
+
+    it('read 상태가 명시적으로 요청되면 read 알림만 조회해야 함', async () => {
+      const userId = 1;
+      const page = 1;
+      const pageSize = 10;
+      const status = NotificationStatus.Read;
+
+      mockQueryBuilder.getCount
+        .mockResolvedValueOnce(1)
+        .mockResolvedValueOnce(0); // unread count는 0
+      mockQueryBuilder.getMany.mockResolvedValue([mockNotification]);
+
+      await repository.getNotificationsByUserId(userId, page, pageSize, status);
+
+      // read 상태가 명시적으로 요청되면 read 상태만 조회
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'notification.notificationStatus = :status',
+        { status: NotificationStatus.Read },
       );
     });
   });

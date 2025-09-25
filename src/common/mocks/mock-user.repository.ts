@@ -30,5 +30,7 @@ export const MockUsersRepository = {
   createUser: jest.fn().mockResolvedValue(mockUser),
   selectUserType: jest.fn().mockResolvedValue(mockUser),
   editUserProfile: jest.fn().mockResolvedValue(mockUser),
+  editInstructorProfile: jest.fn().mockResolvedValue(undefined),
+  editCustomerProfile: jest.fn().mockResolvedValue(undefined),
   withdrawUser: jest.fn().mockResolvedValue(mockUser),
 };

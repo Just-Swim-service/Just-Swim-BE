@@ -49,8 +49,6 @@ export class UsersService {
     return result;
   }
 
-
-
   /* user의 userType 지정 */
   async selectUserType(
     userId: number,
@@ -119,7 +117,38 @@ export class UsersService {
         await this.awsService.deleteImageFromS3(fileName);
       }
     }
+
+    // Users 테이블 업데이트
     await this.usersRepository.editUserProfile(userId, editUserDto);
+
+    // Instructor 정보 업데이트 (instructor 필드가 있는 경우)
+    if (this.hasInstructorFields(editUserDto)) {
+      await this.usersRepository.editInstructorProfile(userId, editUserDto);
+    }
+
+    // Customer 정보 업데이트 (customer 필드가 있는 경우)
+    if (this.hasCustomerFields(editUserDto)) {
+      await this.usersRepository.editCustomerProfile(userId, editUserDto);
+    }
+  }
+
+  /* instructor 필드가 있는지 확인 */
+  private hasInstructorFields(editUserDto: EditUserDto): boolean {
+    return !!(
+      editUserDto.instructorWorkingLocation ||
+      editUserDto.instructorCareer ||
+      editUserDto.instructorHistory ||
+      editUserDto.instructorIntroduction ||
+      editUserDto.instructorCurriculum ||
+      editUserDto.instructorYoutubeLink ||
+      editUserDto.instructorInstagramLink ||
+      editUserDto.instructorFacebookLink
+    );
+  }
+
+  /* customer 필드가 있는지 확인 */
+  private hasCustomerFields(editUserDto: EditUserDto): boolean {
+    return !!editUserDto.customerNickname;
   }
 
   /* user 탈퇴 */

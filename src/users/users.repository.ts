@@ -7,11 +7,17 @@ import { EditUserDto } from './dto/edit-user.dto';
 import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
 import { UserType } from './enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
+import { Instructor } from 'src/instructor/entity/instructor.entity';
+import { Customer } from 'src/customer/entity/customer.entity';
 
 @Injectable()
 export class UsersRepository {
   constructor(
     @InjectRepository(Users) private usersRepository: Repository<Users>,
+    @InjectRepository(Instructor)
+    private instructorRepository: Repository<Instructor>,
+    @InjectRepository(Customer)
+    private customerRepository: Repository<Customer>,
   ) {}
 
   /* email, provider를 이용해 user 조회 */
@@ -44,7 +50,59 @@ export class UsersRepository {
     userId: number,
     editUserDto: EditUserDto,
   ): Promise<void> {
-    await this.usersRepository.update({ userId }, editUserDto);
+    // Users 테이블에서만 업데이트할 필드들
+    const userUpdateData = {
+      name: editUserDto.name,
+      profileImage: editUserDto.profileImage,
+      birth: editUserDto.birth,
+      phoneNumber: editUserDto.phoneNumber,
+    };
+
+    await this.usersRepository.update({ userId }, userUpdateData);
+  }
+
+  /* instructor 프로필 수정 */
+  async editInstructorProfile(
+    userId: number,
+    editUserDto: EditUserDto,
+  ): Promise<void> {
+    const instructorUpdateData = {
+      workingLocation: editUserDto.instructorWorkingLocation,
+      career: editUserDto.instructorCareer,
+      history: editUserDto.instructorHistory,
+      introduction: editUserDto.instructorIntroduction,
+      curriculum: editUserDto.instructorCurriculum,
+      youtubeLink: editUserDto.instructorYoutubeLink,
+      instagramLink: editUserDto.instructorInstagramLink,
+      facebookLink: editUserDto.instructorFacebookLink,
+    };
+
+    // null과 undefined 값 제거
+    const filteredData = Object.fromEntries(
+      Object.entries(instructorUpdateData).filter(
+        ([_, value]) => value !== null && value !== undefined,
+      ),
+    );
+
+    if (Object.keys(filteredData).length > 0) {
+      await this.instructorRepository.update(
+        { user: { userId } },
+        filteredData,
+      );
+    }
+  }
+
+  /* customer 프로필 수정 */
+  async editCustomerProfile(
+    userId: number,
+    editUserDto: EditUserDto,
+  ): Promise<void> {
+    if (editUserDto.customerNickname !== null) {
+      await this.customerRepository.update(
+        { user: { userId } },
+        { customerNickname: editUserDto.customerNickname },
+      );
+    }
   }
 
   /* user(instructor) 탈퇴 */

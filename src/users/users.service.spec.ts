@@ -233,6 +233,105 @@ describe('UsersService', () => {
         editUserDto,
       );
     });
+
+    it('instructor 정보가 포함된 경우 instructor 프로필도 수정', async () => {
+      const userId = 1;
+      const editUserDto = {
+        name: '김강사',
+        profileImage: 'new_profile_image_url',
+        birth: '1990.01.01',
+        phoneNumber: '010-1234-5678',
+        instructorWorkingLocation: '서울시 강남구',
+        instructorCareer: '10년 경력',
+        instructorIntroduction: '자유형 전문 강사입니다',
+      };
+
+      jest.spyOn(usersRepository, 'findUserByPk').mockResolvedValue(mockUser);
+      jest.spyOn(usersRepository, 'editUserProfile').mockResolvedValue();
+      jest.spyOn(usersRepository, 'editInstructorProfile').mockResolvedValue();
+      jest
+        .spyOn(awsService, 'uploadImageToS3')
+        .mockResolvedValue('new_profile_image_url');
+      jest.spyOn(awsService, 'deleteImageFromS3').mockResolvedValue();
+
+      await usersService.editUserProfile(userId, editUserDto);
+
+      expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+      expect(usersRepository.editInstructorProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+    });
+
+    it('customer 정보가 포함된 경우 customer 프로필도 수정', async () => {
+      const userId = 1;
+      const editUserDto = {
+        name: '박고객',
+        profileImage: 'new_profile_image_url',
+        birth: '1995.01.01',
+        phoneNumber: '010-9876-5432',
+        customerNickname: '수영초보',
+      };
+
+      jest.spyOn(usersRepository, 'findUserByPk').mockResolvedValue(mockUser);
+      jest.spyOn(usersRepository, 'editUserProfile').mockResolvedValue();
+      jest.spyOn(usersRepository, 'editCustomerProfile').mockResolvedValue();
+      jest
+        .spyOn(awsService, 'uploadImageToS3')
+        .mockResolvedValue('new_profile_image_url');
+      jest.spyOn(awsService, 'deleteImageFromS3').mockResolvedValue();
+
+      await usersService.editUserProfile(userId, editUserDto);
+
+      expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+      expect(usersRepository.editCustomerProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+    });
+
+    it('instructor와 customer 정보가 모두 포함된 경우 모든 프로필 수정', async () => {
+      const userId = 1;
+      const editUserDto = {
+        name: '이사용자',
+        profileImage: 'new_profile_image_url',
+        birth: '1992.01.01',
+        phoneNumber: '010-5555-5555',
+        instructorWorkingLocation: '서울시 강남구',
+        instructorCareer: '5년 경력',
+        customerNickname: '수영고수',
+      };
+
+      jest.spyOn(usersRepository, 'findUserByPk').mockResolvedValue(mockUser);
+      jest.spyOn(usersRepository, 'editUserProfile').mockResolvedValue();
+      jest.spyOn(usersRepository, 'editInstructorProfile').mockResolvedValue();
+      jest.spyOn(usersRepository, 'editCustomerProfile').mockResolvedValue();
+      jest
+        .spyOn(awsService, 'uploadImageToS3')
+        .mockResolvedValue('new_profile_image_url');
+      jest.spyOn(awsService, 'deleteImageFromS3').mockResolvedValue();
+
+      await usersService.editUserProfile(userId, editUserDto);
+
+      expect(usersRepository.editUserProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+      expect(usersRepository.editInstructorProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+      expect(usersRepository.editCustomerProfile).toHaveBeenCalledWith(
+        userId,
+        editUserDto,
+      );
+    });
   });
 
   describe('withdrawUser', () => {

@@ -8,10 +8,12 @@ import { AuthModule } from 'src/auth/auth.module';
 import { CustomerModule } from 'src/customer/customer.module';
 import { InstructorModule } from 'src/instructor/instructor.module';
 import { AwsModule } from 'src/common/aws/aws.module';
+import { Instructor } from 'src/instructor/entity/instructor.entity';
+import { Customer } from 'src/customer/entity/customer.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Users]),
+    TypeOrmModule.forFeature([Users, Instructor, Customer]),
     forwardRef(() => AuthModule),
     forwardRef(() => CustomerModule),
     forwardRef(() => InstructorModule),

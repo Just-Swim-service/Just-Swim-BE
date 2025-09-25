@@ -7,10 +7,14 @@ import { CreateUsersDto } from './dto/create-users.dto';
 import { EditUserDto } from './dto/edit-user.dto';
 import { UserType } from './enum/user-type.enum';
 import { CreateWithdrawalReasonDto } from 'src/withdrawal-reason/dto/ceate-withdrawal-reason.dto';
+import { Instructor } from 'src/instructor/entity/instructor.entity';
+import { Customer } from 'src/customer/entity/customer.entity';
 
 describe('UsersRepository', () => {
   let usersRepository: UsersRepository;
   let repo: jest.Mocked<Repository<Users>>;
+  let instructorRepo: jest.Mocked<Repository<Instructor>>;
+  let customerRepo: jest.Mocked<Repository<Customer>>;
 
   const mockRepo = {
     findOne: jest.fn(),
@@ -21,6 +25,14 @@ describe('UsersRepository', () => {
     },
   };
 
+  const mockInstructorRepo = {
+    update: jest.fn(),
+  };
+
+  const mockCustomerRepo = {
+    update: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -29,11 +41,25 @@ describe('UsersRepository', () => {
           provide: getRepositoryToken(Users),
           useValue: mockRepo,
         },
+        {
+          provide: getRepositoryToken(Instructor),
+          useValue: mockInstructorRepo,
+        },
+        {
+          provide: getRepositoryToken(Customer),
+          useValue: mockCustomerRepo,
+        },
       ],
     }).compile();
 
     usersRepository = module.get<UsersRepository>(UsersRepository);
     repo = module.get(getRepositoryToken(Users));
+    instructorRepo = module.get(getRepositoryToken(Instructor));
+    customerRepo = module.get(getRepositoryToken(Customer));
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should find user by email and provider', async () => {
@@ -87,7 +113,67 @@ describe('UsersRepository', () => {
     };
 
     await usersRepository.editUserProfile(1, dto);
-    expect(repo.update).toHaveBeenCalledWith({ userId: 1 }, dto);
+    expect(repo.update).toHaveBeenCalledWith(
+      { userId: 1 },
+      {
+        name: dto.name,
+        profileImage: dto.profileImage,
+        birth: dto.birth,
+        phoneNumber: dto.phoneNumber,
+      },
+    );
+  });
+
+  it('should edit instructor profile when instructor fields are provided', async () => {
+    const dto: EditUserDto = {
+      name: '김강사',
+      instructorWorkingLocation: '서울시 강남구',
+      instructorCareer: '10년 경력',
+      instructorIntroduction: '자유형 전문 강사입니다',
+    };
+
+    await usersRepository.editInstructorProfile(1, dto);
+    expect(instructorRepo.update).toHaveBeenCalledWith(
+      { user: { userId: 1 } },
+      {
+        workingLocation: '서울시 강남구',
+        career: '10년 경력',
+        introduction: '자유형 전문 강사입니다',
+      },
+    );
+  });
+
+  it('should edit customer profile when customer fields are provided', async () => {
+    const dto: EditUserDto = {
+      name: '박고객',
+      customerNickname: '수영초보',
+    };
+
+    await usersRepository.editCustomerProfile(1, dto);
+    expect(customerRepo.update).toHaveBeenCalledWith(
+      { user: { userId: 1 } },
+      { customerNickname: '수영초보' },
+    );
+  });
+
+  it('should not update instructor when all instructor fields are null', async () => {
+    // Mock 초기화
+    jest.clearAllMocks();
+
+    const dto: EditUserDto = {
+      name: '김강사',
+      instructorWorkingLocation: null,
+      instructorCareer: null,
+      instructorHistory: null,
+      instructorIntroduction: null,
+      instructorCurriculum: null,
+      instructorYoutubeLink: null,
+      instructorInstagramLink: null,
+      instructorFacebookLink: null,
+    };
+
+    await usersRepository.editInstructorProfile(1, dto);
+    expect(instructorRepo.update).not.toHaveBeenCalled();
   });
 
   it('should withdraw user', async () => {

@@ -76,12 +76,20 @@ describe('UsersRepository', () => {
     });
   });
 
-  it('should find user by primary key', async () => {
-    repo.findOne.mockResolvedValue({ userId: 1 } as Users);
+  it('should find user by primary key with relations', async () => {
+    const mockUser = {
+      userId: 1,
+      instructor: [{ workingLocation: '서울시 강남구' }],
+      customer: [{ customerNickname: '수영초보' }],
+    };
+    repo.findOne.mockResolvedValue(mockUser as Users);
 
     const result = await usersRepository.findUserByPk(1);
-    expect(result).toEqual({ userId: 1 });
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { userId: 1 } });
+    expect(result).toEqual(mockUser);
+    expect(repo.findOne).toHaveBeenCalledWith({
+      where: { userId: 1 },
+      relations: ['instructor', 'customer'],
+    });
   });
 
   it('should create a new user', async () => {

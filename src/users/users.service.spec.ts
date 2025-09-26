@@ -127,13 +127,20 @@ describe('UsersService', () => {
   });
 
   describe('findUserByPk', () => {
-    it('userId에 맞는 user return', async () => {
+    it('userId에 맞는 user return with relations', async () => {
       const userId = 1;
-      (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(mockUser);
+      const userWithRelations = {
+        ...mockUser,
+        instructor: [{ workingLocation: '서울시 강남구', career: '10년 경력' }],
+        customer: [{ customerNickname: '수영초보' }],
+      };
+      (usersRepository.findUserByPk as jest.Mock).mockResolvedValue(
+        userWithRelations,
+      );
 
       const result = await usersService.findUserByPk(userId);
 
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual(userWithRelations);
     });
 
     it('userId에 맞는 user가 없으면 undefined return', async () => {

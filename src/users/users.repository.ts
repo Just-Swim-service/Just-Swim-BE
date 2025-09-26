@@ -35,9 +35,12 @@ export class UsersRepository {
     return await this.usersRepository.save(userData);
   }
 
-  /* userId를 이용해서 user 조회 */
+  /* userId를 이용해서 user 조회 (instructor, customer 관계 데이터 포함) */
   async findUserByPk(userId: number): Promise<Users> {
-    return await this.usersRepository.findOne({ where: { userId } });
+    return await this.usersRepository.findOne({
+      where: { userId },
+      relations: ['instructor', 'customer'],
+    });
   }
 
   /* userType을 지정 */

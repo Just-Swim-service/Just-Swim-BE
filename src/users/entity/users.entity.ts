@@ -16,6 +16,10 @@ import {
 import { UserType } from '../enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
 import { Notification } from 'src/notification/entity/notification.entity';
+import { Community } from 'src/community/entity/community.entity';
+import { CommunityComment } from 'src/community/entity/community-comment.entity';
+import { CommunityLike } from 'src/community/entity/community-like.entity';
+import { CommentLike } from 'src/community/entity/comment-like.entity';
 
 @Entity('users')
 export class Users {
@@ -81,4 +85,16 @@ export class Users {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notification: Notification[];
+
+  @OneToMany(() => Community, (community) => community.user)
+  communities: Community[];
+
+  @OneToMany(() => CommunityComment, (comment) => comment.user)
+  communityComments: CommunityComment[];
+
+  @OneToMany(() => CommunityLike, (like) => like.user)
+  communityLikes: CommunityLike[];
+
+  @OneToMany(() => CommentLike, (like) => like.user)
+  commentLikes: CommentLike[];
 }

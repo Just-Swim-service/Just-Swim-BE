@@ -1,4 +1,5 @@
 import { Feedback } from 'src/feedback/entity/feedback.entity';
+import { Community } from 'src/community/entity/community.entity';
 import {
   Column,
   CreateDateColumn,
@@ -14,9 +15,15 @@ export class Image {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   imageId: number;
 
-  @ManyToOne(() => Feedback, (feedback) => feedback.image)
+  @ManyToOne(() => Feedback, (feedback) => feedback.image, { nullable: true })
   @JoinColumn({ name: 'feedbackId' })
   feedback: Feedback;
+
+  @ManyToOne(() => Community, (community) => community.images, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'communityId' })
+  community: Community;
 
   @Column({ type: 'mediumtext' })
   imagePath: string;

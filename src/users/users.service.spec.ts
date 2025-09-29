@@ -117,6 +117,10 @@ describe('UsersService', () => {
         feedbackTarget: [],
         withdrawalReason: [],
         notification: [],
+        communities: [],
+        commentLikes: [],
+        communityComments: [],
+        communityLikes: [],
       };
       (usersRepository.createUser as jest.Mock).mockResolvedValue(newUser);
 

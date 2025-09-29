@@ -12,6 +12,7 @@ export const mockImage: Image = {
   imagePath: 'imageURL',
   imageCreatedAt: new Date(),
   imageUpdatedAt: new Date(),
+  community: null,
 };
 
 export const MockImageRepository = {

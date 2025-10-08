@@ -169,6 +169,13 @@ describe('CommunityRepository', () => {
       const communityId = 1;
       const content = 'Test comment';
 
+      const newComment = {
+        user: { userId },
+        community: { communityId },
+        content,
+      };
+
+      mockCommentRepository.create.mockReturnValue(newComment);
       mockCommentRepository.save.mockResolvedValue(mockCommunityComment);
       mockCommunityRepository.increment.mockResolvedValue(undefined);
 
@@ -178,11 +185,12 @@ describe('CommunityRepository', () => {
         content,
       );
 
-      expect(mockCommentRepository.save).toHaveBeenCalledWith({
-        userId,
-        communityId,
+      expect(mockCommentRepository.create).toHaveBeenCalledWith({
+        user: { userId },
+        community: { communityId },
         content,
       });
+      expect(mockCommentRepository.save).toHaveBeenCalledWith(newComment);
       expect(mockCommunityRepository.increment).toHaveBeenCalledWith(
         { communityId },
         'commentCount',
@@ -197,6 +205,17 @@ describe('CommunityRepository', () => {
       const content = 'Test reply';
       const parentCommentId = 1;
 
+      const newComment = {
+        user: { userId },
+        community: { communityId: parentCommentId },
+        content,
+      };
+
+      mockCommentRepository.create.mockReturnValue({
+        user: { userId },
+        community: { communityId },
+        content,
+      });
       mockCommentRepository.save.mockResolvedValue(mockCommunityComment);
       mockCommunityRepository.increment.mockResolvedValue(undefined);
 
@@ -207,12 +226,17 @@ describe('CommunityRepository', () => {
         parentCommentId,
       );
 
-      expect(mockCommentRepository.save).toHaveBeenCalledWith({
-        userId,
-        communityId,
+      expect(mockCommentRepository.create).toHaveBeenCalledWith({
+        user: { userId },
+        community: { communityId },
         content,
-        parentCommentId,
       });
+      expect(mockCommentRepository.save).toHaveBeenCalledWith(newComment);
+      expect(mockCommunityRepository.increment).toHaveBeenCalledWith(
+        { communityId },
+        'commentCount',
+        1,
+      );
       expect(result).toEqual(mockCommunityComment);
     });
   });

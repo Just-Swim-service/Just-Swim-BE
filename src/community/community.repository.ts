@@ -77,18 +77,18 @@ export class CommunityRepository {
     content: string,
     parentCommentId?: number,
   ): Promise<CommunityComment> {
-    const commentData: any = {
-      userId,
-      communityId,
+    const newComment = this.commentRepository.create({
+      user: { userId },
+      community: { communityId },
       content,
-    };
+    });
 
     // 대댓글인 경우 parentCommentId 설정
     if (parentCommentId) {
-      commentData.parentCommentId = parentCommentId;
+      newComment.community.communityId = parentCommentId;
     }
 
-    const savedComment = await this.commentRepository.save(commentData);
+    const savedComment = await this.commentRepository.save(newComment);
 
     // 게시글의 댓글 수 증가 (댓글이든 대댓글이든 모두 카운트)
     await this.communityRepository.increment(

@@ -207,15 +207,12 @@ describe('CommunityRepository', () => {
 
       const newComment = {
         user: { userId },
-        community: { communityId: parentCommentId },
-        content,
-      };
-
-      mockCommentRepository.create.mockReturnValue({
-        user: { userId },
         community: { communityId },
         content,
-      });
+        parentComment: { commentId: parentCommentId } as CommunityComment,
+      };
+
+      mockCommentRepository.create.mockReturnValue(newComment);
       mockCommentRepository.save.mockResolvedValue(mockCommunityComment);
       mockCommunityRepository.increment.mockResolvedValue(undefined);
 

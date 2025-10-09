@@ -30,7 +30,7 @@ export class CommunityComment {
     nullable: true,
   })
   @JoinColumn({ name: 'parentCommentId' })
-  parentComment: CommunityComment; // 대댓글을 위한 부모 댓글
+  parentComment?: CommunityComment; // 대댓글을 위한 부모 댓글
 
   @OneToMany(() => CommunityComment, (comment) => comment.parentComment)
   replies: CommunityComment[]; // 대댓글들

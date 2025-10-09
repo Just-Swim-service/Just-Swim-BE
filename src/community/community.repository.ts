@@ -85,7 +85,9 @@ export class CommunityRepository {
 
     // 대댓글인 경우 parentCommentId 설정
     if (parentCommentId) {
-      newComment.community.communityId = parentCommentId;
+      newComment.parentComment = {
+        commentId: parentCommentId,
+      } as CommunityComment;
     }
 
     const savedComment = await this.commentRepository.save(newComment);
@@ -110,7 +112,12 @@ export class CommunityRepository {
         parentComment: null,
       },
       relations: ['user', 'replies', 'replies.user', 'likes'],
-      order: { commentCreatedAt: 'ASC' },
+      order: {
+        commentCreatedAt: 'ASC',
+        replies: {
+          commentCreatedAt: 'ASC',
+        },
+      },
     });
   }
 

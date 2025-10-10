@@ -107,20 +107,19 @@ export class CommunityRepository {
   async findCommentsByCommunityId(
     communityId: number,
   ): Promise<CommunityComment[]> {
-    return await this.commentRepository.find({
-      where: {
-        community: { communityId },
-        commentDeletedAt: null,
-        parentComment: null, // 대댓글이 아닌 일반 댓글만 조회
-      },
-      relations: ['user', 'replies', 'replies.user', 'likes'],
-      order: {
-        commentCreatedAt: 'ASC',
-        replies: {
-          commentCreatedAt: 'ASC',
-        },
-      },
-    });
+    // QueryBuilder를 사용해서 명시적으로 parentCommentId가 null인 댓글만 조회
+    return await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .leftJoinAndSelect('comment.replies', 'replies')
+      .leftJoinAndSelect('replies.user', 'replyUser')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('comment.communityId = :communityId', { communityId })
+      .andWhere('comment.commentDeletedAt IS NULL')
+      .andWhere('comment.parentCommentId IS NULL') // 대댓글이 아닌 일반 댓글만
+      .orderBy('comment.commentCreatedAt', 'ASC')
+      .addOrderBy('replies.commentCreatedAt', 'ASC')
+      .getMany();
   }
 
   async findCommentById(commentId: number): Promise<CommunityComment> {

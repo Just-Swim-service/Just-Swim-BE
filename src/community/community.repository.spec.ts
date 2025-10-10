@@ -42,6 +42,7 @@ describe('CommunityRepository', () => {
     increment: jest.fn(),
     decrement: jest.fn(),
     remove: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   const mockCommunityLikeRepository = {
@@ -244,24 +245,60 @@ describe('CommunityRepository', () => {
       const communityId = 1;
       const mockComments = [mockCommunityComment];
 
-      mockCommentRepository.find.mockResolvedValue(mockComments);
+      // QueryBuilder mock 설정
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockComments),
+      };
+
+      mockCommentRepository.createQueryBuilder = jest
+        .fn()
+        .mockReturnValue(mockQueryBuilder);
 
       const result = await repository.findCommentsByCommunityId(communityId);
 
-      expect(mockCommentRepository.find).toHaveBeenCalledWith({
-        where: {
-          community: { communityId },
-          commentDeletedAt: null,
-          parentComment: null, // 대댓글이 아닌 일반 댓글만 조회
-        },
-        relations: ['user', 'replies', 'replies.user', 'likes'],
-        order: {
-          commentCreatedAt: 'ASC',
-          replies: {
-            commentCreatedAt: 'ASC',
-          },
-        },
-      });
+      expect(mockCommentRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'comment',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'comment.user',
+        'user',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'comment.replies',
+        'replies',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'replies.user',
+        'replyUser',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'comment.likes',
+        'likes',
+      );
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'comment.communityId = :communityId',
+        { communityId },
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'comment.commentDeletedAt IS NULL',
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'comment.parentCommentId IS NULL',
+      );
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'comment.commentCreatedAt',
+        'ASC',
+      );
+      expect(mockQueryBuilder.addOrderBy).toHaveBeenCalledWith(
+        'replies.commentCreatedAt',
+        'ASC',
+      );
+      expect(mockQueryBuilder.getMany).toHaveBeenCalled();
       expect(result).toEqual(mockComments);
     });
   });

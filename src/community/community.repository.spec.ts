@@ -59,6 +59,9 @@ describe('CommunityRepository', () => {
   };
 
   beforeEach(async () => {
+    // 모든 mock 초기화
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CommunityRepository,
@@ -199,7 +202,7 @@ describe('CommunityRepository', () => {
       expect(result).toEqual(mockCommunityComment);
     });
 
-    it('should create a reply comment', async () => {
+    it('should create a reply comment without incrementing comment count', async () => {
       const userId = 1;
       const communityId = 1;
       const content = 'Test reply';
@@ -212,9 +215,10 @@ describe('CommunityRepository', () => {
         parentComment: { commentId: parentCommentId } as CommunityComment,
       };
 
+      // mock 초기화
+      mockCommunityRepository.increment.mockClear();
       mockCommentRepository.create.mockReturnValue(newComment);
       mockCommentRepository.save.mockResolvedValue(mockCommunityComment);
-      mockCommunityRepository.increment.mockResolvedValue(undefined);
 
       const result = await repository.createComment(
         userId,
@@ -229,12 +233,88 @@ describe('CommunityRepository', () => {
         content,
       });
       expect(mockCommentRepository.save).toHaveBeenCalledWith(newComment);
-      expect(mockCommunityRepository.increment).toHaveBeenCalledWith(
-        { communityId },
+      // 대댓글 생성 시에는 댓글 수가 증가하지 않아야 함
+      expect(mockCommunityRepository.increment).not.toHaveBeenCalled();
+      expect(result).toEqual(mockCommunityComment);
+    });
+  });
+
+  describe('findCommentsByCommunityId', () => {
+    it('should return only main comments (not replies)', async () => {
+      const communityId = 1;
+      const mockComments = [mockCommunityComment];
+
+      mockCommentRepository.find.mockResolvedValue(mockComments);
+
+      const result = await repository.findCommentsByCommunityId(communityId);
+
+      expect(mockCommentRepository.find).toHaveBeenCalledWith({
+        where: {
+          community: { communityId },
+          commentDeletedAt: null,
+          parentComment: null, // 대댓글이 아닌 일반 댓글만 조회
+        },
+        relations: ['user', 'replies', 'replies.user', 'likes'],
+        order: {
+          commentCreatedAt: 'ASC',
+          replies: {
+            commentCreatedAt: 'ASC',
+          },
+        },
+      });
+      expect(result).toEqual(mockComments);
+    });
+  });
+
+  describe('deleteComment', () => {
+    it('should delete a main comment and decrement comment count', async () => {
+      const commentId = 1;
+      const mockComment = {
+        commentId: 1,
+        community: { communityId: 1 },
+        parentComment: null, // 일반 댓글
+      };
+
+      mockCommentRepository.findOne.mockResolvedValue(mockComment);
+      mockCommentRepository.softDelete.mockResolvedValue(undefined);
+      mockCommunityRepository.decrement.mockResolvedValue(undefined);
+
+      await repository.deleteComment(commentId);
+
+      expect(mockCommentRepository.findOne).toHaveBeenCalledWith({
+        where: { commentId },
+        relations: ['community', 'parentComment'],
+      });
+      expect(mockCommentRepository.softDelete).toHaveBeenCalledWith(commentId);
+      expect(mockCommunityRepository.decrement).toHaveBeenCalledWith(
+        { communityId: 1 },
         'commentCount',
         1,
       );
-      expect(result).toEqual(mockCommunityComment);
+    });
+
+    it('should delete a reply comment without decrementing comment count', async () => {
+      const commentId = 2;
+      const mockComment = {
+        commentId: 2,
+        community: { communityId: 1 },
+        parentComment: { commentId: 1 }, // 대댓글
+      };
+
+      // mock 초기화
+      mockCommunityRepository.decrement.mockClear();
+      mockCommentRepository.findOne.mockResolvedValue(mockComment);
+      mockCommentRepository.softDelete.mockResolvedValue(undefined);
+
+      await repository.deleteComment(commentId);
+
+      expect(mockCommentRepository.findOne).toHaveBeenCalledWith({
+        where: { commentId },
+        relations: ['community', 'parentComment'],
+      });
+      expect(mockCommentRepository.softDelete).toHaveBeenCalledWith(commentId);
+      // 대댓글 삭제 시에는 댓글 수가 감소하지 않아야 함
+      expect(mockCommunityRepository.decrement).not.toHaveBeenCalled();
     });
   });
 

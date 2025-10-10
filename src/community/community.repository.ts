@@ -92,12 +92,14 @@ export class CommunityRepository {
 
     const savedComment = await this.commentRepository.save(newComment);
 
-    // 게시글의 댓글 수 증가 (댓글이든 대댓글이든 모두 카운트)
-    await this.communityRepository.increment(
-      { communityId },
-      'commentCount',
-      1,
-    );
+    // 게시글의 댓글 수 증가 (일반 댓글만 카운트, 대댓글은 제외)
+    if (!parentCommentId) {
+      await this.communityRepository.increment(
+        { communityId },
+        'commentCount',
+        1,
+      );
+    }
 
     return savedComment;
   }
@@ -109,7 +111,7 @@ export class CommunityRepository {
       where: {
         community: { communityId },
         commentDeletedAt: null,
-        parentComment: null,
+        parentComment: null, // 대댓글이 아닌 일반 댓글만 조회
       },
       relations: ['user', 'replies', 'replies.user', 'likes'],
       order: {
@@ -139,16 +141,18 @@ export class CommunityRepository {
   async deleteComment(commentId: number): Promise<void> {
     const comment = await this.commentRepository.findOne({
       where: { commentId },
-      relations: ['community'],
+      relations: ['community', 'parentComment'],
     });
 
     if (comment) {
-      // 게시글의 댓글 수 감소
-      await this.communityRepository.decrement(
-        { communityId: comment.community.communityId },
-        'commentCount',
-        1,
-      );
+      // 게시글의 댓글 수 감소 (일반 댓글만 카운트, 대댓글은 제외)
+      if (!comment.parentComment) {
+        await this.communityRepository.decrement(
+          { communityId: comment.community.communityId },
+          'commentCount',
+          1,
+        );
+      }
 
       await this.commentRepository.softDelete(commentId);
     }

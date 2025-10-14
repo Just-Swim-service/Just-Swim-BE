@@ -53,6 +53,32 @@ describe('CommunityService', () => {
       );
       expect(result).toEqual(mockCommunity);
     });
+
+    it('should create a community post with tags', async () => {
+      const userId = 1;
+      const createCommunityDto: CreateCommunityDto = {
+        title: 'Test Post',
+        content: 'Test content',
+        tags: ['자유형', '평영'],
+      };
+
+      MockCommunityRepository.createCommunity.mockResolvedValue(mockCommunity);
+      MockCommunityRepository.attachTagsToCommunity.mockResolvedValue(
+        undefined,
+      );
+
+      const result = await service.createCommunity(userId, createCommunityDto);
+
+      expect(repository.createCommunity).toHaveBeenCalledWith(userId, {
+        title: 'Test Post',
+        content: 'Test content',
+      });
+      expect(repository.attachTagsToCommunity).toHaveBeenCalledWith(
+        mockCommunity.communityId,
+        ['자유형', '평영'],
+      );
+      expect(result).toEqual(mockCommunity);
+    });
   });
 
   describe('findAllCommunities', () => {
@@ -131,6 +157,36 @@ describe('CommunityService', () => {
         communityId,
         updateDto,
       );
+      expect(result.title).toBe('Updated Title');
+    });
+
+    it('should update community with tags', async () => {
+      const communityId = 1;
+      const userId = 1;
+      const updateDto: UpdateCommunityDto = {
+        title: 'Updated Title',
+        tags: ['자유형', '초보'],
+      };
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.updateCommunity.mockResolvedValue({
+        ...mockCommunity,
+        title: 'Updated Title',
+      });
+      MockCommunityRepository.updateCommunityTags.mockResolvedValue(undefined);
+
+      const result = await service.updateCommunity(
+        communityId,
+        userId,
+        updateDto,
+      );
+
+      expect(repository.updateCommunityTags).toHaveBeenCalledWith(communityId, [
+        '자유형',
+        '초보',
+      ]);
       expect(result.title).toBe('Updated Title');
     });
 
@@ -317,6 +373,94 @@ describe('CommunityService', () => {
       await expect(
         service.toggleCommentLike(commentId, userId),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // 태그 및 카테고리 관련 테스트
+  describe('getCommunitiesByCategory', () => {
+    it('should return communities filtered by category', async () => {
+      MockCommunityRepository.findCommunitiesByCategory.mockResolvedValue({
+        communities: [mockCommunity],
+        total: 1,
+      });
+
+      const result = await service.getCommunitiesByCategory('운동기록', 1, 10);
+
+      expect(repository.findCommunitiesByCategory).toHaveBeenCalledWith(
+        '운동기록',
+        1,
+        10,
+      );
+      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.pagination.total).toBe(1);
+    });
+  });
+
+  describe('getCommunitiesByTags', () => {
+    it('should return communities filtered by tags', async () => {
+      MockCommunityRepository.findCommunitiesByTags.mockResolvedValue({
+        communities: [mockCommunity],
+        total: 1,
+      });
+
+      const result = await service.getCommunitiesByTags(
+        ['자유형', '평영'],
+        1,
+        10,
+      );
+
+      expect(repository.findCommunitiesByTags).toHaveBeenCalledWith(
+        ['자유형', '평영'],
+        1,
+        10,
+      );
+      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.pagination.total).toBe(1);
+    });
+  });
+
+  describe('getPopularTags', () => {
+    it('should return popular tags', async () => {
+      const mockTags = [
+        { tagId: 1, tagName: '자유형', usageCount: 10 },
+        { tagId: 2, tagName: '평영', usageCount: 8 },
+      ];
+
+      MockCommunityRepository.getPopularTags.mockResolvedValue(mockTags);
+
+      const result = await service.getPopularTags(20);
+
+      expect(repository.getPopularTags).toHaveBeenCalledWith(20);
+      expect(result).toEqual(mockTags);
+    });
+  });
+
+  describe('searchTags', () => {
+    it('should return tags matching query', async () => {
+      const mockTags = [{ tagId: 1, tagName: '자유형', usageCount: 10 }];
+
+      MockCommunityRepository.searchTags.mockResolvedValue(mockTags);
+
+      const result = await service.searchTags('자유', 10);
+
+      expect(repository.searchTags).toHaveBeenCalledWith('자유', 10);
+      expect(result).toEqual(mockTags);
+    });
+  });
+
+  describe('getCategoryStats', () => {
+    it('should return category statistics', async () => {
+      const mockStats = [
+        { category: '운동기록', count: 10 },
+        { category: '질문', count: 5 },
+      ];
+
+      MockCommunityRepository.getCategoryStats.mockResolvedValue(mockStats);
+
+      const result = await service.getCategoryStats();
+
+      expect(repository.getCategoryStats).toHaveBeenCalled();
+      expect(result).toEqual(mockStats);
     });
   });
 });

@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Community } from './entity/community.entity';
 import { CommunityComment } from './entity/community-comment.entity';
 import { CommunityLike } from './entity/community-like.entity';
 import { CommentLike } from './entity/comment-like.entity';
+import { Tag } from './entity/tag.entity';
+import { CommunityTag } from './entity/community-tag.entity';
 import { CreateCommunityDto } from './dto/create-community.dto';
+import { CategoryType } from './enum/category-type.enum';
 
 @Injectable()
 export class CommunityRepository {
@@ -18,6 +21,10 @@ export class CommunityRepository {
     private readonly communityLikeRepository: Repository<CommunityLike>,
     @InjectRepository(CommentLike)
     private readonly commentLikeRepository: Repository<CommentLike>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(CommunityTag)
+    private readonly communityTagRepository: Repository<CommunityTag>,
   ) {}
 
   // 게시글 관련 메서드
@@ -38,7 +45,14 @@ export class CommunityRepository {
   ): Promise<{ communities: Community[]; total: number }> {
     const [communities, total] = await this.communityRepository.findAndCount({
       where: { communityDeletedAt: null },
-      relations: ['user', 'images', 'comments', 'likes'],
+      relations: [
+        'user',
+        'images',
+        'comments',
+        'likes',
+        'communityTags',
+        'communityTags.tag',
+      ],
       order: { communityCreatedAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -50,7 +64,14 @@ export class CommunityRepository {
   async findCommunityById(communityId: number): Promise<Community> {
     return await this.communityRepository.findOne({
       where: { communityId, communityDeletedAt: null },
-      relations: ['user', 'images', 'comments', 'likes'],
+      relations: [
+        'user',
+        'images',
+        'comments',
+        'likes',
+        'communityTags',
+        'communityTags.tag',
+      ],
     });
   }
 
@@ -220,5 +241,145 @@ export class CommunityRepository {
       where: { user: { userId }, comment: { commentId } },
     });
     return !!like;
+  }
+
+  async findOrCreateTag(tagName: string): Promise<Tag> {
+    const normalizedTagName = tagName.trim().toLowerCase();
+
+    let tag = await this.tagRepository.findOne({
+      where: { tagName: normalizedTagName },
+    });
+
+    if (!tag) {
+      tag = this.tagRepository.create({ tagName: normalizedTagName });
+      tag = await this.tagRepository.save(tag);
+    }
+
+    return tag;
+  }
+
+  async attachTagsToCommunity(
+    communityId: number,
+    tagNames: string[],
+  ): Promise<void> {
+    const uniqueTagNames = [...new Set(tagNames)];
+
+    for (const tagName of uniqueTagNames) {
+      const tag = await this.findOrCreateTag(tagName);
+
+      // CommunityTag 연결 테이블에 저장
+      const communityTag = this.communityTagRepository.create({
+        community: { communityId },
+        tag: { tagId: tag.tagId },
+      });
+      await this.communityTagRepository.save(communityTag);
+
+      // 태그 사용 횟수 증가
+      await this.tagRepository.increment({ tagId: tag.tagId }, 'usageCount', 1);
+    }
+  }
+
+  async updateCommunityTags(
+    communityId: number,
+    newTagNames: string[],
+  ): Promise<void> {
+    const existingCommunityTags = await this.communityTagRepository.find({
+      where: { community: { communityId } },
+      relations: ['tag'],
+    });
+
+    for (const communityTag of existingCommunityTags) {
+      await this.tagRepository.decrement(
+        { tagId: communityTag.tag.tagId },
+        'usageCount',
+        1,
+      );
+    }
+
+    // 기존 CommunityTag 삭제
+    await this.communityTagRepository.delete({ community: { communityId } });
+
+    // 새 태그 연결
+    if (newTagNames && newTagNames.length > 0) {
+      await this.attachTagsToCommunity(communityId, newTagNames);
+    }
+  }
+
+  async getPopularTags(limit: number = 20): Promise<Tag[]> {
+    return await this.tagRepository.find({
+      where: { usageCount: In([1, 99999999]) },
+      order: { usageCount: 'DESC' },
+      take: limit,
+    });
+  }
+
+  async searchTags(query: string, limit: number = 10): Promise<Tag[]> {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return await this.tagRepository
+      .createQueryBuilder('tag')
+      .where('tag.tagName LIKE :query', { query: `%${normalizedQuery}%` })
+      .orderBy('tag.usageCount', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
+  async findCommunitiesByCategory(
+    category: CategoryType,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ communities: Community[]; total: number }> {
+    const [communities, total] = await this.communityRepository.findAndCount({
+      where: { category, communityDeletedAt: null },
+      relations: ['user', 'images', 'communityTags', 'communityTags.tag'],
+      order: { communityCreatedAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return { communities, total };
+  }
+
+  async findCommunitiesByTags(
+    tagNames: string[],
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ communities: Community[]; total: number }> {
+    const normalizedTagNames = tagNames.map((tag) => tag.trim().toLowerCase());
+
+    const queryBuilder = this.communityRepository
+      .createQueryBuilder('community')
+      .leftJoinAndSelect('community.user', 'user')
+      .leftJoinAndSelect('community.images', 'images')
+      .leftJoinAndSelect('community.communityTags', 'communityTags')
+      .leftJoinAndSelect('communityTags.tag', 'tag')
+      .where('community.communityDeletedAt IS NULL')
+      .andWhere('tag.tagName IN (:...tagNames)', {
+        tagNames: normalizedTagNames,
+      })
+      .orderBy('community.communityCreatedAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [communities, total] = await queryBuilder.getManyAndCount();
+
+    return { communities, total };
+  }
+
+  async getCategoryStats(): Promise<
+    { category: CategoryType; count: number }[]
+  > {
+    const stats = await this.communityRepository
+      .createQueryBuilder('community')
+      .select('community.category', 'category')
+      .addSelect('COUNT(*)', 'count')
+      .where('community.communityDeletedAt IS NULL')
+      .groupBy('community.category')
+      .getRawMany();
+
+    return stats.map((stat) => ({
+      category: stat.category,
+      count: parseInt(stat.count),
+    }));
   }
 }

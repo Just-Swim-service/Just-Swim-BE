@@ -16,6 +16,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CommunityService } from './community.service';
@@ -59,23 +60,146 @@ export class CommunityController {
   }
 
   @Get()
-  @ApiOperation({ summary: '게시글 목록 조회' })
+  @ApiOperation({ summary: '게시글 목록 조회 (카테고리/태그 필터링 가능)' })
   @ApiResponse({
     status: 200,
     description: '게시글 목록을 성공적으로 조회했습니다.',
   })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: '페이지 번호',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '페이지당 항목 수',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description: '카테고리 필터 (질문, 운동기록, 수영팁, 후기, 수영일상)',
+    enum: ['질문', '운동기록', '수영팁', '후기', '수영일상'],
+  })
+  @ApiQuery({
+    name: 'tags',
+    required: false,
+    description: '태그 필터 (쉼표로 구분, 예: 자유형,평영)',
+    example: '자유형,평영',
+  })
   async findAllCommunities(
+    @Res() res: Response,
     @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('category') category?: string,
+    @Query('tags') tags?: string,
+  ) {
+    let result: any;
+
+    // 카테고리 필터링
+    if (category) {
+      result = await this.communityService.getCommunitiesByCategory(
+        category,
+        parseInt(page),
+        parseInt(limit),
+      );
+    }
+    // 태그 필터링
+    else if (tags) {
+      const tagArray = tags.split(',').map((tag) => tag.trim());
+      result = await this.communityService.getCommunitiesByTags(
+        tagArray,
+        parseInt(page),
+        parseInt(limit),
+      );
+    }
+    // 전체 조회
+    else {
+      result = await this.communityService.findAllCommunities(
+        parseInt(page),
+        parseInt(limit),
+      );
+    }
+
+    return this.responseService.success(
+      res,
+      '게시글 목록을 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
+  // 태그 및 카테고리 관련 엔드포인트 (동적 라우트보다 먼저 배치)
+  @Get('tags/popular')
+  @ApiOperation({ summary: '인기 태그 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '인기 태그 목록을 성공적으로 조회했습니다.',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '조회할 태그 개수',
+    example: 20,
+  })
+  async getPopularTags(
+    @Query('limit') limit: string = '20',
+    @Res() res: Response,
+  ) {
+    const result = await this.communityService.getPopularTags(parseInt(limit));
+    return this.responseService.success(
+      res,
+      '인기 태그 목록을 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
+  @Get('tags/search')
+  @ApiOperation({ summary: '태그 자동완성 검색' })
+  @ApiResponse({
+    status: 200,
+    description: '태그 검색 결과를 성공적으로 조회했습니다.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: '검색할 태그 키워드',
+    example: '자유',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '검색 결과 개수',
+    example: 10,
+  })
+  async searchTags(
+    @Query('q') query: string,
     @Query('limit') limit: string = '10',
     @Res() res: Response,
   ) {
-    const result = await this.communityService.findAllCommunities(
-      parseInt(page),
+    const result = await this.communityService.searchTags(
+      query,
       parseInt(limit),
     );
     return this.responseService.success(
       res,
-      '게시글 목록을 성공적으로 조회했습니다.',
+      '태그 검색 결과를 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
+  @Get('categories/stats')
+  @ApiOperation({ summary: '카테고리별 게시글 수 통계' })
+  @ApiResponse({
+    status: 200,
+    description: '카테고리 통계를 성공적으로 조회했습니다.',
+  })
+  async getCategoryStats(@Res() res: Response) {
+    const result = await this.communityService.getCategoryStats();
+    return this.responseService.success(
+      res,
+      '카테고리 통계를 성공적으로 조회했습니다.',
       result,
     );
   }

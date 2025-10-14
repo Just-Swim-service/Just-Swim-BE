@@ -5,12 +5,15 @@ import { Community } from './entity/community.entity';
 import { CommunityComment } from './entity/community-comment.entity';
 import { CommunityLike } from './entity/community-like.entity';
 import { CommentLike } from './entity/comment-like.entity';
+import { Tag } from './entity/tag.entity';
+import { CommunityTag } from './entity/community-tag.entity';
 import { Repository } from 'typeorm';
 import {
   mockCommunity,
   mockCommunityComment,
   mockCommunityLike,
   mockCommentLike,
+  mockTag,
 } from 'src/common/mocks/mock-community.repository';
 
 describe('CommunityRepository', () => {
@@ -19,6 +22,8 @@ describe('CommunityRepository', () => {
   let commentRepo: Repository<CommunityComment>;
   let communityLikeRepo: Repository<CommunityLike>;
   let commentLikeRepo: Repository<CommentLike>;
+  let tagRepo: Repository<Tag>;
+  let communityTagRepo: Repository<CommunityTag>;
 
   const mockCommunityRepository = {
     create: jest.fn(),
@@ -30,6 +35,7 @@ describe('CommunityRepository', () => {
     softDelete: jest.fn(),
     increment: jest.fn(),
     decrement: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   const mockCommentRepository = {
@@ -59,6 +65,23 @@ describe('CommunityRepository', () => {
     remove: jest.fn(),
   };
 
+  const mockTagRepository = {
+    findOne: jest.fn(),
+    find: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    increment: jest.fn(),
+    decrement: jest.fn(),
+    createQueryBuilder: jest.fn(),
+  };
+
+  const mockCommunityTagRepository = {
+    find: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    delete: jest.fn(),
+  };
+
   beforeEach(async () => {
     // 모든 mock 초기화
     jest.clearAllMocks();
@@ -82,6 +105,14 @@ describe('CommunityRepository', () => {
           provide: getRepositoryToken(CommentLike),
           useValue: mockCommentLikeRepository,
         },
+        {
+          provide: getRepositoryToken(Tag),
+          useValue: mockTagRepository,
+        },
+        {
+          provide: getRepositoryToken(CommunityTag),
+          useValue: mockCommunityTagRepository,
+        },
       ],
     }).compile();
 
@@ -97,6 +128,10 @@ describe('CommunityRepository', () => {
     );
     commentLikeRepo = module.get<Repository<CommentLike>>(
       getRepositoryToken(CommentLike),
+    );
+    tagRepo = module.get<Repository<Tag>>(getRepositoryToken(Tag));
+    communityTagRepo = module.get<Repository<CommunityTag>>(
+      getRepositoryToken(CommunityTag),
     );
   });
 
@@ -141,7 +176,14 @@ describe('CommunityRepository', () => {
 
       expect(mockCommunityRepository.findAndCount).toHaveBeenCalledWith({
         where: { communityDeletedAt: null },
-        relations: ['user', 'images', 'comments', 'likes'],
+        relations: [
+          'user',
+          'images',
+          'comments',
+          'likes',
+          'communityTags',
+          'communityTags.tag',
+        ],
         order: { communityCreatedAt: 'DESC' },
         skip: 0,
         take: 10,
@@ -161,7 +203,14 @@ describe('CommunityRepository', () => {
 
       expect(mockCommunityRepository.findOne).toHaveBeenCalledWith({
         where: { communityId, communityDeletedAt: null },
-        relations: ['user', 'images', 'comments', 'likes'],
+        relations: [
+          'user',
+          'images',
+          'comments',
+          'likes',
+          'communityTags',
+          'communityTags.tag',
+        ],
       });
       expect(result).toEqual(mockCommunity);
     });
@@ -453,6 +502,140 @@ describe('CommunityRepository', () => {
         'viewCount',
         1,
       );
+    });
+  });
+
+  // 태그 관련 테스트
+  describe('findOrCreateTag', () => {
+    it('should return existing tag if found', async () => {
+      mockTagRepository.findOne.mockResolvedValue(mockTag);
+
+      const result = await repository.findOrCreateTag('자유형');
+
+      expect(mockTagRepository.findOne).toHaveBeenCalledWith({
+        where: { tagName: '자유형' },
+      });
+      expect(result).toEqual(mockTag);
+    });
+
+    it('should create new tag if not found', async () => {
+      mockTagRepository.findOne.mockResolvedValue(null);
+      mockTagRepository.create.mockReturnValue(mockTag);
+      mockTagRepository.save.mockResolvedValue(mockTag);
+
+      const result = await repository.findOrCreateTag('자유형');
+
+      expect(mockTagRepository.findOne).toHaveBeenCalledWith({
+        where: { tagName: '자유형' },
+      });
+      expect(mockTagRepository.create).toHaveBeenCalledWith({
+        tagName: '자유형',
+      });
+      expect(mockTagRepository.save).toHaveBeenCalledWith(mockTag);
+      expect(result).toEqual(mockTag);
+    });
+  });
+
+  describe('attachTagsToCommunity', () => {
+    it('should attach tags to community', async () => {
+      mockTagRepository.findOne.mockResolvedValue(mockTag);
+      mockCommunityTagRepository.create.mockReturnValue({ tag: mockTag });
+      mockCommunityTagRepository.save.mockResolvedValue({ tag: mockTag });
+      mockTagRepository.increment.mockResolvedValue(undefined);
+
+      await repository.attachTagsToCommunity(1, ['자유형', '평영']);
+
+      expect(mockCommunityTagRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockTagRepository.increment).toHaveBeenCalledTimes(2);
+    });
+
+    it('should remove duplicate tags', async () => {
+      mockTagRepository.findOne.mockResolvedValue(mockTag);
+      mockCommunityTagRepository.create.mockReturnValue({ tag: mockTag });
+      mockCommunityTagRepository.save.mockResolvedValue({ tag: mockTag });
+      mockTagRepository.increment.mockResolvedValue(undefined);
+
+      await repository.attachTagsToCommunity(1, ['자유형', '자유형', '평영']);
+
+      // 중복이 제거되어 2번만 호출되어야 함
+      expect(mockCommunityTagRepository.save).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getPopularTags', () => {
+    it('should return popular tags sorted by usage count', async () => {
+      const mockTags = [mockTag];
+      mockTagRepository.find.mockResolvedValue(mockTags);
+
+      const result = await repository.getPopularTags(20);
+
+      expect(mockTagRepository.find).toHaveBeenCalled();
+      expect(result).toEqual(mockTags);
+    });
+  });
+
+  describe('searchTags', () => {
+    it('should search tags by query', async () => {
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockTag]),
+      };
+
+      mockTagRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await repository.searchTags('자유', 10);
+
+      expect(mockTagRepository.createQueryBuilder).toHaveBeenCalledWith('tag');
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'tag.tagName LIKE :query',
+        { query: '%자유%' },
+      );
+      expect(result).toEqual([mockTag]);
+    });
+  });
+
+  describe('findCommunitiesByCategory', () => {
+    it('should return communities filtered by category', async () => {
+      mockCommunityRepository.findAndCount.mockResolvedValue([
+        [mockCommunity],
+        1,
+      ]);
+
+      const result = await repository.findCommunitiesByCategory(
+        '운동기록' as any,
+        1,
+        10,
+      );
+
+      expect(mockCommunityRepository.findAndCount).toHaveBeenCalled();
+      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.total).toBe(1);
+    });
+  });
+
+  describe('getCategoryStats', () => {
+    it('should return category statistics', async () => {
+      const mockStats = [{ category: '운동기록', count: '10' }];
+      const mockQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(mockStats),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      const result = await repository.getCategoryStats();
+
+      expect(mockCommunityRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'community',
+      );
+      expect(result).toEqual([{ category: '운동기록', count: 10 }]);
     });
   });
 });

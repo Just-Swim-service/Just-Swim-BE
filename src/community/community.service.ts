@@ -17,10 +17,23 @@ export class CommunityService {
     userId: number,
     createCommunityDto: CreateCommunityDto,
   ) {
-    return await this.communityRepository.createCommunity(
+    const { tags, ...communityData } = createCommunityDto;
+
+    // 게시글 생성
+    const community = await this.communityRepository.createCommunity(
       userId,
-      createCommunityDto,
+      communityData,
     );
+
+    // 태그가 있으면 연결
+    if (tags && tags.length > 0) {
+      await this.communityRepository.attachTagsToCommunity(
+        community.communityId,
+        tags,
+      );
+    }
+
+    return community;
   }
 
   async findAllCommunities(page: number = 1, limit: number = 10) {
@@ -85,10 +98,20 @@ export class CommunityService {
       throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
     }
 
-    return await this.communityRepository.updateCommunity(
+    const { tags, ...updateData } = updateCommunityDto;
+
+    // 게시글 업데이트
+    const updatedCommunity = await this.communityRepository.updateCommunity(
       communityId,
-      updateCommunityDto,
+      updateData,
     );
+
+    // 태그가 포함되어 있으면 업데이트
+    if (tags !== undefined) {
+      await this.communityRepository.updateCommunityTags(communityId, tags);
+    }
+
+    return updatedCommunity;
   }
 
   async deleteCommunity(communityId: number, userId: number) {
@@ -196,5 +219,60 @@ export class CommunityService {
       commentId,
     );
     return { isLiked };
+  }
+
+  // 태그 및 카테고리 관련 메서드
+  async getCommunitiesByCategory(
+    category: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const { communities, total } =
+      await this.communityRepository.findCommunitiesByCategory(
+        category as any,
+        page,
+        limit,
+      );
+
+    return {
+      communities,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getCommunitiesByTags(
+    tags: string[],
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const { communities, total } =
+      await this.communityRepository.findCommunitiesByTags(tags, page, limit);
+
+    return {
+      communities,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getPopularTags(limit: number = 20) {
+    return await this.communityRepository.getPopularTags(limit);
+  }
+
+  async searchTags(query: string, limit: number = 10) {
+    return await this.communityRepository.searchTags(query, limit);
+  }
+
+  async getCategoryStats() {
+    return await this.communityRepository.getCategoryStats();
   }
 }

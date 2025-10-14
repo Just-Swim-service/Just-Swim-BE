@@ -4,6 +4,8 @@ import { Community } from './entity/community.entity';
 import { CommunityComment } from './entity/community-comment.entity';
 import { CommunityLike } from './entity/community-like.entity';
 import { CommentLike } from './entity/comment-like.entity';
+import { Tag } from './entity/tag.entity';
+import { CommunityTag } from './entity/community-tag.entity';
 import { CommunityRepository } from './community.repository';
 import { CommunityService } from './community.service';
 import { CommunityController } from './community.controller';
@@ -20,6 +22,8 @@ import { SecurityModule } from 'src/common/security/security.module';
       CommunityComment,
       CommunityLike,
       CommentLike,
+      Tag,
+      CommunityTag,
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => UsersModule),

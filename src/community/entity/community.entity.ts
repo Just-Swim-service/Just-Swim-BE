@@ -13,6 +13,8 @@ import {
 } from 'typeorm';
 import { CommunityComment } from './community-comment.entity';
 import { CommunityLike } from './community-like.entity';
+import { CommunityTag } from './community-tag.entity';
+import { CategoryType } from '../enum/category-type.enum';
 
 @Entity('community')
 export class Community {
@@ -28,6 +30,9 @@ export class Community {
 
   @Column({ type: 'mediumtext' })
   content: string;
+
+  @Column({ type: 'enum', enum: CategoryType, default: CategoryType.STORY })
+  category: CategoryType; // 카테고리 (질문, 운동기록, 수영팁, 후기, 수영일상)
 
   @Column({ type: 'json', nullable: true })
   workoutData: any; // 운동 관련 데이터 (날짜, 시간, 종목 등)
@@ -49,6 +54,9 @@ export class Community {
 
   @OneToMany(() => Image, (image) => image.community)
   images: Image[];
+
+  @OneToMany(() => CommunityTag, (communityTag) => communityTag.community)
+  communityTags: CommunityTag[];
 
   @CreateDateColumn({ type: 'timestamp' })
   communityCreatedAt: Date;

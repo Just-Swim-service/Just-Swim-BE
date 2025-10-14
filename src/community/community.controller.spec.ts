@@ -34,6 +34,11 @@ describe('CommunityController', () => {
     deleteComment: jest.fn(),
     toggleCommunityLike: jest.fn(),
     toggleCommentLike: jest.fn(),
+    getCommunitiesByCategory: jest.fn(),
+    getCommunitiesByTags: jest.fn(),
+    getPopularTags: jest.fn(),
+    searchTags: jest.fn(),
+    getCategoryStats: jest.fn(),
   };
 
   const mockResponseService = {
@@ -160,9 +165,83 @@ describe('CommunityController', () => {
       mockCommunityService.findAllCommunities.mockResolvedValue(expectedResult);
       mockResponseService.success.mockReturnValue(undefined);
 
-      await controller.findAllCommunities('1', '10', res);
+      await controller.findAllCommunities(res, '1', '10');
 
       expect(service.findAllCommunities).toHaveBeenCalledWith(1, 10);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '게시글 목록을 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should filter by category', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const expectedResult = {
+        communities: [mockCommunity],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+        },
+      };
+
+      mockCommunityService.getCommunitiesByCategory.mockResolvedValue(
+        expectedResult,
+      );
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.findAllCommunities(res, '1', '10', '운동기록');
+
+      expect(service.getCommunitiesByCategory).toHaveBeenCalledWith(
+        '운동기록',
+        1,
+        10,
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '게시글 목록을 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should filter by tags', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const expectedResult = {
+        communities: [mockCommunity],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+        },
+      };
+
+      mockCommunityService.getCommunitiesByTags.mockResolvedValue(
+        expectedResult,
+      );
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.findAllCommunities(
+        res,
+        '1',
+        '10',
+        undefined,
+        '자유형,평영',
+      );
+
+      expect(service.getCommunitiesByTags).toHaveBeenCalledWith(
+        ['자유형', '평영'],
+        1,
+        10,
+      );
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '게시글 목록을 성공적으로 조회했습니다.',
@@ -188,7 +267,7 @@ describe('CommunityController', () => {
       mockCommunityService.findAllCommunities.mockResolvedValue(expectedResult);
       mockResponseService.success.mockReturnValue(undefined);
 
-      await controller.findAllCommunities(undefined, undefined, res);
+      await controller.findAllCommunities(res, undefined, undefined);
 
       expect(service.findAllCommunities).toHaveBeenCalledWith(1, 10);
       expect(responseService.success).toHaveBeenCalledWith(
@@ -500,6 +579,79 @@ describe('CommunityController', () => {
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '좋아요 상태가 성공적으로 변경되었습니다.',
+        expectedResult,
+      );
+    });
+  });
+
+  // 태그 및 카테고리 관련 테스트
+  describe('getPopularTags', () => {
+    it('should return popular tags', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const expectedResult = [
+        { tagId: 1, tagName: '자유형', usageCount: 10 },
+        { tagId: 2, tagName: '평영', usageCount: 8 },
+      ];
+
+      mockCommunityService.getPopularTags.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getPopularTags('20', res);
+
+      expect(service.getPopularTags).toHaveBeenCalledWith(20);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '인기 태그 목록을 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+  });
+
+  describe('searchTags', () => {
+    it('should search tags by query', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const expectedResult = [{ tagId: 1, tagName: '자유형', usageCount: 10 }];
+
+      mockCommunityService.searchTags.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.searchTags('자유', '10', res);
+
+      expect(service.searchTags).toHaveBeenCalledWith('자유', 10);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '태그 검색 결과를 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+  });
+
+  describe('getCategoryStats', () => {
+    it('should return category statistics', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const expectedResult = [
+        { category: '운동기록', count: 10 },
+        { category: '질문', count: 5 },
+      ];
+
+      mockCommunityService.getCategoryStats.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getCategoryStats(res);
+
+      expect(service.getCategoryStats).toHaveBeenCalled();
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '카테고리 통계를 성공적으로 조회했습니다.',
         expectedResult,
       );
     });

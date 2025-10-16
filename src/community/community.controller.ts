@@ -204,6 +204,235 @@ export class CommunityController {
     );
   }
 
+  @Get('search')
+  @ApiOperation({ summary: '통합 검색 (제목, 내용, 태그)' })
+  @ApiResponse({
+    status: 200,
+    description: '검색 결과를 성공적으로 조회했습니다.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: '검색어',
+    example: '자유형',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: '페이지 번호',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '페이지당 항목 수',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description: '정렬 기준',
+    enum: ['recent', 'popular', 'relevance'],
+    example: 'relevance',
+  })
+  async searchCommunities(
+    @Query('q') query: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('sortBy') sortBy: 'recent' | 'popular' | 'relevance' = 'relevance',
+    @Res() res: Response,
+  ) {
+    const result = await this.communityService.searchCommunities(
+      query,
+      parseInt(page),
+      parseInt(limit),
+      sortBy,
+    );
+    return this.responseService.success(
+      res,
+      '검색 결과를 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
+  @Get('search/advanced')
+  @ApiOperation({ summary: '고급 검색 (다양한 필터 옵션)' })
+  @ApiResponse({
+    status: 200,
+    description: '고급 검색 결과를 성공적으로 조회했습니다.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: '검색어',
+    example: '자유형',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    description: '카테고리 필터',
+    enum: ['질문', '운동기록', '수영팁', '후기', '수영일상'],
+  })
+  @ApiQuery({
+    name: 'tags',
+    required: false,
+    description: '태그 필터 (쉼표로 구분)',
+    example: '자유형,평영',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: '시작 날짜 (YYYY-MM-DD)',
+    example: '2024-01-01',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: '종료 날짜 (YYYY-MM-DD)',
+    example: '2024-12-31',
+  })
+  @ApiQuery({
+    name: 'minLikes',
+    required: false,
+    description: '최소 좋아요 수',
+    example: 5,
+  })
+  @ApiQuery({
+    name: 'minComments',
+    required: false,
+    description: '최소 댓글 수',
+    example: 3,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description: '정렬 기준',
+    enum: ['recent', 'popular', 'relevance', 'likes', 'comments', 'views'],
+    example: 'relevance',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: '페이지 번호',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '페이지당 항목 수',
+    example: 10,
+  })
+  async advancedSearchCommunities(
+    @Res() res: Response,
+    @Query('q') query?: string,
+    @Query('category') category?: string,
+    @Query('tags') tags?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('minLikes') minLikes?: string,
+    @Query('minComments') minComments?: string,
+    @Query('sortBy')
+    sortBy:
+      | 'recent'
+      | 'popular'
+      | 'relevance'
+      | 'likes'
+      | 'comments'
+      | 'views' = 'relevance',
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const searchParams = {
+      query,
+      category: category as any,
+      tags: tags ? tags.split(',').map((tag) => tag.trim()) : undefined,
+      startDate,
+      endDate,
+      minLikes: minLikes ? parseInt(minLikes) : undefined,
+      minComments: minComments ? parseInt(minComments) : undefined,
+      sortBy,
+    };
+
+    const result = await this.communityService.advancedSearchCommunities(
+      searchParams,
+      parseInt(page),
+      parseInt(limit),
+    );
+    return this.responseService.success(
+      res,
+      '고급 검색 결과를 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
+  @Get('search/suggestions')
+  @ApiOperation({ summary: '검색어 자동완성 제안' })
+  @ApiResponse({
+    status: 200,
+    description: '검색어 자동완성 제안을 성공적으로 조회했습니다.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: '검색어 (최소 2글자)',
+    example: '자유',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '제안 개수',
+    example: 5,
+  })
+  async getSearchSuggestions(
+    @Query('q') query: string,
+    @Query('limit') limit: string = '5',
+    @Res() res: Response,
+  ) {
+    const result = await this.communityService.getSearchSuggestions(
+      query,
+      parseInt(limit),
+    );
+    return this.responseService.success(
+      res,
+      '검색어 자동완성 제안을 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
+  @Get('search/related-tags')
+  @ApiOperation({ summary: '검색어와 관련된 태그 추천' })
+  @ApiResponse({
+    status: 200,
+    description: '관련 태그를 성공적으로 조회했습니다.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: '검색어',
+    example: '자유형',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '추천 태그 개수',
+    example: 10,
+  })
+  async getRelatedTags(
+    @Query('q') query: string,
+    @Query('limit') limit: string = '10',
+    @Res() res: Response,
+  ) {
+    const result = await this.communityService.getRelatedTags(
+      query,
+      parseInt(limit),
+    );
+    return this.responseService.success(
+      res,
+      '관련 태그를 성공적으로 조회했습니다.',
+      result,
+    );
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '게시글 상세 조회' })
   @ApiResponse({

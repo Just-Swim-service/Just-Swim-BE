@@ -14,6 +14,7 @@ import {
   mockCommunityLike,
   mockCommentLike,
   mockTag,
+  mockTag2,
 } from 'src/common/mocks/mock-community.repository';
 
 describe('CommunityRepository', () => {
@@ -636,6 +637,257 @@ describe('CommunityRepository', () => {
         'community',
       );
       expect(result).toEqual([{ category: '운동기록', count: 10 }]);
+    });
+  });
+
+  // 검색 관련 테스트
+  describe('searchCommunities', () => {
+    it('should search communities by query', async () => {
+      const query = '자유형';
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        setParameter: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockCommunity], 1]),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      const result = await repository.searchCommunities(
+        query,
+        1,
+        10,
+        'relevance',
+      );
+
+      expect(mockCommunityRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'community',
+      );
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'community.communityDeletedAt IS NULL',
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('LIKE :query'),
+        { query: `%${query}%` },
+      );
+      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.total).toBe(1);
+    });
+
+    it('should return empty result for empty query', async () => {
+      const result = await repository.searchCommunities('', 1, 10, 'relevance');
+
+      expect(result.communities).toEqual([]);
+      expect(result.total).toBe(0);
+    });
+
+    it('should support different sorting options', async () => {
+      const query = '수영';
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockCommunity], 1]),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      // 최신순 정렬
+      await repository.searchCommunities(query, 1, 10, 'recent');
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'community.communityCreatedAt',
+        'DESC',
+      );
+
+      // 인기순 정렬
+      mockCommunityRepository.createQueryBuilder.mockReturnValue({
+        ...mockQueryBuilder,
+        orderBy: jest.fn().mockReturnThis(),
+      });
+      await repository.searchCommunities(query, 1, 10, 'popular');
+    });
+  });
+
+  describe('advancedSearchCommunities', () => {
+    it('should perform advanced search with all filters', async () => {
+      const searchParams = {
+        query: '자유형',
+        category: '수영팁' as any,
+        tags: ['자유형', '초보'],
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-12-31'),
+        minLikes: 5,
+        minComments: 3,
+        sortBy: 'likes' as const,
+      };
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockCommunity], 1]),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      const result = await repository.advancedSearchCommunities(
+        searchParams,
+        1,
+        10,
+      );
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('LIKE :query'),
+        expect.any(Object),
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'community.category = :category',
+        expect.any(Object),
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'tag.tagName IN (:...tags)',
+        expect.any(Object),
+      );
+      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.total).toBe(1);
+    });
+
+    it('should handle search with only category filter', async () => {
+      const searchParams = {
+        category: '운동기록' as any,
+      };
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockCommunity], 1]),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      const result = await repository.advancedSearchCommunities(
+        searchParams,
+        1,
+        10,
+      );
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'community.category = :category',
+        { category: '운동기록' },
+      );
+      expect(result.communities).toEqual([mockCommunity]);
+    });
+  });
+
+  describe('getRelatedTags', () => {
+    it('should return related tags for search query', async () => {
+      const query = '자유형';
+      const mockQueryBuilder = {
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        addGroupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockTag2]),
+      };
+
+      mockTagRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await repository.getRelatedTags(query, 10);
+
+      expect(mockTagRepository.createQueryBuilder).toHaveBeenCalledWith('tag');
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('LIKE :query'),
+        { query: `%${query}%` },
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'tag.tagName != :exactQuery',
+        { exactQuery: query },
+      );
+      expect(result).toEqual([mockTag2]);
+    });
+
+    it('should return empty array for empty query', async () => {
+      const result = await repository.getRelatedTags('', 10);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getSearchSuggestions', () => {
+    it('should return search suggestions', async () => {
+      const query = '자유';
+      const mockTagQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([mockTag]),
+      };
+
+      const mockTitleQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getRawMany: jest
+          .fn()
+          .mockResolvedValue([{ title: '자유형 완벽 가이드' }]),
+      };
+
+      mockTagRepository.createQueryBuilder.mockReturnValue(mockTagQueryBuilder);
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockTitleQueryBuilder,
+      );
+
+      const result = await repository.getSearchSuggestions(query, 5);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].type).toBe('tag');
+      expect(result[0].suggestions).toContain('자유형');
+      expect(result[1].type).toBe('title');
+      expect(result[1].suggestions).toContain('자유형 완벽 가이드');
+    });
+
+    it('should return empty array for short query', async () => {
+      const result = await repository.getSearchSuggestions('자', 5);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for empty query', async () => {
+      const result = await repository.getSearchSuggestions('', 5);
+
+      expect(result).toEqual([]);
     });
   });
 });

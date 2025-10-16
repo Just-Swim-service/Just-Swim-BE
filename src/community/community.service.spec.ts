@@ -463,4 +463,245 @@ describe('CommunityService', () => {
       expect(result).toEqual(mockStats);
     });
   });
+
+  // 검색 관련 테스트
+  describe('searchCommunities', () => {
+    it('should search communities and apply highlighting', async () => {
+      const query = '자유형';
+      const mockSearchResult = {
+        communities: [
+          {
+            ...mockCommunity,
+            title: '자유형 배우기',
+            content: '자유형 연습 방법',
+            communityTags: [{ tag: { tagName: '자유형', usageCount: 10 } }],
+          },
+        ],
+        total: 1,
+      };
+
+      MockCommunityRepository.searchCommunities.mockResolvedValue(
+        mockSearchResult,
+      );
+
+      const result = await service.searchCommunities(query, 1, 10, 'relevance');
+
+      expect(repository.searchCommunities).toHaveBeenCalledWith(
+        query,
+        1,
+        10,
+        'relevance',
+      );
+      expect(result.communities).toBeDefined();
+      expect(result.communities[0].title).toContain('<mark>');
+      expect(result.pagination.total).toBe(1);
+      expect(result.searchQuery).toBe(query);
+    });
+
+    it('should search communities with different sort options', async () => {
+      const query = '수영';
+      const mockSearchResult = {
+        communities: [mockCommunity],
+        total: 1,
+      };
+
+      MockCommunityRepository.searchCommunities.mockResolvedValue(
+        mockSearchResult,
+      );
+
+      // 최신순 정렬
+      await service.searchCommunities(query, 1, 10, 'recent');
+      expect(repository.searchCommunities).toHaveBeenCalledWith(
+        query,
+        1,
+        10,
+        'recent',
+      );
+
+      // 인기순 정렬
+      await service.searchCommunities(query, 1, 10, 'popular');
+      expect(repository.searchCommunities).toHaveBeenCalledWith(
+        query,
+        1,
+        10,
+        'popular',
+      );
+    });
+  });
+
+  describe('advancedSearchCommunities', () => {
+    it('should perform advanced search with filters', async () => {
+      const searchParams = {
+        query: '자유형',
+        category: '수영팁',
+        tags: ['자유형', '초보'],
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+        minLikes: 5,
+        minComments: 3,
+        sortBy: 'likes' as const,
+      };
+
+      const mockSearchResult = {
+        communities: [mockCommunity],
+        total: 1,
+      };
+
+      MockCommunityRepository.advancedSearchCommunities.mockResolvedValue(
+        mockSearchResult,
+      );
+
+      const result = await service.advancedSearchCommunities(
+        searchParams,
+        1,
+        10,
+      );
+
+      expect(repository.advancedSearchCommunities).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: '자유형',
+          category: '수영팁',
+          tags: ['자유형', '초보'],
+          minLikes: 5,
+          minComments: 3,
+          sortBy: 'likes',
+        }),
+        1,
+        10,
+      );
+      expect(result.communities).toBeDefined();
+      expect(result.pagination.total).toBe(1);
+    });
+
+    it('should handle search without query (filter only)', async () => {
+      const searchParams = {
+        category: '운동기록',
+        minLikes: 10,
+      };
+
+      const mockSearchResult = {
+        communities: [mockCommunity],
+        total: 1,
+      };
+
+      MockCommunityRepository.advancedSearchCommunities.mockResolvedValue(
+        mockSearchResult,
+      );
+
+      const result = await service.advancedSearchCommunities(
+        searchParams,
+        1,
+        10,
+      );
+
+      expect(repository.advancedSearchCommunities).toHaveBeenCalled();
+      expect(result.communities).toEqual([mockCommunity]);
+    });
+  });
+
+  describe('getRelatedTags', () => {
+    it('should return related tags for search query', async () => {
+      const query = '자유형';
+      const mockTags = [
+        { tagId: 1, tagName: '평영', usageCount: 8 },
+        { tagId: 2, tagName: '배영', usageCount: 6 },
+      ];
+
+      MockCommunityRepository.getRelatedTags.mockResolvedValue(mockTags);
+
+      const result = await service.getRelatedTags(query, 10);
+
+      expect(repository.getRelatedTags).toHaveBeenCalledWith(query, 10);
+      expect(result).toEqual(mockTags);
+    });
+  });
+
+  describe('getSearchSuggestions', () => {
+    it('should return search suggestions', async () => {
+      const query = '자유';
+      const mockSuggestions = [
+        { suggestions: ['자유형', '자유형 배우기'], type: 'tag' as const },
+        { suggestions: ['자유형 완벽 가이드'], type: 'title' as const },
+      ];
+
+      MockCommunityRepository.getSearchSuggestions.mockResolvedValue(
+        mockSuggestions,
+      );
+
+      const result = await service.getSearchSuggestions(query, 5);
+
+      expect(repository.getSearchSuggestions).toHaveBeenCalledWith(query, 5);
+      expect(result).toEqual(mockSuggestions);
+    });
+  });
+
+  describe('highlightSearchTerm', () => {
+    it('should highlight search term in text', () => {
+      const text = '자유형 배우기';
+      const searchTerm = '자유형';
+
+      const result = service.highlightSearchTerm(text, searchTerm);
+
+      expect(result).toBe('<mark>자유형</mark> 배우기');
+    });
+
+    it('should handle case-insensitive highlighting', () => {
+      const text = '자유형 배우기와 자유형 연습';
+      const searchTerm = '자유형';
+
+      const result = service.highlightSearchTerm(text, searchTerm);
+
+      expect(result).toContain('<mark>');
+    });
+
+    it('should return original text when no search term', () => {
+      const text = '자유형 배우기';
+      const searchTerm = '';
+
+      const result = service.highlightSearchTerm(text, searchTerm);
+
+      expect(result).toBe(text);
+    });
+  });
+
+  describe('applyHighlightingToCommunities', () => {
+    it('should apply highlighting to communities', () => {
+      const communities = [
+        {
+          communityId: 1,
+          title: '자유형 배우기',
+          content: '자유형 연습 방법',
+          communityTags: [{ tag: { tagName: '자유형' } }],
+        },
+      ];
+      const searchQuery = '자유형';
+
+      const result = service.applyHighlightingToCommunities(
+        communities,
+        searchQuery,
+      );
+
+      expect(result[0].title).toContain('<mark>');
+      expect(result[0].content).toContain('<mark>');
+      expect(result[0].communityTags[0].tag.tagName).toContain('<mark>');
+    });
+
+    it('should return communities as-is when no search query', () => {
+      const communities = [
+        {
+          communityId: 1,
+          title: '자유형 배우기',
+          content: '자유형 연습 방법',
+        },
+      ];
+      const searchQuery = '';
+
+      const result = service.applyHighlightingToCommunities(
+        communities,
+        searchQuery,
+      );
+
+      expect(result).toEqual(communities);
+    });
+  });
 });

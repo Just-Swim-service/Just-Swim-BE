@@ -21,6 +21,7 @@ import { HealthModule } from './health/health.module';
 import { MetricsModule } from './common/metrics/metrics.module';
 import { NotificationModule } from './notification/notification.module';
 import { CommunityModule } from './community/community.module';
+import { SearchModule } from './common/search/search.module';
 import { SecurityGuard } from './common/guards/security.guard';
 import * as Joi from 'joi';
 import { envVariables } from './common/const/env.const';
@@ -109,6 +110,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     WithdrawalReasonModule,
     NotificationModule,
     CommunityModule,
+    SearchModule,
     HealthModule,
     MetricsModule,
   ],

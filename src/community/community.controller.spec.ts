@@ -39,6 +39,11 @@ describe('CommunityController', () => {
     getPopularTags: jest.fn(),
     searchTags: jest.fn(),
     getCategoryStats: jest.fn(),
+    // 검색 관련 메서드
+    searchCommunities: jest.fn(),
+    advancedSearchCommunities: jest.fn(),
+    getRelatedTags: jest.fn(),
+    getSearchSuggestions: jest.fn(),
   };
 
   const mockResponseService = {
@@ -654,6 +659,234 @@ describe('CommunityController', () => {
         '카테고리 통계를 성공적으로 조회했습니다.',
         expectedResult,
       );
+    });
+  });
+
+  // 검색 관련 테스트
+  describe('searchCommunities', () => {
+    it('should search communities', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const query = '자유형';
+      const expectedResult = {
+        communities: [mockCommunity],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+        searchQuery: query,
+        sortBy: 'relevance',
+      };
+
+      mockCommunityService.searchCommunities.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.searchCommunities(query, '1', '10', 'relevance', res);
+
+      expect(service.searchCommunities).toHaveBeenCalledWith(
+        query,
+        1,
+        10,
+        'relevance',
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '검색 결과를 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should search communities with different sort options', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      mockCommunityService.searchCommunities.mockResolvedValue({
+        communities: [],
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+      });
+      mockResponseService.success.mockReturnValue(undefined);
+
+      // 최신순
+      await controller.searchCommunities('query', '1', '10', 'recent', res);
+      expect(service.searchCommunities).toHaveBeenCalledWith(
+        'query',
+        1,
+        10,
+        'recent',
+      );
+
+      // 인기순
+      await controller.searchCommunities('query', '1', '10', 'popular', res);
+      expect(service.searchCommunities).toHaveBeenCalledWith(
+        'query',
+        1,
+        10,
+        'popular',
+      );
+    });
+  });
+
+  describe('advancedSearchCommunities', () => {
+    it('should perform advanced search with all filters', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const expectedResult = {
+        communities: [mockCommunity],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      mockCommunityService.advancedSearchCommunities.mockResolvedValue(
+        expectedResult,
+      );
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.advancedSearchCommunities(
+        res,
+        '자유형',
+        '수영팁',
+        '자유형,초보',
+        '2024-01-01',
+        '2024-12-31',
+        '5',
+        '3',
+        'likes',
+        '1',
+        '10',
+      );
+
+      expect(service.advancedSearchCommunities).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: '자유형',
+          category: '수영팁',
+          tags: ['자유형', '초보'],
+          startDate: '2024-01-01',
+          endDate: '2024-12-31',
+          minLikes: 5,
+          minComments: 3,
+          sortBy: 'likes',
+        }),
+        1,
+        10,
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '고급 검색 결과를 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should handle search with minimal parameters', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      mockCommunityService.advancedSearchCommunities.mockResolvedValue({
+        communities: [],
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+      });
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.advancedSearchCommunities(
+        res,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'relevance',
+        '1',
+        '10',
+      );
+
+      expect(service.advancedSearchCommunities).toHaveBeenCalled();
+    });
+  });
+
+  describe('getSearchSuggestions', () => {
+    it('should return search suggestions', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const query = '자유';
+      const expectedResult = [
+        { suggestions: ['자유형', '자유형 배우기'], type: 'tag' },
+        { suggestions: ['자유형 완벽 가이드'], type: 'title' },
+      ];
+
+      mockCommunityService.getSearchSuggestions.mockResolvedValue(
+        expectedResult,
+      );
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getSearchSuggestions(query, '5', res);
+
+      expect(service.getSearchSuggestions).toHaveBeenCalledWith(query, 5);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '검색어 자동완성 제안을 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should use default limit', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      mockCommunityService.getSearchSuggestions.mockResolvedValue([]);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getSearchSuggestions('query', undefined, res);
+
+      expect(service.getSearchSuggestions).toHaveBeenCalledWith('query', 5);
+    });
+  });
+
+  describe('getRelatedTags', () => {
+    it('should return related tags', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const query = '자유형';
+      const expectedResult = [
+        { tagId: 1, tagName: '평영', usageCount: 8 },
+        { tagId: 2, tagName: '배영', usageCount: 6 },
+      ];
+
+      mockCommunityService.getRelatedTags.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getRelatedTags(query, '10', res);
+
+      expect(service.getRelatedTags).toHaveBeenCalledWith(query, 10);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '관련 태그를 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should use default limit', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      mockCommunityService.getRelatedTags.mockResolvedValue([]);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getRelatedTags('query', undefined, res);
+
+      expect(service.getRelatedTags).toHaveBeenCalledWith('query', 10);
     });
   });
 });

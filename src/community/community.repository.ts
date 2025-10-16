@@ -382,4 +382,293 @@ export class CommunityRepository {
       count: parseInt(stat.count),
     }));
   }
+
+  // 통합 검색 메서드
+  async searchCommunities(
+    query: string,
+    page: number = 1,
+    limit: number = 10,
+    sortBy: 'recent' | 'popular' | 'relevance' = 'relevance',
+  ): Promise<{ communities: Community[]; total: number }> {
+    const normalizedQuery = query.trim();
+
+    if (!normalizedQuery) {
+      return { communities: [], total: 0 };
+    }
+
+    const queryBuilder = this.communityRepository
+      .createQueryBuilder('community')
+      .leftJoinAndSelect('community.user', 'user')
+      .leftJoinAndSelect('community.images', 'images')
+      .leftJoinAndSelect('community.communityTags', 'communityTags')
+      .leftJoinAndSelect('communityTags.tag', 'tag')
+      .where('community.communityDeletedAt IS NULL')
+      .andWhere(
+        '(community.title LIKE :query OR community.content LIKE :query OR tag.tagName LIKE :query)',
+        { query: `%${normalizedQuery}%` },
+      );
+
+    // 정렬 옵션
+    switch (sortBy) {
+      case 'recent':
+        queryBuilder.orderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'popular':
+        queryBuilder
+          .orderBy('community.likeCount', 'DESC')
+          .addOrderBy('community.commentCount', 'DESC')
+          .addOrderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'relevance':
+      default:
+        // 관련도 정렬: 제목 매치 > 내용 매치 > 태그 매치 순으로 우선순위
+        queryBuilder
+          .addSelect(
+            `CASE 
+              WHEN community.title LIKE :exactQuery THEN 3
+              WHEN community.title LIKE :query THEN 2
+              WHEN community.content LIKE :query THEN 1
+              ELSE 0
+            END`,
+            'relevance_score',
+          )
+          .setParameter('exactQuery', normalizedQuery)
+          .orderBy('relevance_score', 'DESC')
+          .addOrderBy('community.likeCount', 'DESC')
+          .addOrderBy('community.communityCreatedAt', 'DESC');
+        break;
+    }
+
+    const [communities, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { communities, total };
+  }
+
+  // 고급 검색 메서드 (필터 포함)
+  async advancedSearchCommunities(
+    searchParams: {
+      query?: string;
+      category?: CategoryType;
+      tags?: string[];
+      startDate?: Date;
+      endDate?: Date;
+      minLikes?: number;
+      minComments?: number;
+      sortBy?:
+        | 'recent'
+        | 'popular'
+        | 'relevance'
+        | 'likes'
+        | 'comments'
+        | 'views';
+    },
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ communities: Community[]; total: number }> {
+    const {
+      query,
+      category,
+      tags,
+      startDate,
+      endDate,
+      minLikes,
+      minComments,
+      sortBy = 'relevance',
+    } = searchParams;
+
+    const queryBuilder = this.communityRepository
+      .createQueryBuilder('community')
+      .leftJoinAndSelect('community.user', 'user')
+      .leftJoinAndSelect('community.images', 'images')
+      .leftJoinAndSelect('community.communityTags', 'communityTags')
+      .leftJoinAndSelect('communityTags.tag', 'tag')
+      .where('community.communityDeletedAt IS NULL');
+
+    // 검색어 필터
+    if (query && query.trim()) {
+      const normalizedQuery = query.trim();
+      queryBuilder.andWhere(
+        '(community.title LIKE :query OR community.content LIKE :query OR tag.tagName LIKE :query)',
+        { query: `%${normalizedQuery}%` },
+      );
+    }
+
+    // 카테고리 필터
+    if (category) {
+      queryBuilder.andWhere('community.category = :category', { category });
+    }
+
+    // 태그 필터
+    if (tags && tags.length > 0) {
+      const normalizedTags = tags.map((tag) => tag.trim().toLowerCase());
+      queryBuilder.andWhere('tag.tagName IN (:...tags)', {
+        tags: normalizedTags,
+      });
+    }
+
+    // 날짜 범위 필터
+    if (startDate) {
+      queryBuilder.andWhere('community.communityCreatedAt >= :startDate', {
+        startDate,
+      });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('community.communityCreatedAt <= :endDate', {
+        endDate,
+      });
+    }
+
+    // 최소 좋아요 수 필터
+    if (minLikes !== undefined) {
+      queryBuilder.andWhere('community.likeCount >= :minLikes', { minLikes });
+    }
+
+    // 최소 댓글 수 필터
+    if (minComments !== undefined) {
+      queryBuilder.andWhere('community.commentCount >= :minComments', {
+        minComments,
+      });
+    }
+
+    // 정렬 옵션
+    switch (sortBy) {
+      case 'recent':
+        queryBuilder.orderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'popular':
+        queryBuilder
+          .orderBy('community.likeCount', 'DESC')
+          .addOrderBy('community.commentCount', 'DESC')
+          .addOrderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'likes':
+        queryBuilder
+          .orderBy('community.likeCount', 'DESC')
+          .addOrderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'comments':
+        queryBuilder
+          .orderBy('community.commentCount', 'DESC')
+          .addOrderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'views':
+        queryBuilder
+          .orderBy('community.viewCount', 'DESC')
+          .addOrderBy('community.communityCreatedAt', 'DESC');
+        break;
+      case 'relevance':
+      default:
+        if (query && query.trim()) {
+          const normalizedQuery = query.trim();
+          queryBuilder
+            .addSelect(
+              `CASE 
+                WHEN community.title LIKE :exactQuery THEN 3
+                WHEN community.title LIKE :query THEN 2
+                WHEN community.content LIKE :query THEN 1
+                ELSE 0
+              END`,
+              'relevance_score',
+            )
+            .setParameter('exactQuery', normalizedQuery)
+            .orderBy('relevance_score', 'DESC')
+            .addOrderBy('community.likeCount', 'DESC')
+            .addOrderBy('community.communityCreatedAt', 'DESC');
+        } else {
+          queryBuilder.orderBy('community.communityCreatedAt', 'DESC');
+        }
+        break;
+    }
+
+    const [communities, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { communities, total };
+  }
+
+  // 검색 결과와 관련된 태그 추천
+  async getRelatedTags(query: string, limit: number = 10): Promise<Tag[]> {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return [];
+    }
+
+    // 검색어와 관련된 게시글들의 태그를 찾아서 인기순으로 반환
+    return await this.tagRepository
+      .createQueryBuilder('tag')
+      .leftJoin('tag.communityTags', 'communityTag')
+      .leftJoin('communityTag.community', 'community')
+      .where('community.communityDeletedAt IS NULL')
+      .andWhere(
+        '(community.title LIKE :query OR community.content LIKE :query OR tag.tagName LIKE :query)',
+        { query: `%${normalizedQuery}%` },
+      )
+      .andWhere('tag.tagName != :exactQuery', { exactQuery: normalizedQuery }) // 검색어 자체는 제외
+      .groupBy('tag.tagId')
+      .addGroupBy('tag.tagName')
+      .addGroupBy('tag.usageCount')
+      .orderBy('COUNT(communityTag.communityTagId)', 'DESC')
+      .addOrderBy('tag.usageCount', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
+  // 검색어 자동완성을 위한 제안
+  async getSearchSuggestions(
+    query: string,
+    limit: number = 5,
+  ): Promise<{ suggestions: string[]; type: 'title' | 'tag' | 'content' }[]> {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery || normalizedQuery.length < 2) {
+      return [];
+    }
+
+    const suggestions: {
+      suggestions: string[];
+      type: 'title' | 'tag' | 'content';
+    }[] = [];
+
+    // 태그 자동완성
+    const tagSuggestions = await this.tagRepository
+      .createQueryBuilder('tag')
+      .where('tag.tagName LIKE :query', { query: `%${normalizedQuery}%` })
+      .orderBy('tag.usageCount', 'DESC')
+      .take(limit)
+      .getMany();
+
+    if (tagSuggestions.length > 0) {
+      suggestions.push({
+        suggestions: tagSuggestions.map((tag) => tag.tagName),
+        type: 'tag',
+      });
+    }
+
+    // 제목 자동완성 (고유한 제목만)
+    const titleSuggestions = await this.communityRepository
+      .createQueryBuilder('community')
+      .select('DISTINCT community.title', 'title')
+      .where('community.communityDeletedAt IS NULL')
+      .andWhere('community.title LIKE :query', {
+        query: `%${normalizedQuery}%`,
+      })
+      .orderBy('community.likeCount', 'DESC')
+      .take(limit)
+      .getRawMany();
+
+    if (titleSuggestions.length > 0) {
+      suggestions.push({
+        suggestions: titleSuggestions.map((item) => item.title),
+        type: 'title',
+      });
+    }
+
+    return suggestions;
+  }
 }

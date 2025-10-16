@@ -275,4 +275,133 @@ export class CommunityService {
   async getCategoryStats() {
     return await this.communityRepository.getCategoryStats();
   }
+
+  // 검색 관련 메서드
+  async searchCommunities(
+    query: string,
+    page: number = 1,
+    limit: number = 10,
+    sortBy: 'recent' | 'popular' | 'relevance' = 'relevance',
+  ) {
+    const { communities, total } =
+      await this.communityRepository.searchCommunities(
+        query,
+        page,
+        limit,
+        sortBy,
+      );
+
+    // 검색 결과에 하이라이팅 적용
+    const highlightedCommunities = this.applyHighlightingToCommunities(
+      communities,
+      query,
+    );
+
+    return {
+      communities: highlightedCommunities,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      searchQuery: query,
+      sortBy,
+    };
+  }
+
+  async advancedSearchCommunities(
+    searchParams: {
+      query?: string;
+      category?: string;
+      tags?: string[];
+      startDate?: string;
+      endDate?: string;
+      minLikes?: number;
+      minComments?: number;
+      sortBy?:
+        | 'recent'
+        | 'popular'
+        | 'relevance'
+        | 'likes'
+        | 'comments'
+        | 'views';
+    },
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const { query, category } = searchParams;
+
+    // 날짜 문자열을 Date 객체로 변환하고 category를 CategoryType으로 변환
+    const processedParams = {
+      ...searchParams,
+      category: category as any, // CategoryType으로 캐스팅
+      startDate: searchParams.startDate
+        ? new Date(searchParams.startDate)
+        : undefined,
+      endDate: searchParams.endDate
+        ? new Date(searchParams.endDate)
+        : undefined,
+    };
+
+    const { communities, total } =
+      await this.communityRepository.advancedSearchCommunities(
+        processedParams,
+        page,
+        limit,
+      );
+
+    // 검색어가 있으면 하이라이팅 적용
+    const highlightedCommunities = query
+      ? this.applyHighlightingToCommunities(communities, query)
+      : communities;
+
+    return {
+      communities: highlightedCommunities,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      searchParams: processedParams,
+    };
+  }
+
+  // 관련 태그 추천
+  async getRelatedTags(query: string, limit: number = 10) {
+    return await this.communityRepository.getRelatedTags(query, limit);
+  }
+
+  // 검색어 자동완성
+  async getSearchSuggestions(query: string, limit: number = 5) {
+    return await this.communityRepository.getSearchSuggestions(query, limit);
+  }
+
+  // 검색 결과 하이라이팅을 위한 유틸리티 메서드
+  highlightSearchTerm(text: string, searchTerm: string): string {
+    if (!searchTerm || !text) return text;
+
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+  }
+
+  // 검색 결과에 하이라이팅 적용
+  applyHighlightingToCommunities(communities: any[], searchQuery: string) {
+    if (!searchQuery) return communities;
+
+    return communities.map((community) => ({
+      ...community,
+      title: this.highlightSearchTerm(community.title, searchQuery),
+      content: this.highlightSearchTerm(community.content, searchQuery),
+      // 태그에도 하이라이팅 적용
+      communityTags: community.communityTags?.map((ct: any) => ({
+        ...ct,
+        tag: {
+          ...ct.tag,
+          tagName: this.highlightSearchTerm(ct.tag.tagName, searchQuery),
+        },
+      })),
+    }));
+  }
 }

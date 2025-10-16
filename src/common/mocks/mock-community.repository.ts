@@ -124,4 +124,18 @@ export const MockCommunityRepository = {
     { category: CategoryType.RECORD, count: 10 },
     { category: CategoryType.QUESTION, count: 5 },
   ]),
+  // 검색 관련 메서드
+  searchCommunities: jest.fn().mockResolvedValue({
+    communities: [mockCommunity],
+    total: 1,
+  }),
+  advancedSearchCommunities: jest.fn().mockResolvedValue({
+    communities: [mockCommunity],
+    total: 1,
+  }),
+  getRelatedTags: jest.fn().mockResolvedValue([mockTag, mockTag2]),
+  getSearchSuggestions: jest.fn().mockResolvedValue([
+    { suggestions: ['자유형', '자유형 배우기'], type: 'tag' },
+    { suggestions: ['자유형 완벽 가이드'], type: 'title' },
+  ]),
 };

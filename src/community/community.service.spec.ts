@@ -82,16 +82,25 @@ describe('CommunityService', () => {
   });
 
   describe('findAllCommunities', () => {
-    it('should return paginated communities', async () => {
+    it('should return paginated communities and remove HTML tags', async () => {
+      const mockCommunities = [
+        {
+          ...mockCommunity,
+          title: '<mark>자유형</mark> 배우기',
+          content: '<strong>수영</strong> 연습',
+        },
+      ];
+
       MockCommunityRepository.findAllCommunities.mockResolvedValue({
-        communities: [mockCommunity],
+        communities: mockCommunities,
         total: 1,
       });
 
       const result = await service.findAllCommunities(1, 10);
 
       expect(repository.findAllCommunities).toHaveBeenCalledWith(1, 10);
-      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.communities[0].title).toBe('자유형 배우기');
+      expect(result.communities[0].content).toBe('수영 연습');
       expect(result.pagination.total).toBe(1);
       expect(result.pagination.totalPages).toBe(1);
     });
@@ -378,9 +387,17 @@ describe('CommunityService', () => {
 
   // 태그 및 카테고리 관련 테스트
   describe('getCommunitiesByCategory', () => {
-    it('should return communities filtered by category', async () => {
+    it('should return communities filtered by category and remove HTML tags', async () => {
+      const mockCommunities = [
+        {
+          ...mockCommunity,
+          title: '<mark>운동기록</mark> 작성',
+          content: '<em>오늘의</em> 수영',
+        },
+      ];
+
       MockCommunityRepository.findCommunitiesByCategory.mockResolvedValue({
-        communities: [mockCommunity],
+        communities: mockCommunities,
         total: 1,
       });
 
@@ -391,15 +408,27 @@ describe('CommunityService', () => {
         1,
         10,
       );
-      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.communities[0].title).toBe('운동기록 작성');
+      expect(result.communities[0].content).toBe('오늘의 수영');
       expect(result.pagination.total).toBe(1);
     });
   });
 
   describe('getCommunitiesByTags', () => {
-    it('should return communities filtered by tags', async () => {
+    it('should return communities filtered by tags and remove HTML tags', async () => {
+      const mockCommunities = [
+        {
+          ...mockCommunity,
+          title: '<span>자유형</span> 배우기',
+          content: '<div>평영</div> 연습',
+          communityTags: [
+            { tag: { tagName: '<mark>자유형</mark>', usageCount: 10 } },
+          ],
+        },
+      ];
+
       MockCommunityRepository.findCommunitiesByTags.mockResolvedValue({
-        communities: [mockCommunity],
+        communities: mockCommunities,
         total: 1,
       });
 
@@ -414,7 +443,9 @@ describe('CommunityService', () => {
         1,
         10,
       );
-      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.communities[0].title).toBe('자유형 배우기');
+      expect(result.communities[0].content).toBe('평영 연습');
+      expect(result.communities[0].communityTags[0].tag.tagName).toBe('자유형');
       expect(result.pagination.total).toBe(1);
     });
   });
@@ -466,15 +497,17 @@ describe('CommunityService', () => {
 
   // 검색 관련 테스트
   describe('searchCommunities', () => {
-    it('should search communities and apply highlighting', async () => {
+    it('should search communities and remove HTML tags', async () => {
       const query = '자유형';
       const mockSearchResult = {
         communities: [
           {
             ...mockCommunity,
-            title: '자유형 배우기',
-            content: '자유형 연습 방법',
-            communityTags: [{ tag: { tagName: '자유형', usageCount: 10 } }],
+            title: '<mark>자유형</mark> 배우기',
+            content: '<mark>자유형</mark> 연습 방법',
+            communityTags: [
+              { tag: { tagName: '<mark>자유형</mark>', usageCount: 10 } },
+            ],
           },
         ],
         total: 1,
@@ -493,7 +526,9 @@ describe('CommunityService', () => {
         'relevance',
       );
       expect(result.communities).toBeDefined();
-      expect(result.communities[0].title).toContain('<mark>');
+      expect(result.communities[0].title).toBe('자유형 배우기');
+      expect(result.communities[0].content).toBe('자유형 연습 방법');
+      expect(result.communities[0].communityTags[0].tag.tagName).toBe('자유형');
       expect(result.pagination.total).toBe(1);
       expect(result.searchQuery).toBe(query);
     });
@@ -530,7 +565,7 @@ describe('CommunityService', () => {
   });
 
   describe('advancedSearchCommunities', () => {
-    it('should perform advanced search with filters', async () => {
+    it('should perform advanced search with filters and remove HTML tags', async () => {
       const searchParams = {
         query: '자유형',
         category: '수영팁',
@@ -543,7 +578,13 @@ describe('CommunityService', () => {
       };
 
       const mockSearchResult = {
-        communities: [mockCommunity],
+        communities: [
+          {
+            ...mockCommunity,
+            title: '<mark>자유형</mark> 완벽 가이드',
+            content: '<strong>자유형</strong> 배우기',
+          },
+        ],
         total: 1,
       };
 
@@ -570,6 +611,8 @@ describe('CommunityService', () => {
         10,
       );
       expect(result.communities).toBeDefined();
+      expect(result.communities[0].title).toBe('자유형 완벽 가이드');
+      expect(result.communities[0].content).toBe('자유형 배우기');
       expect(result.pagination.total).toBe(1);
     });
 
@@ -635,73 +678,53 @@ describe('CommunityService', () => {
     });
   });
 
-  describe('highlightSearchTerm', () => {
-    it('should highlight search term in text', () => {
-      const text = '자유형 배우기';
-      const searchTerm = '자유형';
-
-      const result = service.highlightSearchTerm(text, searchTerm);
-
-      expect(result).toBe('<mark>자유형</mark> 배우기');
-    });
-
-    it('should handle case-insensitive highlighting', () => {
-      const text = '자유형 배우기와 자유형 연습';
-      const searchTerm = '자유형';
-
-      const result = service.highlightSearchTerm(text, searchTerm);
-
-      expect(result).toContain('<mark>');
-    });
-
-    it('should return original text when no search term', () => {
-      const text = '자유형 배우기';
-      const searchTerm = '';
-
-      const result = service.highlightSearchTerm(text, searchTerm);
-
-      expect(result).toBe(text);
-    });
-  });
-
-  describe('applyHighlightingToCommunities', () => {
-    it('should apply highlighting to communities', () => {
-      const communities = [
+  describe('HTML tag removal', () => {
+    it('should remove all HTML tags from community data', async () => {
+      const mockCommunities = [
         {
-          communityId: 1,
-          title: '자유형 배우기',
-          content: '자유형 연습 방법',
-          communityTags: [{ tag: { tagName: '자유형' } }],
+          ...mockCommunity,
+          title: '<mark>자유형</mark> <strong>배우기</strong>',
+          content: '<em>수영</em> <span style="color:red">연습</span>',
+          communityTags: [
+            { tag: { tagName: '<mark>자유형</mark>', usageCount: 10 } },
+            { tag: { tagName: '<div>평영</div>', usageCount: 5 } },
+          ],
         },
       ];
-      const searchQuery = '자유형';
 
-      const result = service.applyHighlightingToCommunities(
-        communities,
-        searchQuery,
-      );
+      MockCommunityRepository.findAllCommunities.mockResolvedValue({
+        communities: mockCommunities,
+        total: 1,
+      });
 
-      expect(result[0].title).toContain('<mark>');
-      expect(result[0].content).toContain('<mark>');
-      expect(result[0].communityTags[0].tag.tagName).toContain('<mark>');
+      const result = await service.findAllCommunities(1, 10);
+
+      expect(result.communities[0].title).toBe('자유형 배우기');
+      expect(result.communities[0].content).toBe('수영 연습');
+      expect(result.communities[0].communityTags[0].tag.tagName).toBe('자유형');
+      expect(result.communities[0].communityTags[1].tag.tagName).toBe('평영');
     });
 
-    it('should return communities as-is when no search query', () => {
-      const communities = [
+    it('should handle empty or null text gracefully', async () => {
+      const mockCommunities = [
         {
-          communityId: 1,
-          title: '자유형 배우기',
-          content: '자유형 연습 방법',
+          ...mockCommunity,
+          title: '',
+          content: null,
+          communityTags: [{ tag: { tagName: '', usageCount: 10 } }],
         },
       ];
-      const searchQuery = '';
 
-      const result = service.applyHighlightingToCommunities(
-        communities,
-        searchQuery,
-      );
+      MockCommunityRepository.findAllCommunities.mockResolvedValue({
+        communities: mockCommunities,
+        total: 1,
+      });
 
-      expect(result).toEqual(communities);
+      const result = await service.findAllCommunities(1, 10);
+
+      expect(result.communities[0].title).toBe('');
+      expect(result.communities[0].content).toBe(null);
+      expect(result.communities[0].communityTags[0].tag.tagName).toBe('');
     });
   });
 });

@@ -40,8 +40,11 @@ export class CommunityService {
     const { communities, total } =
       await this.communityRepository.findAllCommunities(page, limit);
 
+    // 기존 데이터에 포함된 모든 HTML 태그 제거
+    const cleanedCommunities = this.removeHtmlTags(communities);
+
     return {
-      communities,
+      communities: cleanedCommunities,
       pagination: {
         page,
         limit,
@@ -234,8 +237,11 @@ export class CommunityService {
         limit,
       );
 
+    // 기존 데이터에 포함된 모든 HTML 태그 제거
+    const cleanedCommunities = this.removeHtmlTags(communities);
+
     return {
-      communities,
+      communities: cleanedCommunities,
       pagination: {
         page,
         limit,
@@ -253,8 +259,11 @@ export class CommunityService {
     const { communities, total } =
       await this.communityRepository.findCommunitiesByTags(tags, page, limit);
 
+    // 기존 데이터에 포함된 모든 HTML 태그 제거
+    const cleanedCommunities = this.removeHtmlTags(communities);
+
     return {
-      communities,
+      communities: cleanedCommunities,
       pagination: {
         page,
         limit,
@@ -291,14 +300,11 @@ export class CommunityService {
         sortBy,
       );
 
-    // 검색 결과에 하이라이팅 적용
-    const highlightedCommunities = this.applyHighlightingToCommunities(
-      communities,
-      query,
-    );
+    // 기존 데이터에 포함된 모든 HTML 태그 제거
+    const cleanedCommunities = this.removeHtmlTags(communities);
 
     return {
-      communities: highlightedCommunities,
+      communities: cleanedCommunities,
       pagination: {
         page,
         limit,
@@ -351,13 +357,11 @@ export class CommunityService {
         limit,
       );
 
-    // 검색어가 있으면 하이라이팅 적용
-    const highlightedCommunities = query
-      ? this.applyHighlightingToCommunities(communities, query)
-      : communities;
+    // 기존 데이터에 포함된 모든 HTML 태그 제거
+    const cleanedCommunities = this.removeHtmlTags(communities);
 
     return {
-      communities: highlightedCommunities,
+      communities: cleanedCommunities,
       pagination: {
         page,
         limit,
@@ -378,30 +382,27 @@ export class CommunityService {
     return await this.communityRepository.getSearchSuggestions(query, limit);
   }
 
-  // 검색 결과 하이라이팅을 위한 유틸리티 메서드
-  highlightSearchTerm(text: string, searchTerm: string): string {
-    if (!searchTerm || !text) return text;
-
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
-    return text.replace(regex, '<mark>$1</mark>');
-  }
-
-  // 검색 결과에 하이라이팅 적용
-  applyHighlightingToCommunities(communities: any[], searchQuery: string) {
-    if (!searchQuery) return communities;
-
+  // 기존 데이터에 포함된 모든 HTML 태그 제거하는 유틸리티 메서드
+  private removeHtmlTags(communities: any[]) {
     return communities.map((community) => ({
       ...community,
-      title: this.highlightSearchTerm(community.title, searchQuery),
-      content: this.highlightSearchTerm(community.content, searchQuery),
-      // 태그에도 하이라이팅 적용
+      title: this.stripHtmlTags(community.title),
+      content: this.stripHtmlTags(community.content),
+      // 태그에도 HTML 태그 제거
       communityTags: community.communityTags?.map((ct: any) => ({
         ...ct,
         tag: {
           ...ct.tag,
-          tagName: this.highlightSearchTerm(ct.tag.tagName, searchQuery),
+          tagName: this.stripHtmlTags(ct.tag.tagName),
         },
       })),
     }));
+  }
+
+  // 문자열에서 모든 HTML 태그 제거
+  private stripHtmlTags(text: string): string {
+    if (!text) return text;
+    // 모든 HTML 태그 제거 (<>로 둘러싸인 모든 것)
+    return text.replace(/<[^>]*>/g, '');
   }
 }

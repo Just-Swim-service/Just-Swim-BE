@@ -20,4 +20,7 @@ export const MockImageRepository = {
   getImagesByFeedbackId: jest.fn(),
   deleteImage: jest.fn(),
   deleteImagesByFeedbackId: jest.fn(),
+  createCommunityImage: jest.fn(),
+  getImagesByCommunityId: jest.fn(),
+  deleteImagesByCommunityId: jest.fn(),
 };

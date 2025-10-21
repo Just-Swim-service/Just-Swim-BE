@@ -5,9 +5,13 @@ import {
   IsObject,
   IsEnum,
   IsArray,
+  ValidateNested,
+  ArrayMaxSize,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { CategoryType } from '../enum/category-type.enum';
+import { CreateCommunityImageDto } from './create-community-image.dto';
 
 export class CreateCommunityDto {
   @ApiProperty({ description: '게시글 제목' })
@@ -43,4 +47,16 @@ export class CreateCommunityDto {
   @IsOptional()
   @IsObject()
   workoutData?: any;
+
+  @ApiProperty({
+    description: '이미지 또는 동영상 정보 배열',
+    type: [CreateCommunityImageDto],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10, { message: '이미지는 최대 10개까지 가능합니다.' })
+  @ValidateNested({ each: true })
+  @Type(() => CreateCommunityImageDto)
+  communityImages?: CreateCommunityImageDto[];
 }

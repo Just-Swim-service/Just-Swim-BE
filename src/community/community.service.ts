@@ -7,17 +7,68 @@ import { CommunityRepository } from './community.repository';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { UpdateCommunityDto } from './dto/update-community.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { AwsService } from 'src/common/aws/aws.service';
+import { ImageService } from 'src/image/image.service';
+import slugify from 'slugify';
+import { CommunityImageDto } from './dto/community-image.dto';
+import { CommunityPresignedUrlDto } from './dto/community-presigned-url.dto';
 
 @Injectable()
 export class CommunityService {
-  constructor(private readonly communityRepository: CommunityRepository) {}
+  constructor(
+    private readonly communityRepository: CommunityRepository,
+    private readonly awsService: AwsService,
+    private readonly imageService: ImageService,
+  ) {}
+
+  // 게시글 파일 업로드를 위한 presignedUrl 생성 (이미지 + 동영상)
+  async generateCommunityPresignedUrls(
+    userId: number,
+    communityImageDto: CommunityImageDto,
+  ): Promise<CommunityPresignedUrlDto[]> {
+    const presignedUrls = await Promise.all(
+      communityImageDto.files.map(async (file) => {
+        const ext = file.split('.').pop(); // 확장자 추출
+        const originalNameWithoutExt = file.split('.').slice(0, -1).join('.'); // 확장자를 제외한 이름
+        const slugifiedName = slugify(originalNameWithoutExt, {
+          lower: true,
+          strict: true,
+        });
+        const fileName = `community/${userId}/${Date.now().toString()}-${slugifiedName}.${ext}`;
+
+        // 파일 타입 확인
+        const fileType: 'image' | 'video' = [
+          'mp4',
+          'webm',
+          'ogg',
+          'mov',
+          'avi',
+        ].includes(ext)
+          ? 'video'
+          : 'image';
+
+        // presignedUrl 생성
+        const { presignedUrl, contentType } =
+          await this.awsService.getPresignedUrl(fileName, ext);
+
+        return {
+          presignedUrl,
+          fileName,
+          fileType,
+          contentType,
+        };
+      }),
+    );
+
+    return presignedUrls;
+  }
 
   // 게시글 관련 메서드
   async createCommunity(
     userId: number,
     createCommunityDto: CreateCommunityDto,
   ) {
-    const { tags, ...communityData } = createCommunityDto;
+    const { tags, communityImages, ...communityData } = createCommunityDto;
 
     // 게시글 생성
     const community = await this.communityRepository.createCommunity(
@@ -30,6 +81,23 @@ export class CommunityService {
       await this.communityRepository.attachTagsToCommunity(
         community.communityId,
         tags,
+      );
+    }
+
+    // 이미지/동영상이 있으면 저장
+    if (communityImages && communityImages.length > 0) {
+      await Promise.all(
+        communityImages.map((image) =>
+          this.imageService.createCommunityFile(
+            community.communityId,
+            image.filePath,
+            image.fileType,
+            image.fileName,
+            image.fileSize,
+            image.duration,
+            image.thumbnailPath,
+          ),
+        ),
       );
     }
 
@@ -101,7 +169,7 @@ export class CommunityService {
       throw new ForbiddenException('게시글을 수정할 권한이 없습니다.');
     }
 
-    const { tags, ...updateData } = updateCommunityDto;
+    const { tags, communityImages, ...updateData } = updateCommunityDto;
 
     // 게시글 업데이트
     const updatedCommunity = await this.communityRepository.updateCommunity(
@@ -112,6 +180,61 @@ export class CommunityService {
     // 태그가 포함되어 있으면 업데이트
     if (tags !== undefined) {
       await this.communityRepository.updateCommunityTags(communityId, tags);
+    }
+
+    // 이미지/동영상이 포함되어 있으면 업데이트
+    if (communityImages !== undefined) {
+      // 기존 이미지 조회 및 S3에서 삭제
+      const existingImages =
+        await this.imageService.getFilesByCommunityId(communityId);
+      if (existingImages && existingImages.length > 0) {
+        await Promise.all(
+          existingImages.flatMap((image) => {
+            const deleteTasks: Promise<void>[] = [];
+
+            // 이미지/영상 파일 삭제
+            if (image.imagePath) {
+              const url = new URL(image.imagePath);
+              const fileName = url.pathname.split('/').slice(-3).join('/');
+              deleteTasks.push(this.awsService.deleteImageFromS3(fileName));
+            }
+
+            // 썸네일이 있을 경우 삭제
+            if (image.thumbnailPath) {
+              const thumbUrl = new URL(image.thumbnailPath);
+              const thumbFileName = thumbUrl.pathname
+                .split('/')
+                .slice(-3)
+                .join('/');
+              deleteTasks.push(
+                this.awsService.deleteImageFromS3(thumbFileName),
+              );
+            }
+
+            return deleteTasks;
+          }),
+        );
+      }
+
+      // 기존 이미지 레코드 삭제
+      await this.imageService.deleteFilesByCommunityId(communityId);
+
+      // 새 이미지/동영상 저장
+      if (communityImages.length > 0) {
+        await Promise.all(
+          communityImages.map((image) =>
+            this.imageService.createCommunityFile(
+              communityId,
+              image.filePath,
+              image.fileType,
+              image.fileName,
+              image.fileSize,
+              image.duration,
+              image.thumbnailPath,
+            ),
+          ),
+        );
+      }
     }
 
     return updatedCommunity;
@@ -127,6 +250,36 @@ export class CommunityService {
 
     if (community.user.userId !== userId) {
       throw new ForbiddenException('게시글을 삭제할 권한이 없습니다.');
+    }
+
+    // S3에서 이미지/동영상 삭제
+    const existingImages =
+      await this.imageService.getFilesByCommunityId(communityId);
+    if (existingImages && existingImages.length > 0) {
+      await Promise.all(
+        existingImages.flatMap((image) => {
+          const deleteTasks: Promise<void>[] = [];
+
+          // 이미지/영상 파일 삭제
+          if (image.imagePath) {
+            const url = new URL(image.imagePath);
+            const fileName = url.pathname.split('/').slice(-3).join('/');
+            deleteTasks.push(this.awsService.deleteImageFromS3(fileName));
+          }
+
+          // 썸네일이 있을 경우 삭제
+          if (image.thumbnailPath) {
+            const thumbUrl = new URL(image.thumbnailPath);
+            const thumbFileName = thumbUrl.pathname
+              .split('/')
+              .slice(-3)
+              .join('/');
+            deleteTasks.push(this.awsService.deleteImageFromS3(thumbFileName));
+          }
+
+          return deleteTasks;
+        }),
+      );
     }
 
     await this.communityRepository.deleteCommunity(communityId);

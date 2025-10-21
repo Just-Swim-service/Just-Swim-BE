@@ -17,6 +17,8 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { LoggerModule } from 'src/common/logger/logger.module';
 import { SecurityModule } from 'src/common/security/security.module';
+import { ImageModule } from 'src/image/image.module';
+import { AwsModule } from 'src/common/aws/aws.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { SecurityModule } from 'src/common/security/security.module';
     LoggerModule,
     SecurityModule,
     SearchModule,
+    ImageModule,
+    AwsModule,
   ],
   controllers: [CommunityController],
   providers: [

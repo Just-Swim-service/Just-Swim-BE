@@ -19,10 +19,39 @@ export class ImageRepository {
     return await this.imageRepository.save(newImage);
   }
 
+  // community에 따라 image 경로 저장
+  async createCommunityImage(
+    communityId: number,
+    imagePath: string,
+    fileType?: string,
+    fileName?: string,
+    fileSize?: number,
+    duration?: string,
+    thumbnailPath?: string,
+  ) {
+    const newImage = this.imageRepository.create({
+      community: { communityId },
+      imagePath,
+      fileType,
+      fileName,
+      fileSize,
+      duration,
+      thumbnailPath,
+    });
+    return await this.imageRepository.save(newImage);
+  }
+
   // feedback image 조회
   async getImagesByFeedbackId(feedbackId: number): Promise<Image[]> {
     return await this.imageRepository.find({
       where: { feedback: { feedbackId } },
+    });
+  }
+
+  // community image 조회
+  async getImagesByCommunityId(communityId: number): Promise<Image[]> {
+    return await this.imageRepository.find({
+      where: { community: { communityId } },
     });
   }
 
@@ -34,5 +63,10 @@ export class ImageRepository {
   // feedbackId에 해당하는 image 삭제
   async deleteImagesByFeedbackId(feedbackId: number): Promise<void> {
     await this.imageRepository.delete({ feedback: { feedbackId } });
+  }
+
+  // communityId에 해당하는 image 삭제
+  async deleteImagesByCommunityId(communityId: number): Promise<void> {
+    await this.imageRepository.delete({ community: { communityId } });
   }
 }

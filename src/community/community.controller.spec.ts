@@ -23,6 +23,7 @@ describe('CommunityController', () => {
   let responseService: ResponseService;
 
   const mockCommunityService = {
+    generateCommunityPresignedUrls: jest.fn(),
     createCommunity: jest.fn(),
     findAllCommunities: jest.fn(),
     findCommunityById: jest.fn(),
@@ -119,6 +120,50 @@ describe('CommunityController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('generatePresignedUrls', () => {
+    it('should generate presigned URLs for files', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        locals: { user: { userId: 1 } },
+      } as any;
+      const communityImageDto = {
+        files: ['photo1.jpg', 'video1.mp4'],
+      };
+      const mockPresignedUrls = [
+        {
+          presignedUrl: 'https://s3.amazonaws.com/presigned-url-1',
+          fileName: 'community/1/timestamp-photo1.jpg',
+          fileType: 'image',
+          contentType: 'image/jpeg',
+        },
+        {
+          presignedUrl: 'https://s3.amazonaws.com/presigned-url-2',
+          fileName: 'community/1/timestamp-video1.mp4',
+          fileType: 'video',
+          contentType: 'video/mp4',
+        },
+      ];
+
+      mockCommunityService.generateCommunityPresignedUrls.mockResolvedValue(
+        mockPresignedUrls,
+      );
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.generatePresignedUrls(communityImageDto, res);
+
+      expect(service.generateCommunityPresignedUrls).toHaveBeenCalledWith(
+        1,
+        communityImageDto,
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        'Presigned URL이 성공적으로 생성되었습니다.',
+        mockPresignedUrls,
+      );
+    });
   });
 
   describe('createCommunity', () => {

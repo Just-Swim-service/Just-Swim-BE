@@ -98,4 +98,120 @@ describe('ImageService', () => {
       );
     });
   });
+
+  // Community 관련 테스트
+  describe('createCommunityFile', () => {
+    it('community에 image를 저장', async () => {
+      const communityId = 1;
+      const fileUrl = 'https://s3.amazonaws.com/community/1/test-image.jpg';
+      const fileType = 'image';
+      const fileName = 'test-image.jpg';
+      const fileSize = 1024000;
+
+      (repository.createCommunityImage as jest.Mock).mockResolvedValue({
+        imageId: 1,
+        imagePath: fileUrl,
+      });
+
+      await service.createCommunityFile(
+        communityId,
+        fileUrl,
+        fileType,
+        fileName,
+        fileSize,
+      );
+
+      expect(repository.createCommunityImage).toHaveBeenCalledWith(
+        communityId,
+        fileUrl,
+        fileType,
+        fileName,
+        fileSize,
+        undefined,
+        undefined,
+      );
+    });
+
+    it('community에 video를 저장 (썸네일 포함)', async () => {
+      const communityId = 1;
+      const fileUrl = 'https://s3.amazonaws.com/community/1/test-video.mp4';
+      const fileType = 'video';
+      const fileName = 'test-video.mp4';
+      const fileSize = 5242880;
+      const duration = '120';
+      const thumbnailPath =
+        'https://s3.amazonaws.com/community/1/test-video-thumb.jpg';
+
+      (repository.createCommunityImage as jest.Mock).mockResolvedValue({
+        imageId: 1,
+        imagePath: fileUrl,
+      });
+
+      await service.createCommunityFile(
+        communityId,
+        fileUrl,
+        fileType,
+        fileName,
+        fileSize,
+        duration,
+        thumbnailPath,
+      );
+
+      expect(repository.createCommunityImage).toHaveBeenCalledWith(
+        communityId,
+        fileUrl,
+        fileType,
+        fileName,
+        fileSize,
+        duration,
+        thumbnailPath,
+      );
+    });
+  });
+
+  describe('getFilesByCommunityId', () => {
+    it('communityId에 해당하는 files를 return', async () => {
+      const communityId = 1;
+      const mockFiles = [
+        {
+          ...mockImage,
+          fileType: 'image',
+        },
+        {
+          imageId: 2,
+          imagePath: 'https://s3.amazonaws.com/video.mp4',
+          fileType: 'video',
+          duration: '120',
+          thumbnailPath: 'https://s3.amazonaws.com/video-thumb.jpg',
+        },
+      ];
+
+      (repository.getImagesByCommunityId as jest.Mock).mockResolvedValue(
+        mockFiles,
+      );
+
+      const result = await service.getFilesByCommunityId(communityId);
+
+      expect(repository.getImagesByCommunityId).toHaveBeenCalledWith(
+        communityId,
+      );
+      expect(result).toEqual(mockFiles);
+    });
+  });
+
+  describe('deleteFilesByCommunityId', () => {
+    it('communityId에 해당하는 files 삭제', async () => {
+      const communityId = 1;
+
+      (repository.deleteImagesByCommunityId as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+
+      await service.deleteFilesByCommunityId(communityId);
+
+      expect(repository.deleteImagesByCommunityId).toHaveBeenCalledWith(
+        communityId,
+      );
+    });
+  });
 });

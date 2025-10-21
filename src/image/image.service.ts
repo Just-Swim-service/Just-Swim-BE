@@ -71,6 +71,37 @@ export class ImageService {
     return this.deleteFile(imageId);
   }
 
+  // community 파일 저장 (이미지 + 동영상)
+  async createCommunityFile(
+    communityId: number,
+    fileUrl: string,
+    fileType?: string,
+    fileName?: string,
+    fileSize?: number,
+    duration?: string,
+    thumbnailPath?: string,
+  ) {
+    return await this.imageRepository.createCommunityImage(
+      communityId,
+      fileUrl,
+      fileType,
+      fileName,
+      fileSize,
+      duration,
+      thumbnailPath,
+    );
+  }
+
+  // community 파일 조회 (이미지 + 동영상)
+  async getFilesByCommunityId(communityId: number): Promise<Image[]> {
+    return await this.imageRepository.getImagesByCommunityId(communityId);
+  }
+
+  // communityId에 해당하는 파일 삭제 (이미지 + 동영상)
+  async deleteFilesByCommunityId(communityId: number): Promise<void> {
+    await this.imageRepository.deleteImagesByCommunityId(communityId);
+  }
+
   // 파일 URL에 따라 S3에서 삭제 (이미지 + 동영상)
   async deleteFeedbackFileFromS3(
     deleteImageDto: DeleteImageDto,

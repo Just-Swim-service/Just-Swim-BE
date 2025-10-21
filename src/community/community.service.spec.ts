@@ -5,15 +5,20 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { UpdateCommunityDto } from './dto/update-community.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommunityImageDto } from './dto/community-image.dto';
 import {
   mockCommunity,
   mockCommunityComment,
   MockCommunityRepository,
 } from 'src/common/mocks/mock-community.repository';
+import { AwsService } from 'src/common/aws/aws.service';
+import { ImageService } from 'src/image/image.service';
 
 describe('CommunityService', () => {
   let service: CommunityService;
   let repository: CommunityRepository;
+  let awsService: AwsService;
+  let imageService: ImageService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,15 +28,103 @@ describe('CommunityService', () => {
           provide: CommunityRepository,
           useValue: MockCommunityRepository,
         },
+        {
+          provide: AwsService,
+          useValue: {
+            getPresignedUrl: jest.fn(),
+            deleteImageFromS3: jest.fn(),
+          },
+        },
+        {
+          provide: ImageService,
+          useValue: {
+            createCommunityFile: jest.fn(),
+            getFilesByCommunityId: jest.fn(),
+            deleteFilesByCommunityId: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<CommunityService>(CommunityService);
     repository = module.get<CommunityRepository>(CommunityRepository);
+    awsService = module.get<AwsService>(AwsService);
+    imageService = module.get<ImageService>(ImageService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('generateCommunityPresignedUrls', () => {
+    it('should generate presigned URLs for images', async () => {
+      const userId = 1;
+      const communityImageDto: CommunityImageDto = {
+        files: ['photo1.jpg', 'photo2.png'],
+      };
+
+      (awsService.getPresignedUrl as jest.Mock).mockResolvedValue({
+        presignedUrl: 'https://s3.amazonaws.com/presigned-url',
+        contentType: 'image/jpeg',
+      });
+
+      const result = await service.generateCommunityPresignedUrls(
+        userId,
+        communityImageDto,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        presignedUrl: 'https://s3.amazonaws.com/presigned-url',
+        fileName: expect.stringContaining('community/1/'),
+        fileType: 'image',
+        contentType: 'image/jpeg',
+      });
+      expect(awsService.getPresignedUrl).toHaveBeenCalledTimes(2);
+    });
+
+    it('should generate presigned URLs for videos', async () => {
+      const userId = 1;
+      const communityImageDto: CommunityImageDto = {
+        files: ['video1.mp4', 'video2.webm'],
+      };
+
+      (awsService.getPresignedUrl as jest.Mock).mockResolvedValue({
+        presignedUrl: 'https://s3.amazonaws.com/presigned-url',
+        contentType: 'video/mp4',
+      });
+
+      const result = await service.generateCommunityPresignedUrls(
+        userId,
+        communityImageDto,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0].fileType).toBe('video');
+      expect(result[1].fileType).toBe('video');
+    });
+
+    it('should generate presigned URLs for mixed files', async () => {
+      const userId = 1;
+      const communityImageDto: CommunityImageDto = {
+        files: ['photo.jpg', 'video.mp4', 'image.png'],
+      };
+
+      (awsService.getPresignedUrl as jest.Mock).mockResolvedValue({
+        presignedUrl: 'https://s3.amazonaws.com/presigned-url',
+        contentType: 'image/jpeg',
+      });
+
+      const result = await service.generateCommunityPresignedUrls(
+        userId,
+        communityImageDto,
+      );
+
+      expect(result).toHaveLength(3);
+      expect(result[0].fileType).toBe('image');
+      expect(result[1].fileType).toBe('video');
+      expect(result[2].fileType).toBe('image');
+    });
   });
 
   describe('createCommunity', () => {
@@ -77,6 +170,87 @@ describe('CommunityService', () => {
         mockCommunity.communityId,
         ['자유형', '평영'],
       );
+      expect(result).toEqual(mockCommunity);
+    });
+
+    it('should create a community post with images', async () => {
+      const userId = 1;
+      const createCommunityDto: CreateCommunityDto = {
+        title: 'Test Post with Images',
+        content: 'Test content',
+        communityImages: [
+          {
+            filePath: 'https://s3.amazonaws.com/image1.jpg',
+            fileType: 'image',
+            fileName: 'image1.jpg',
+            fileSize: 1024000,
+          },
+          {
+            filePath: 'https://s3.amazonaws.com/video1.mp4',
+            fileType: 'video',
+            fileName: 'video1.mp4',
+            fileSize: 5242880,
+            duration: '120',
+            thumbnailPath: 'https://s3.amazonaws.com/video1-thumb.jpg',
+          },
+        ],
+      };
+
+      MockCommunityRepository.createCommunity.mockResolvedValue(mockCommunity);
+      (imageService.createCommunityFile as jest.Mock).mockResolvedValue({
+        imageId: 1,
+      });
+
+      const result = await service.createCommunity(userId, createCommunityDto);
+
+      expect(repository.createCommunity).toHaveBeenCalledWith(userId, {
+        title: 'Test Post with Images',
+        content: 'Test content',
+      });
+      expect(imageService.createCommunityFile).toHaveBeenCalledTimes(2);
+      expect(imageService.createCommunityFile).toHaveBeenCalledWith(
+        mockCommunity.communityId,
+        'https://s3.amazonaws.com/image1.jpg',
+        'image',
+        'image1.jpg',
+        1024000,
+        undefined,
+        undefined,
+      );
+      expect(result).toEqual(mockCommunity);
+    });
+
+    it('should create a community post with tags and images', async () => {
+      const userId = 1;
+      const createCommunityDto: CreateCommunityDto = {
+        title: 'Test Post',
+        content: 'Test content',
+        tags: ['자유형'],
+        communityImages: [
+          {
+            filePath: 'https://s3.amazonaws.com/image1.jpg',
+            fileType: 'image',
+            fileName: 'image1.jpg',
+            fileSize: 1024000,
+          },
+        ],
+      };
+
+      MockCommunityRepository.createCommunity.mockResolvedValue(mockCommunity);
+      MockCommunityRepository.attachTagsToCommunity.mockResolvedValue(
+        undefined,
+      );
+      (imageService.createCommunityFile as jest.Mock).mockResolvedValue({
+        imageId: 1,
+      });
+
+      const result = await service.createCommunity(userId, createCommunityDto);
+
+      expect(repository.attachTagsToCommunity).toHaveBeenCalledWith(
+        mockCommunity.communityId,
+        ['자유형'],
+      );
+      expect(imageService.createCommunityFile).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockCommunity);
     });
   });
@@ -199,6 +373,119 @@ describe('CommunityService', () => {
       expect(result.title).toBe('Updated Title');
     });
 
+    it('should update community with images', async () => {
+      const communityId = 1;
+      const userId = 1;
+      const updateDto: UpdateCommunityDto = {
+        title: 'Updated Title',
+        communityImages: [
+          {
+            filePath:
+              'https://s3.amazonaws.com/bucket/community/1/new-image.jpg',
+            fileType: 'image',
+            fileName: 'new-image.jpg',
+            fileSize: 2048000,
+          },
+        ],
+      };
+
+      const existingImages = [
+        {
+          imageId: 1,
+          imagePath:
+            'https://s3.amazonaws.com/bucket/community/1/old-image.jpg',
+          fileType: 'image',
+          thumbnailPath: null,
+        },
+      ];
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.updateCommunity.mockResolvedValue({
+        ...mockCommunity,
+        title: 'Updated Title',
+      });
+      (imageService.getFilesByCommunityId as jest.Mock).mockResolvedValue(
+        existingImages,
+      );
+      (imageService.deleteFilesByCommunityId as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (imageService.createCommunityFile as jest.Mock).mockResolvedValue({
+        imageId: 2,
+      });
+      (awsService.deleteImageFromS3 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await service.updateCommunity(
+        communityId,
+        userId,
+        updateDto,
+      );
+
+      expect(imageService.getFilesByCommunityId).toHaveBeenCalledWith(
+        communityId,
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'community/1/old-image.jpg',
+      );
+      expect(imageService.deleteFilesByCommunityId).toHaveBeenCalledWith(
+        communityId,
+      );
+      expect(imageService.createCommunityFile).toHaveBeenCalledWith(
+        communityId,
+        'https://s3.amazonaws.com/bucket/community/1/new-image.jpg',
+        'image',
+        'new-image.jpg',
+        2048000,
+        undefined,
+        undefined,
+      );
+      expect(result.title).toBe('Updated Title');
+    });
+
+    it('should delete old images with thumbnails when updating', async () => {
+      const communityId = 1;
+      const userId = 1;
+      const updateDto: UpdateCommunityDto = {
+        communityImages: [],
+      };
+
+      const existingImages = [
+        {
+          imageId: 1,
+          imagePath: 'https://s3.amazonaws.com/bucket/community/1/video.mp4',
+          fileType: 'video',
+          thumbnailPath:
+            'https://s3.amazonaws.com/bucket/community/1/video-thumb.jpg',
+        },
+      ];
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.updateCommunity.mockResolvedValue(mockCommunity);
+      (imageService.getFilesByCommunityId as jest.Mock).mockResolvedValue(
+        existingImages,
+      );
+      (imageService.deleteFilesByCommunityId as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (awsService.deleteImageFromS3 as jest.Mock).mockResolvedValue(undefined);
+
+      await service.updateCommunity(communityId, userId, updateDto);
+
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'community/1/video.mp4',
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'community/1/video-thumb.jpg',
+      );
+      expect(imageService.deleteFilesByCommunityId).toHaveBeenCalledWith(
+        communityId,
+      );
+    });
+
     it('should throw ForbiddenException when user is not owner', async () => {
       const communityId = 1;
       const userId = 2;
@@ -223,10 +510,58 @@ describe('CommunityService', () => {
         mockCommunity,
       );
       MockCommunityRepository.deleteCommunity.mockResolvedValue(undefined);
+      (imageService.getFilesByCommunityId as jest.Mock).mockResolvedValue([]);
 
       const result = await service.deleteCommunity(communityId, userId);
 
       expect(repository.findCommunityById).toHaveBeenCalledWith(communityId);
+      expect(repository.deleteCommunity).toHaveBeenCalledWith(communityId);
+      expect(result.message).toBe('게시글이 삭제되었습니다.');
+    });
+
+    it('should delete community and S3 files when user is owner', async () => {
+      const communityId = 1;
+      const userId = 1;
+
+      const existingImages = [
+        {
+          imageId: 1,
+          imagePath: 'https://s3.amazonaws.com/bucket/community/1/image.jpg',
+          fileType: 'image',
+          thumbnailPath: null,
+        },
+        {
+          imageId: 2,
+          imagePath: 'https://s3.amazonaws.com/bucket/community/1/video.mp4',
+          fileType: 'video',
+          thumbnailPath:
+            'https://s3.amazonaws.com/bucket/community/1/video-thumb.jpg',
+        },
+      ];
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.deleteCommunity.mockResolvedValue(undefined);
+      (imageService.getFilesByCommunityId as jest.Mock).mockResolvedValue(
+        existingImages,
+      );
+      (awsService.deleteImageFromS3 as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await service.deleteCommunity(communityId, userId);
+
+      expect(imageService.getFilesByCommunityId).toHaveBeenCalledWith(
+        communityId,
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'community/1/image.jpg',
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'community/1/video.mp4',
+      );
+      expect(awsService.deleteImageFromS3).toHaveBeenCalledWith(
+        'community/1/video-thumb.jpg',
+      );
       expect(repository.deleteCommunity).toHaveBeenCalledWith(communityId);
       expect(result.message).toBe('게시글이 삭제되었습니다.');
     });

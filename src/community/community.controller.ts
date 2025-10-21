@@ -23,6 +23,7 @@ import { CommunityService } from './community.service';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { UpdateCommunityDto } from './dto/update-community.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommunityImageDto } from './dto/community-image.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { ResponseService } from 'src/common/response/response.service';
 
@@ -33,6 +34,31 @@ export class CommunityController {
     private readonly communityService: CommunityService,
     private readonly responseService: ResponseService,
   ) {}
+
+  @Post('presigned-url')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '커뮤니티 파일 업로드를 위한 presigned URL 생성' })
+  @ApiResponse({
+    status: 201,
+    description: 'Presigned URL이 성공적으로 생성되었습니다.',
+  })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  async generatePresignedUrls(
+    @Body() communityImageDto: CommunityImageDto,
+    @Res() res: Response,
+  ) {
+    const { userId } = res.locals.user;
+    const result = await this.communityService.generateCommunityPresignedUrls(
+      userId,
+      communityImageDto,
+    );
+    return this.responseService.success(
+      res,
+      'Presigned URL이 성공적으로 생성되었습니다.',
+      result,
+    );
+  }
 
   @Post()
   @UseGuards(AuthGuard)

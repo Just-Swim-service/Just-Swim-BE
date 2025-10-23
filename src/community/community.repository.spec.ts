@@ -8,6 +8,7 @@ import { CommunityBookmark } from './entity/community-bookmark.entity';
 import { CommentLike } from './entity/comment-like.entity';
 import { Tag } from './entity/tag.entity';
 import { CommunityTag } from './entity/community-tag.entity';
+import { Users } from 'src/users/entity/users.entity';
 import { Repository } from 'typeorm';
 import {
   mockCommunity,
@@ -92,6 +93,10 @@ describe('CommunityRepository', () => {
     delete: jest.fn(),
   };
 
+  const mockUsersRepository = {
+    findOne: jest.fn(),
+  };
+
   beforeEach(async () => {
     // 모든 mock 초기화
     jest.clearAllMocks();
@@ -126,6 +131,10 @@ describe('CommunityRepository', () => {
         {
           provide: getRepositoryToken(CommunityTag),
           useValue: mockCommunityTagRepository,
+        },
+        {
+          provide: getRepositoryToken(Users),
+          useValue: mockUsersRepository,
         },
       ],
     }).compile();
@@ -912,15 +921,19 @@ describe('CommunityRepository', () => {
     it('should add bookmark when not exists', async () => {
       const userId = 1;
       const communityId = 1;
+      const mockUser = { userId, name: 'Test User' };
+      const mockCommunityData = { ...mockCommunity, communityId };
 
       mockCommunityBookmarkRepository.findOne.mockResolvedValue(null);
+      mockUsersRepository.findOne.mockResolvedValue(mockUser);
+      mockCommunityRepository.findOne.mockResolvedValue(mockCommunityData);
       mockCommunityBookmarkRepository.create.mockReturnValue({
-        userId,
-        communityId,
+        user: mockUser,
+        community: mockCommunityData,
       });
       mockCommunityBookmarkRepository.save.mockResolvedValue({
-        userId,
-        communityId,
+        user: mockUser,
+        community: mockCommunityData,
       });
 
       const result = await repository.toggleBookmark(userId, communityId);
@@ -928,9 +941,15 @@ describe('CommunityRepository', () => {
       expect(mockCommunityBookmarkRepository.findOne).toHaveBeenCalledWith({
         where: { user: { userId }, community: { communityId } },
       });
+      expect(mockUsersRepository.findOne).toHaveBeenCalledWith({
+        where: { userId },
+      });
+      expect(mockCommunityRepository.findOne).toHaveBeenCalledWith({
+        where: { communityId },
+      });
       expect(mockCommunityBookmarkRepository.create).toHaveBeenCalledWith({
-        user: { userId },
-        community: { communityId },
+        user: mockUser,
+        community: mockCommunityData,
       });
       expect(mockCommunityBookmarkRepository.save).toHaveBeenCalled();
       expect(result).toBe(true);

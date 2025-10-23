@@ -10,6 +10,7 @@ import { Tag } from './entity/tag.entity';
 import { CommunityTag } from './entity/community-tag.entity';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { CategoryType } from './enum/category-type.enum';
+import { Users } from 'src/users/entity/users.entity';
 
 @Injectable()
 export class CommunityRepository {
@@ -28,6 +29,8 @@ export class CommunityRepository {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(CommunityTag)
     private readonly communityTagRepository: Repository<CommunityTag>,
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>,
   ) {}
 
   // 게시글 관련 메서드
@@ -686,10 +689,21 @@ export class CommunityRepository {
       await this.communityBookmarkRepository.remove(existingBookmark);
       return false;
     } else {
-      // 북마크 추가
+      // 북마크 추가 - User와 Community 엔티티를 먼저 조회
+      const user = await this.usersRepository.findOne({
+        where: { userId },
+      });
+      const community = await this.communityRepository.findOne({
+        where: { communityId },
+      });
+
+      if (!user || !community) {
+        throw new Error('User or Community not found');
+      }
+
       const bookmark = this.communityBookmarkRepository.create({
-        user: { userId },
-        community: { communityId },
+        user: user,
+        community: community,
       });
       await this.communityBookmarkRepository.save(bookmark);
       return true;

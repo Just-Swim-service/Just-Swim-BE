@@ -7,6 +7,7 @@ import { CommunityBookmark } from './entity/community-bookmark.entity';
 import { CommentLike } from './entity/comment-like.entity';
 import { Tag } from './entity/tag.entity';
 import { CommunityTag } from './entity/community-tag.entity';
+import { Users } from 'src/users/entity/users.entity';
 import { CommunityRepository } from './community.repository';
 import { CommunityService } from './community.service';
 import { CommunityController } from './community.controller';
@@ -31,6 +32,7 @@ import { AwsModule } from 'src/common/aws/aws.module';
       CommentLike,
       Tag,
       CommunityTag,
+      Users,
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => UsersModule),

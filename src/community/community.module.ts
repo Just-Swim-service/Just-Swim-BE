@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Community } from './entity/community.entity';
 import { CommunityComment } from './entity/community-comment.entity';
 import { CommunityLike } from './entity/community-like.entity';
+import { CommunityBookmark } from './entity/community-bookmark.entity';
 import { CommentLike } from './entity/comment-like.entity';
 import { Tag } from './entity/tag.entity';
 import { CommunityTag } from './entity/community-tag.entity';
@@ -26,6 +27,7 @@ import { AwsModule } from 'src/common/aws/aws.module';
       Community,
       CommunityComment,
       CommunityLike,
+      CommunityBookmark,
       CommentLike,
       Tag,
       CommunityTag,

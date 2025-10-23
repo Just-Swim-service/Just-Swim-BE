@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { CommunityComment } from './community-comment.entity';
 import { CommunityLike } from './community-like.entity';
+import { CommunityBookmark } from './community-bookmark.entity';
 import { CommunityTag } from './community-tag.entity';
 import { CategoryType } from '../enum/category-type.enum';
 
@@ -51,6 +52,9 @@ export class Community {
 
   @OneToMany(() => CommunityLike, (like) => like.community)
   likes: CommunityLike[];
+
+  @OneToMany(() => CommunityBookmark, (bookmark) => bookmark.community)
+  bookmarks: CommunityBookmark[];
 
   @OneToMany(() => Image, (image) => image.community)
   images: Image[];

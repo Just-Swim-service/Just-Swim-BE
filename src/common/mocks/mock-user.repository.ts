@@ -26,6 +26,7 @@ export const mockUser: Users = {
   communityComments: [],
   communityLikes: [],
   commentLikes: [],
+  communityBookmarks: [],
 };
 
 export const MockUsersRepository = {

@@ -50,6 +50,7 @@ export const mockCommunity: Community = {
   commentCount: 3,
   comments: [],
   likes: [],
+  bookmarks: [],
   images: [],
   communityTags: [mockCommunityTag],
   communityCreatedAt: new Date(),
@@ -138,4 +139,11 @@ export const MockCommunityRepository = {
     { suggestions: ['자유형', '자유형 배우기'], type: 'tag' },
     { suggestions: ['자유형 완벽 가이드'], type: 'title' },
   ]),
+  // 북마크 관련 메서드
+  toggleBookmark: jest.fn().mockResolvedValue(true),
+  checkBookmark: jest.fn().mockResolvedValue(false),
+  getUserBookmarks: jest.fn().mockResolvedValue({
+    communities: [mockCommunity],
+    total: 1,
+  }),
 };

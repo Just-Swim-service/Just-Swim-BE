@@ -121,6 +121,7 @@ describe('UsersService', () => {
         commentLikes: [],
         communityComments: [],
         communityLikes: [],
+        communityBookmarks: [],
       };
       (usersRepository.createUser as jest.Mock).mockResolvedValue(newUser);
 

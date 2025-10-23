@@ -19,6 +19,7 @@ import { Notification } from 'src/notification/entity/notification.entity';
 import { Community } from 'src/community/entity/community.entity';
 import { CommunityComment } from 'src/community/entity/community-comment.entity';
 import { CommunityLike } from 'src/community/entity/community-like.entity';
+import { CommunityBookmark } from 'src/community/entity/community-bookmark.entity';
 import { CommentLike } from 'src/community/entity/comment-like.entity';
 
 @Entity('users')
@@ -94,6 +95,9 @@ export class Users {
 
   @OneToMany(() => CommunityLike, (like) => like.user)
   communityLikes: CommunityLike[];
+
+  @OneToMany(() => CommunityBookmark, (bookmark) => bookmark.user)
+  communityBookmarks: CommunityBookmark[];
 
   @OneToMany(() => CommentLike, (like) => like.user)
   commentLikes: CommentLike[];

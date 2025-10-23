@@ -1062,4 +1062,231 @@ describe('CommunityService', () => {
       expect(result.communities[0].communityTags[0].tag.tagName).toBe('');
     });
   });
+
+  // 북마크 관련 테스트
+  describe('toggleBookmark', () => {
+    it('should add bookmark successfully', async () => {
+      const userId = 1;
+      const communityId = 1;
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.toggleBookmark.mockResolvedValue(true);
+
+      const result = await service.toggleBookmark(userId, communityId);
+
+      expect(repository.findCommunityById).toHaveBeenCalledWith(communityId);
+      expect(repository.toggleBookmark).toHaveBeenCalledWith(
+        userId,
+        communityId,
+      );
+      expect(result.isBookmarked).toBe(true);
+      expect(result.message).toBe('북마크에 추가되었습니다.');
+    });
+
+    it('should remove bookmark successfully', async () => {
+      const userId = 1;
+      const communityId = 1;
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.toggleBookmark.mockResolvedValue(false);
+
+      const result = await service.toggleBookmark(userId, communityId);
+
+      expect(repository.findCommunityById).toHaveBeenCalledWith(communityId);
+      expect(repository.toggleBookmark).toHaveBeenCalledWith(
+        userId,
+        communityId,
+      );
+      expect(result.isBookmarked).toBe(false);
+      expect(result.message).toBe('북마크가 해제되었습니다.');
+    });
+
+    it('should throw NotFoundException if community does not exist', async () => {
+      const userId = 1;
+      const communityId = 999;
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(null);
+
+      await expect(service.toggleBookmark(userId, communityId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.toggleBookmark(userId, communityId)).rejects.toThrow(
+        '게시글을 찾을 수 없습니다.',
+      );
+    });
+  });
+
+  describe('getUserBookmarks', () => {
+    it('should return user bookmarks with pagination', async () => {
+      const userId = 1;
+      const page = 1;
+      const limit = 10;
+
+      const mockBookmarkCommunities = [
+        {
+          ...mockCommunity,
+          title: 'Bookmark 1',
+        },
+        {
+          ...mockCommunity,
+          communityId: 2,
+          title: 'Bookmark 2',
+        },
+      ];
+
+      MockCommunityRepository.getUserBookmarks.mockResolvedValue({
+        communities: mockBookmarkCommunities,
+        total: 2,
+      });
+
+      const result = await service.getUserBookmarks(userId, page, limit);
+
+      expect(repository.getUserBookmarks).toHaveBeenCalledWith(
+        userId,
+        page,
+        limit,
+      );
+      expect(result.bookmarks).toHaveLength(2);
+      expect(result.pagination).toEqual({
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+      });
+    });
+
+    it('should return empty bookmarks when user has none', async () => {
+      const userId = 1;
+      const page = 1;
+      const limit = 10;
+
+      MockCommunityRepository.getUserBookmarks.mockResolvedValue({
+        communities: [],
+        total: 0,
+      });
+
+      const result = await service.getUserBookmarks(userId, page, limit);
+
+      expect(repository.getUserBookmarks).toHaveBeenCalledWith(
+        userId,
+        page,
+        limit,
+      );
+      expect(result.bookmarks).toEqual([]);
+      expect(result.pagination).toEqual({
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+      });
+    });
+
+    it('should handle pagination correctly for multiple pages', async () => {
+      const userId = 1;
+      const page = 3;
+      const limit = 5;
+
+      MockCommunityRepository.getUserBookmarks.mockResolvedValue({
+        communities: [mockCommunity],
+        total: 15,
+      });
+
+      const result = await service.getUserBookmarks(userId, page, limit);
+
+      expect(repository.getUserBookmarks).toHaveBeenCalledWith(userId, 3, 5);
+      expect(result.pagination).toEqual({
+        page: 3,
+        limit: 5,
+        total: 15,
+        totalPages: 3,
+      });
+    });
+
+    it('should remove HTML tags from bookmark communities', async () => {
+      const userId = 1;
+      const page = 1;
+      const limit = 10;
+
+      const mockBookmarkWithHtml = [
+        {
+          ...mockCommunity,
+          title: '<strong>수영</strong> <mark>팁</mark>',
+          content: '<em>자유형</em> <span>연습</span>',
+          communityTags: [
+            {
+              tag: {
+                tagName: '<div>자유형</div>',
+                usageCount: 10,
+              },
+            },
+          ],
+        },
+      ];
+
+      MockCommunityRepository.getUserBookmarks.mockResolvedValue({
+        communities: mockBookmarkWithHtml,
+        total: 1,
+      });
+
+      const result = await service.getUserBookmarks(userId, page, limit);
+
+      expect(result.bookmarks[0].title).toBe('수영 팁');
+      expect(result.bookmarks[0].content).toBe('자유형 연습');
+      expect(result.bookmarks[0].communityTags[0].tag.tagName).toBe('자유형');
+    });
+  });
+
+  describe('findCommunityById with bookmark status', () => {
+    it('should include bookmark status for logged in user', async () => {
+      const communityId = 1;
+      const userId = 1;
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.incrementViewCount.mockResolvedValue(undefined);
+      MockCommunityRepository.checkCommunityLike.mockResolvedValue(true);
+      MockCommunityRepository.checkBookmark.mockResolvedValue(true);
+      MockCommunityRepository.findCommentsByCommunityId.mockResolvedValue([
+        mockCommunityComment,
+      ]);
+
+      const result = await service.findCommunityById(communityId, userId);
+
+      expect(repository.checkCommunityLike).toHaveBeenCalledWith(
+        userId,
+        communityId,
+      );
+      expect(repository.checkBookmark).toHaveBeenCalledWith(
+        userId,
+        communityId,
+      );
+      expect(result.isLiked).toBe(true);
+      expect(result.isBookmarked).toBe(true);
+    });
+
+    it('should not check bookmark status for non-logged in user', async () => {
+      const communityId = 1;
+
+      // Mock 초기화
+      jest.clearAllMocks();
+
+      MockCommunityRepository.findCommunityById.mockResolvedValue(
+        mockCommunity,
+      );
+      MockCommunityRepository.incrementViewCount.mockResolvedValue(undefined);
+      MockCommunityRepository.findCommentsByCommunityId.mockResolvedValue([
+        mockCommunityComment,
+      ]);
+
+      const result = await service.findCommunityById(communityId);
+
+      expect(repository.checkBookmark).not.toHaveBeenCalled();
+      expect(result.isBookmarked).toBe(false);
+    });
+  });
 });

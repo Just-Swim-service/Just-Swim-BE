@@ -4,6 +4,7 @@ import { CommunityRepository } from './community.repository';
 import { Community } from './entity/community.entity';
 import { CommunityComment } from './entity/community-comment.entity';
 import { CommunityLike } from './entity/community-like.entity';
+import { CommunityBookmark } from './entity/community-bookmark.entity';
 import { CommentLike } from './entity/comment-like.entity';
 import { Tag } from './entity/tag.entity';
 import { CommunityTag } from './entity/community-tag.entity';
@@ -22,6 +23,7 @@ describe('CommunityRepository', () => {
   let communityRepo: Repository<Community>;
   let commentRepo: Repository<CommunityComment>;
   let communityLikeRepo: Repository<CommunityLike>;
+  let communityBookmarkRepo: Repository<CommunityBookmark>;
   let commentLikeRepo: Repository<CommentLike>;
   let tagRepo: Repository<Tag>;
   let communityTagRepo: Repository<CommunityTag>;
@@ -53,6 +55,13 @@ describe('CommunityRepository', () => {
   };
 
   const mockCommunityLikeRepository = {
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+    remove: jest.fn(),
+  };
+
+  const mockCommunityBookmarkRepository = {
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
@@ -103,6 +112,10 @@ describe('CommunityRepository', () => {
           useValue: mockCommunityLikeRepository,
         },
         {
+          provide: getRepositoryToken(CommunityBookmark),
+          useValue: mockCommunityBookmarkRepository,
+        },
+        {
           provide: getRepositoryToken(CommentLike),
           useValue: mockCommentLikeRepository,
         },
@@ -126,6 +139,9 @@ describe('CommunityRepository', () => {
     );
     communityLikeRepo = module.get<Repository<CommunityLike>>(
       getRepositoryToken(CommunityLike),
+    );
+    communityBookmarkRepo = module.get<Repository<CommunityBookmark>>(
+      getRepositoryToken(CommunityBookmark),
     );
     commentLikeRepo = module.get<Repository<CommentLike>>(
       getRepositoryToken(CommentLike),
@@ -888,6 +904,184 @@ describe('CommunityRepository', () => {
       const result = await repository.getSearchSuggestions('', 5);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  // 북마크 관련 테스트
+  describe('toggleBookmark', () => {
+    it('should add bookmark when not exists', async () => {
+      const userId = 1;
+      const communityId = 1;
+
+      mockCommunityBookmarkRepository.findOne.mockResolvedValue(null);
+      mockCommunityBookmarkRepository.create.mockReturnValue({
+        userId,
+        communityId,
+      });
+      mockCommunityBookmarkRepository.save.mockResolvedValue({
+        userId,
+        communityId,
+      });
+
+      const result = await repository.toggleBookmark(userId, communityId);
+
+      expect(mockCommunityBookmarkRepository.findOne).toHaveBeenCalledWith({
+        where: { user: { userId }, community: { communityId } },
+      });
+      expect(mockCommunityBookmarkRepository.create).toHaveBeenCalledWith({
+        user: { userId },
+        community: { communityId },
+      });
+      expect(mockCommunityBookmarkRepository.save).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('should remove bookmark when exists', async () => {
+      const userId = 1;
+      const communityId = 1;
+      const mockBookmark = {
+        bookmarkId: 1,
+        user: { userId },
+        community: { communityId },
+      };
+
+      mockCommunityBookmarkRepository.findOne.mockResolvedValue(mockBookmark);
+      mockCommunityBookmarkRepository.remove.mockResolvedValue(mockBookmark);
+
+      const result = await repository.toggleBookmark(userId, communityId);
+
+      expect(mockCommunityBookmarkRepository.findOne).toHaveBeenCalledWith({
+        where: { user: { userId }, community: { communityId } },
+      });
+      expect(mockCommunityBookmarkRepository.remove).toHaveBeenCalledWith(
+        mockBookmark,
+      );
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('checkBookmark', () => {
+    it('should return true when bookmark exists', async () => {
+      const userId = 1;
+      const communityId = 1;
+      const mockBookmark = {
+        bookmarkId: 1,
+        user: { userId },
+        community: { communityId },
+      };
+
+      mockCommunityBookmarkRepository.findOne.mockResolvedValue(mockBookmark);
+
+      const result = await repository.checkBookmark(userId, communityId);
+
+      expect(mockCommunityBookmarkRepository.findOne).toHaveBeenCalledWith({
+        where: { user: { userId }, community: { communityId } },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('should return false when bookmark does not exist', async () => {
+      const userId = 1;
+      const communityId = 1;
+
+      mockCommunityBookmarkRepository.findOne.mockResolvedValue(null);
+
+      const result = await repository.checkBookmark(userId, communityId);
+
+      expect(mockCommunityBookmarkRepository.findOne).toHaveBeenCalledWith({
+        where: { user: { userId }, community: { communityId } },
+      });
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('getUserBookmarks', () => {
+    it('should return user bookmarks with pagination', async () => {
+      const userId = 1;
+      const page = 1;
+      const limit = 10;
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[mockCommunity], 1]),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      const result = await repository.getUserBookmarks(userId, page, limit);
+
+      expect(mockCommunityRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'community',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'community.user',
+        'user',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'community.images',
+        'images',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'community.communityTags',
+        'communityTags',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'communityTags.tag',
+        'tag',
+      );
+      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+        'community.bookmarks',
+        'bookmark',
+      );
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'community.communityDeletedAt IS NULL',
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'bookmark.user.userId = :userId',
+        { userId },
+      );
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'bookmark.bookmarkCreatedAt',
+        'DESC',
+      );
+      expect(mockQueryBuilder.skip).toHaveBeenCalledWith(0);
+      expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
+      expect(result.communities).toEqual([mockCommunity]);
+      expect(result.total).toBe(1);
+    });
+
+    it('should handle pagination correctly', async () => {
+      const userId = 1;
+      const page = 2;
+      const limit = 5;
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      };
+
+      mockCommunityRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder,
+      );
+
+      await repository.getUserBookmarks(userId, page, limit);
+
+      expect(mockQueryBuilder.skip).toHaveBeenCalledWith(5); // (2-1) * 5
+      expect(mockQueryBuilder.take).toHaveBeenCalledWith(5);
     });
   });
 });

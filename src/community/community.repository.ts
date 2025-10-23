@@ -4,6 +4,7 @@ import { Repository, In } from 'typeorm';
 import { Community } from './entity/community.entity';
 import { CommunityComment } from './entity/community-comment.entity';
 import { CommunityLike } from './entity/community-like.entity';
+import { CommunityBookmark } from './entity/community-bookmark.entity';
 import { CommentLike } from './entity/comment-like.entity';
 import { Tag } from './entity/tag.entity';
 import { CommunityTag } from './entity/community-tag.entity';
@@ -19,6 +20,8 @@ export class CommunityRepository {
     private readonly commentRepository: Repository<CommunityComment>,
     @InjectRepository(CommunityLike)
     private readonly communityLikeRepository: Repository<CommunityLike>,
+    @InjectRepository(CommunityBookmark)
+    private readonly communityBookmarkRepository: Repository<CommunityBookmark>,
     @InjectRepository(CommentLike)
     private readonly commentLikeRepository: Repository<CommentLike>,
     @InjectRepository(Tag)
@@ -670,5 +673,56 @@ export class CommunityRepository {
     }
 
     return suggestions;
+  }
+
+  // 북마크 관련 메서드
+  async toggleBookmark(userId: number, communityId: number): Promise<boolean> {
+    const existingBookmark = await this.communityBookmarkRepository.findOne({
+      where: { user: { userId }, community: { communityId } },
+    });
+
+    if (existingBookmark) {
+      // 북마크 취소
+      await this.communityBookmarkRepository.remove(existingBookmark);
+      return false;
+    } else {
+      // 북마크 추가
+      const bookmark = this.communityBookmarkRepository.create({
+        user: { userId },
+        community: { communityId },
+      });
+      await this.communityBookmarkRepository.save(bookmark);
+      return true;
+    }
+  }
+
+  async checkBookmark(userId: number, communityId: number): Promise<boolean> {
+    const bookmark = await this.communityBookmarkRepository.findOne({
+      where: { user: { userId }, community: { communityId } },
+    });
+    return !!bookmark;
+  }
+
+  async getUserBookmarks(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ communities: Community[]; total: number }> {
+    const queryBuilder = this.communityRepository
+      .createQueryBuilder('community')
+      .leftJoinAndSelect('community.user', 'user')
+      .leftJoinAndSelect('community.images', 'images')
+      .leftJoinAndSelect('community.communityTags', 'communityTags')
+      .leftJoinAndSelect('communityTags.tag', 'tag')
+      .leftJoin('community.bookmarks', 'bookmark')
+      .where('community.communityDeletedAt IS NULL')
+      .andWhere('bookmark.user.userId = :userId', { userId })
+      .orderBy('bookmark.bookmarkCreatedAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [communities, total] = await queryBuilder.getManyAndCount();
+
+    return { communities, total };
   }
 }

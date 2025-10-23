@@ -45,6 +45,9 @@ describe('CommunityController', () => {
     advancedSearchCommunities: jest.fn(),
     getRelatedTags: jest.fn(),
     getSearchSuggestions: jest.fn(),
+    // 북마크 관련 메서드
+    toggleBookmark: jest.fn(),
+    getUserBookmarks: jest.fn(),
   };
 
   const mockResponseService = {
@@ -932,6 +935,148 @@ describe('CommunityController', () => {
       await controller.getRelatedTags('query', undefined, res);
 
       expect(service.getRelatedTags).toHaveBeenCalledWith('query', 10);
+    });
+  });
+
+  // 북마크 관련 테스트
+  describe('toggleBookmark', () => {
+    it('should toggle bookmark on', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        locals: { user: { userId: 1 } },
+      } as any;
+      const communityId = '1';
+      const expectedResult = {
+        isBookmarked: true,
+        message: '북마크에 추가되었습니다.',
+      };
+
+      mockCommunityService.toggleBookmark.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.toggleBookmark(communityId, res);
+
+      expect(service.toggleBookmark).toHaveBeenCalledWith(1, 1);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '북마크에 추가되었습니다.',
+        { isBookmarked: true },
+      );
+    });
+
+    it('should toggle bookmark off', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        locals: { user: { userId: 1 } },
+      } as any;
+      const communityId = '1';
+      const expectedResult = {
+        isBookmarked: false,
+        message: '북마크가 해제되었습니다.',
+      };
+
+      mockCommunityService.toggleBookmark.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.toggleBookmark(communityId, res);
+
+      expect(service.toggleBookmark).toHaveBeenCalledWith(1, 1);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '북마크가 해제되었습니다.',
+        { isBookmarked: false },
+      );
+    });
+  });
+
+  describe('getMyBookmarks', () => {
+    it('should return user bookmarks with pagination', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        locals: { user: { userId: 1 } },
+      } as any;
+      const expectedResult = {
+        bookmarks: [mockCommunity],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+        },
+      };
+
+      mockCommunityService.getUserBookmarks.mockResolvedValue(expectedResult);
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getMyBookmarks(res, '1', '10');
+
+      expect(service.getUserBookmarks).toHaveBeenCalledWith(1, 1, 10);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '북마크 목록을 성공적으로 조회했습니다.',
+        expectedResult,
+      );
+    });
+
+    it('should use default pagination values', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        locals: { user: { userId: 1 } },
+      } as any;
+
+      mockCommunityService.getUserBookmarks.mockResolvedValue({
+        bookmarks: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        },
+      });
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getMyBookmarks(res);
+
+      expect(service.getUserBookmarks).toHaveBeenCalledWith(1, 1, 10);
+    });
+
+    it('should handle custom pagination', async () => {
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        locals: { user: { userId: 2 } },
+      } as any;
+
+      mockCommunityService.getUserBookmarks.mockResolvedValue({
+        bookmarks: [mockCommunity],
+        pagination: {
+          page: 2,
+          limit: 5,
+          total: 15,
+          totalPages: 3,
+        },
+      });
+      mockResponseService.success.mockReturnValue(undefined);
+
+      await controller.getMyBookmarks(res, '2', '5');
+
+      expect(service.getUserBookmarks).toHaveBeenCalledWith(2, 2, 5);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '북마크 목록을 성공적으로 조회했습니다.',
+        expect.objectContaining({
+          pagination: {
+            page: 2,
+            limit: 5,
+            total: 15,
+            totalPages: 3,
+          },
+        }),
+      );
     });
   });
 });

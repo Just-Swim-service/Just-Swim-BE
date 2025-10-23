@@ -682,4 +682,65 @@ export class CommunityController {
       result,
     );
   }
+
+  // 북마크 관련 엔드포인트
+  @Post(':id/bookmark')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 북마크 토글' })
+  @ApiResponse({
+    status: 200,
+    description: '북마크 상태가 성공적으로 변경되었습니다.',
+  })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 404, description: '게시글을 찾을 수 없습니다.' })
+  async toggleBookmark(@Param('id') id: string, @Res() res: Response) {
+    const { userId } = res.locals.user;
+    const result = await this.communityService.toggleBookmark(
+      parseInt(id),
+      userId,
+    );
+    return this.responseService.success(res, result.message, {
+      isBookmarked: result.isBookmarked,
+    });
+  }
+
+  @Get('bookmarks/my')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내 북마크 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '북마크 목록을 성공적으로 조회했습니다.',
+  })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: '페이지 번호',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '페이지당 항목 수',
+    example: 10,
+  })
+  async getMyBookmarks(
+    @Res() res: Response,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const { userId } = res.locals.user;
+    const result = await this.communityService.getUserBookmarks(
+      userId,
+      parseInt(page),
+      parseInt(limit),
+    );
+    return this.responseService.success(
+      res,
+      '북마크 목록을 성공적으로 조회했습니다.',
+      result,
+    );
+  }
 }

@@ -135,8 +135,13 @@ export class CommunityService {
 
     // 좋아요 여부 확인 (로그인한 사용자인 경우)
     let isLiked = false;
+    let isBookmarked = false;
     if (userId) {
       isLiked = await this.communityRepository.checkCommunityLike(
+        userId,
+        communityId,
+      );
+      isBookmarked = await this.communityRepository.checkBookmark(
         userId,
         communityId,
       );
@@ -149,6 +154,7 @@ export class CommunityService {
     return {
       ...community,
       isLiked,
+      isBookmarked,
       comments,
     };
   }
@@ -557,5 +563,45 @@ export class CommunityService {
     if (!text) return text;
     // 모든 HTML 태그 제거 (<>로 둘러싸인 모든 것)
     return text.replace(/<[^>]*>/g, '');
+  }
+
+  // 북마크 관련 메서드
+  async toggleBookmark(userId: number, communityId: number) {
+    // 게시글 존재 확인
+    const community =
+      await this.communityRepository.findCommunityById(communityId);
+    if (!community) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    const isBookmarked = await this.communityRepository.toggleBookmark(
+      userId,
+      communityId,
+    );
+
+    return {
+      isBookmarked,
+      message: isBookmarked
+        ? '북마크에 추가되었습니다.'
+        : '북마크가 해제되었습니다.',
+    };
+  }
+
+  async getUserBookmarks(userId: number, page: number = 1, limit: number = 10) {
+    const { communities, total } =
+      await this.communityRepository.getUserBookmarks(userId, page, limit);
+
+    // 기존 데이터에 포함된 모든 HTML 태그 제거
+    const cleanedCommunities = this.removeHtmlTags(communities);
+
+    return {
+      bookmarks: cleanedCommunities,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

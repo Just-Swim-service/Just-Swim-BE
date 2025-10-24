@@ -957,7 +957,7 @@ describe('CommunityController', () => {
 
       await controller.toggleBookmark(communityId, res);
 
-      expect(service.toggleBookmark).toHaveBeenCalledWith(1, 1);
+      expect(service.toggleBookmark).toHaveBeenCalledWith(1, 1); // userId, communityId
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '북마크에 추가되었습니다.',
@@ -982,7 +982,7 @@ describe('CommunityController', () => {
 
       await controller.toggleBookmark(communityId, res);
 
-      expect(service.toggleBookmark).toHaveBeenCalledWith(1, 1);
+      expect(service.toggleBookmark).toHaveBeenCalledWith(1, 1); // userId, communityId
       expect(responseService.success).toHaveBeenCalledWith(
         res,
         '북마크가 해제되었습니다.',

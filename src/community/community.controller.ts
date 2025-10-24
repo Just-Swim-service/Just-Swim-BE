@@ -697,8 +697,8 @@ export class CommunityController {
   async toggleBookmark(@Param('id') id: string, @Res() res: Response) {
     const { userId } = res.locals.user;
     const result = await this.communityService.toggleBookmark(
-      parseInt(id),
       userId,
+      parseInt(id),
     );
     return this.responseService.success(res, result.message, {
       isBookmarked: result.isBookmarked,

@@ -728,9 +728,9 @@ export class CommunityRepository {
       .leftJoinAndSelect('community.images', 'images')
       .leftJoinAndSelect('community.communityTags', 'communityTags')
       .leftJoinAndSelect('communityTags.tag', 'tag')
-      .leftJoin('community.bookmarks', 'bookmark')
+      .innerJoin('community.bookmarks', 'bookmark')
       .where('community.communityDeletedAt IS NULL')
-      .andWhere('bookmark.user.userId = :userId', { userId })
+      .andWhere('bookmark.userId = :userId', { userId })
       .orderBy('bookmark.bookmarkCreatedAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);

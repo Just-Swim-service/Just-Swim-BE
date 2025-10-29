@@ -1022,7 +1022,7 @@ describe('CommunityRepository', () => {
 
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
-        leftJoin: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -1056,7 +1056,7 @@ describe('CommunityRepository', () => {
         'communityTags.tag',
         'tag',
       );
-      expect(mockQueryBuilder.leftJoin).toHaveBeenCalledWith(
+      expect(mockQueryBuilder.innerJoin).toHaveBeenCalledWith(
         'community.bookmarks',
         'bookmark',
       );
@@ -1064,7 +1064,7 @@ describe('CommunityRepository', () => {
         'community.communityDeletedAt IS NULL',
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'bookmark.user.userId = :userId',
+        'bookmark.userId = :userId',
         { userId },
       );
       expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
@@ -1084,7 +1084,7 @@ describe('CommunityRepository', () => {
 
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
-        leftJoin: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),

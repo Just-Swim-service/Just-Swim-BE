@@ -1023,6 +1023,7 @@ describe('CommunityRepository', () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         innerJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
@@ -1060,6 +1061,9 @@ describe('CommunityRepository', () => {
         'community.bookmarks',
         'bookmark',
       );
+      expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith(
+        'bookmark.bookmarkCreatedAt',
+      );
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         'community.communityDeletedAt IS NULL',
       );
@@ -1085,6 +1089,7 @@ describe('CommunityRepository', () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         innerJoin: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),

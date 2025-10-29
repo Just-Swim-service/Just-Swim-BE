@@ -729,9 +729,11 @@ export class CommunityRepository {
       .leftJoinAndSelect('community.communityTags', 'communityTags')
       .leftJoinAndSelect('communityTags.tag', 'tag')
       .innerJoin('community.bookmarks', 'bookmark')
+      .addSelect('bookmark.bookmarkCreatedAt')
       .where('community.communityDeletedAt IS NULL')
       .andWhere('bookmark.userId = :userId', { userId })
       .orderBy('bookmark.bookmarkCreatedAt', 'DESC')
+
       .skip((page - 1) * limit)
       .take(limit);
 

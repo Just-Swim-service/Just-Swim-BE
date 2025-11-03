@@ -7,9 +7,10 @@ import {
   IsArray,
   ValidateNested,
   ArrayMaxSize,
+  Length,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { CategoryType } from '../enum/category-type.enum';
 import { CreateCommunityImageDto } from './create-community-image.dto';
 
@@ -17,11 +18,15 @@ export class CreateCommunityDto {
   @ApiProperty({ description: '게시글 제목' })
   @IsString()
   @IsNotEmpty()
+  @Length(1, 100, { message: '게시글 제목은 1-100자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   title: string;
 
   @ApiProperty({ description: '게시글 내용' })
   @IsString()
   @IsNotEmpty()
+  @Length(1, 5000, { message: '게시글 내용은 1-5000자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   content: string;
 
   @ApiProperty({
@@ -39,7 +44,9 @@ export class CreateCommunityDto {
     type: [String],
   })
   @IsArray()
+  @ArrayMaxSize(5, { message: '태그는 최대 5개까지 가능합니다.' })
   @IsString({ each: true })
+  @Length(1, 20, { each: true, message: '각 태그는 1-20자 사이여야 합니다.' })
   @IsOptional()
   tags?: string[];
 

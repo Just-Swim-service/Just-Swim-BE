@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsIn,
   IsNumber,
+  Length,
 } from 'class-validator';
 
 export class CreateCommunityImageDto {
@@ -34,6 +35,7 @@ export class CreateCommunityImageDto {
   })
   @IsOptional()
   @IsString()
+  @Length(1, 255, { message: '파일명은 1-255자 사이여야 합니다.' })
   readonly fileName?: string;
 
   @ApiProperty({

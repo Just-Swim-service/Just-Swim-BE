@@ -79,7 +79,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 100, { message: '근무지는 100자 이하여야 합니다.' })
+  @Length(0, 200, { message: '근무지는 200자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;
@@ -95,7 +95,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 100, { message: '경력은 100자 이하여야 합니다.' })
+  @Length(0, 500, { message: '경력은 500자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;
@@ -111,7 +111,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 200, { message: '이력은 200자 이하여야 합니다.' })
+  @Length(0, 1000, { message: '이력은 1000자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;
@@ -127,7 +127,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 500, { message: '소개는 500자 이하여야 합니다.' })
+  @Length(0, 1000, { message: '소개는 1000자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;
@@ -159,7 +159,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 200, { message: '유튜브 링크는 200자 이하여야 합니다.' })
+  @Length(0, 500, { message: '유튜브 링크는 500자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;
@@ -175,7 +175,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 200, { message: '인스타그램 링크는 200자 이하여야 합니다.' })
+  @Length(0, 500, { message: '인스타그램 링크는 500자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;
@@ -191,7 +191,7 @@ export class EditUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(0, 200, { message: '페이스북 링크는 200자 이하여야 합니다.' })
+  @Length(0, 500, { message: '페이스북 링크는 500자 이하여야 합니다.' })
   @Transform(({ value }) => {
     if (!value || value.trim() === '') {
       return null;

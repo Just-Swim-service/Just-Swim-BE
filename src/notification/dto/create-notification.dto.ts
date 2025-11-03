@@ -34,6 +34,8 @@ export class CreateNotificationDto {
   })
   @IsString()
   @IsNotEmpty()
+  @Length(1, 200, { message: '알림 제목은 1-200자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   notificationTitle: string;
 
   @ApiProperty({
@@ -42,6 +44,8 @@ export class CreateNotificationDto {
   })
   @IsString()
   @IsNotEmpty()
+  @Length(1, 1000, { message: '알림 내용은 1-1000자 사이여야 합니다.' })
+  @Transform(({ value }) => value?.trim())
   notificationContent: string;
 
   @ApiProperty({

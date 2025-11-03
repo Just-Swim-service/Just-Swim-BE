@@ -1,9 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsEnum } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsEnum,
+  Length,
+} from 'class-validator';
 
 export class CreateFeedbackImageDto {
   @ApiProperty({ example: 'test.jpg', description: '파일 이름' })
   @IsString()
+  @Length(1, 255, { message: '파일명은 1-255자 사이여야 합니다.' })
   fileName: string;
 
   @ApiProperty({

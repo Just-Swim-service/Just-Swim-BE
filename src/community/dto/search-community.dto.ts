@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsEnum,
   Min,
+  Length,
 } from 'class-validator';
 import { CategoryType } from '../enum/category-type.enum';
 
@@ -18,6 +19,7 @@ export class SearchCommunityDto {
   })
   @IsOptional()
   @IsString()
+  @Length(1, 200, { message: '검색어는 1-200자 사이여야 합니다.' })
   query?: string;
 
   @ApiProperty({

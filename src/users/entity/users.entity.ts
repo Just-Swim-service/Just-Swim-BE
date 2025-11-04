@@ -12,6 +12,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { UserType } from '../enum/user-type.enum';
 import { WithdrawalReason } from 'src/withdrawal-reason/entity/withdrawal-reason.entity';
@@ -23,6 +24,10 @@ import { CommunityBookmark } from 'src/community/entity/community-bookmark.entit
 import { CommentLike } from 'src/community/entity/comment-like.entity';
 
 @Entity('users')
+@Index('idx_users_email', ['email'])
+@Index('idx_users_provider', ['provider'])
+@Index('idx_users_userType', ['userType'])
+@Index('idx_users_email_provider', ['email', 'provider'])
 export class Users {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   userId: number;

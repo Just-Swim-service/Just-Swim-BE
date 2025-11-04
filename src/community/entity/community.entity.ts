@@ -10,6 +10,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 import { CommunityComment } from './community-comment.entity';
 import { CommunityLike } from './community-like.entity';
@@ -18,6 +19,12 @@ import { CommunityTag } from './community-tag.entity';
 import { CategoryType } from '../enum/category-type.enum';
 
 @Entity('community')
+@Index('idx_community_userId', ['user'])
+@Index('idx_community_category', ['category'])
+@Index('idx_community_createdAt', ['communityCreatedAt'])
+@Index('idx_community_viewCount', ['viewCount'])
+@Index('idx_community_likeCount', ['likeCount'])
+@Index('idx_community_category_createdAt', ['category', 'communityCreatedAt'])
 export class Community {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   communityId: number;

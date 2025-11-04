@@ -55,15 +55,69 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
+        // Node Environment
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test')
+          .default('development'),
+        
+        // Database Configuration
         DB_HOST: Joi.string().required(),
         DB_DATABASE: Joi.string().required(),
         DB_PORT: Joi.number().required(),
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
-        NODE_ENV: Joi.string()
-          .valid('development', 'production', 'test')
-          .default('development'),
+        
+        // JWT Secrets (보안상 최소 16자 권장, 32자 이상 강력 권장)
+        ACCESS_TOKEN_SECRET: Joi.string().required().min(16),
+        REFRESH_TOKEN_SECRET: Joi.string().required().min(16),
+        
+        // OAuth - Kakao
+        KAKAO_ID: Joi.string().required(),
+        KAKAO_CALLBACK_URL: Joi.string().optional(),
+        
+        // OAuth - Naver
+        NAVER_ID: Joi.string().required(),
+        NAVER_SECRET: Joi.string().required(),
+        NAVER_CALLBACK_URL: Joi.string().optional(),
+        
+        // OAuth - Google
+        GOOGLE_ID: Joi.string().required(),
+        GOOGLE_SECRET: Joi.string().required(),
+        GOOGLE_CALLBACK_URL: Joi.string().optional(),
+        
+        // QR Code
+        SERVER_QR_CHECK_URI: Joi.string().uri().required(),
+        
+        // Redirect URIs
+        SELECT_USERTYPE_REDIRECT_URI: Joi.string().uri().required(),
+        SELECT_USERTYPE_PROD_REDIRECT_URI: Joi.string().uri().required(),
+        HOME_REDIRECT_URI: Joi.string().uri().required(),
+        SINGIN_REDIRECT_URI: Joi.string().uri().optional(),
+        
+        // AWS Configuration
+        AWS_REGION: Joi.string().required(),
+        AWS_S3_ACCESS_KEY: Joi.string().required(),
+        AWS_S3_SECRET_ACCESS_KEY: Joi.string().required(),
+        AWS_S3_BUCKET_NAME: Joi.string().required(),
+        
+        // CloudWatch (Optional)
+        CLOUDWATCH_LOG_GROUP: Joi.string().optional(),
+        CLOUDWATCH_LOG_STREAM: Joi.string().optional(),
+        
+        // Test DB (Optional)
+        TEST_DB_HOST: Joi.string().optional(),
+        TEST_DB_DATABASE: Joi.string().optional(),
+        TEST_DB_PORT: Joi.number().optional(),
+        TEST_DB_USERNAME: Joi.string().optional(),
+        TEST_DB_PASSWORD: Joi.string().optional(),
+        
+        // Additional URLs
+        NEXT_PUBLIC_API_URL: Joi.string().optional(),
       }),
+      validationOptions: {
+        abortEarly: false, // 모든 검증 오류를 한 번에 표시
+        allowUnknown: true, // 스키마에 없는 환경변수 허용
+      },
     }),
     // db 설정
     TypeOrmModule.forRootAsync({

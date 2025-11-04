@@ -11,9 +11,13 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity('member')
+@Index('idx_member_userId', ['user'])
+@Index('idx_member_lectureId', ['lecture'])
+@Index('idx_member_userId_lectureId', ['user', 'lecture'])
 export class Member {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   memberId: number;

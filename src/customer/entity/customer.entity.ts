@@ -7,9 +7,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity('customer')
+@Index('idx_customer_userId', ['user'])
 export class Customer {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   customerId: number;

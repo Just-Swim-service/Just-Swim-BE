@@ -124,6 +124,9 @@
       "src/.*\\.interface\\.ts",
       "src/.*\\.constant\\.ts",
       "src/.*\\.strategy\\.ts"
+    ],
+    "setupFiles": [
+      "<rootDir>/../test/setup-env.ts"
     ]
   }
 }

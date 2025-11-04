@@ -9,12 +9,17 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { FeedbackTarget } from './feedback-target.entity';
 import { Image } from 'src/image/entity/image.entity';
 import { FeedbackType } from '../enum/feedback-type.enum';
 
 @Entity('feedback')
+@Index('idx_feedback_userId', ['user'])
+@Index('idx_feedback_feedbackDate', ['feedbackDate'])
+@Index('idx_feedback_feedbackType', ['feedbackType'])
+@Index('idx_feedback_userId_feedbackDate', ['user', 'feedbackDate'])
 export class Feedback {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   feedbackId: number;

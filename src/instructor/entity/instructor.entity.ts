@@ -8,9 +8,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity('instructor')
+@Index('idx_instructor_userId', ['user'])
 export class Instructor {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   instructorId: number;

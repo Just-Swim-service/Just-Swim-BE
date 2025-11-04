@@ -11,9 +11,13 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 
 @Entity('lecture')
+@Index('idx_lecture_userId', ['user'])
+@Index('idx_lecture_lectureEndDate', ['lectureEndDate'])
+@Index('idx_lecture_lectureDays', ['lectureDays'])
 export class Lecture {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   lectureId: number;

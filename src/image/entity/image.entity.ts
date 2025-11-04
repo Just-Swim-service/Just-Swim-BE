@@ -8,9 +8,12 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity('image')
+@Index('idx_image_feedbackId', ['feedback'])
+@Index('idx_image_communityId', ['community'])
 export class Image {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   imageId: number;

@@ -22,7 +22,7 @@ export class StatisticsController {
     private readonly responseService: ResponseService,
   ) {}
 
-  @Get('student/dashboard')
+  @Get('customer/dashboard')
   @ApiBearerAuth()
   @ApiOperation({
     summary: '수강생 대시보드 조회',
@@ -36,7 +36,7 @@ export class StatisticsController {
   })
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 500, description: '서버 오류' })
-  async getStudentDashboard(@Res() res: Response) {
+  async getCustomerDashboard(@Res() res: Response) {
     const { userId } = res.locals.user;
     const data = await this.statisticsService.getStudentDashboard(userId);
     return this.responseService.success(

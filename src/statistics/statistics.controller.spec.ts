@@ -157,7 +157,7 @@ describe('StatisticsController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('getStudentDashboard', () => {
+  describe('getCustomerDashboard', () => {
     it('수강생 대시보드를 정상적으로 반환해야 함', async () => {
       const res = {
         locals: { user: { userId: 1 } },
@@ -169,7 +169,7 @@ describe('StatisticsController', () => {
         mockStudentDashboard,
       );
 
-      await controller.getStudentDashboard(res);
+      await controller.getCustomerDashboard(res);
 
       expect(service.getStudentDashboard).toHaveBeenCalledWith(1);
       expect(responseService.success).toHaveBeenCalledWith(
@@ -190,7 +190,7 @@ describe('StatisticsController', () => {
         mockStudentDashboard,
       );
 
-      await controller.getStudentDashboard(res);
+      await controller.getCustomerDashboard(res);
 
       expect(service.getStudentDashboard).toHaveBeenCalledWith(123);
     });

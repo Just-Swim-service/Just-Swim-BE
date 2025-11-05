@@ -23,6 +23,7 @@ import { NotificationModule } from './notification/notification.module';
 import { CommunityModule } from './community/community.module';
 import { SearchModule } from './common/search/search.module';
 import { SecurityGuard } from './common/guards/security.guard';
+import { StatisticsModule } from './statistics/statistics.module';
 import * as Joi from 'joi';
 import { envVariables } from './common/const/env.const';
 import { AuthGuard } from './auth/guard/auth.guard';
@@ -167,6 +168,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     SearchModule,
     HealthModule,
     MetricsModule,
+    StatisticsModule,
   ],
   providers: [
     JwtService,

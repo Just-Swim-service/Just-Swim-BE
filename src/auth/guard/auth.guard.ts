@@ -115,6 +115,19 @@ export class AuthGuard implements CanActivate {
         throw new NotFoundException('회원 정보가 없습니다.');
       }
 
+      // 탈퇴한 사용자 체크
+      if (user.userDeletedAt) {
+        this.securityLogger.logAuthenticationFailure(
+          request,
+          'Deleted user attempted access',
+          {
+            userId: payload.userId,
+            deletedAt: user.userDeletedAt,
+          },
+        );
+        throw new UnauthorizedException('탈퇴한 회원입니다.');
+      }
+
       // 사용자 타입 일치 검증
       if (payload.userType !== user.userType) {
         this.securityLogger.logAuthenticationFailure(

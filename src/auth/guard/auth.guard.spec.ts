@@ -232,6 +232,34 @@ describe('AuthGuard', () => {
     );
   });
 
+  it('should throw UnauthorizedException if user has been deleted', async () => {
+    mockRequest.headers = { authorization: 'Bearer validtoken' };
+    const mockDeletedUser = {
+      userId: 1,
+      userType: 'instructor',
+      userDeletedAt: new Date('2024-01-01'),
+    };
+    const mockPayload = {
+      userId: 1,
+      userType: 'instructor',
+      email: 'test@example.com',
+      iss: 'https://api.just-swim.kr',
+      aud: 'https://just-swim.kr',
+      jti: 'test-jti',
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
+    (usersService.findUserByPk as jest.Mock).mockResolvedValue(mockDeletedUser);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      '탈퇴한 회원입니다.',
+    );
+  });
+
   it('should throw UnauthorizedException if user type does not match', async () => {
     mockRequest.headers = { authorization: 'Bearer validtoken' };
     const mockUser = { userId: 1, userType: 'customer' };

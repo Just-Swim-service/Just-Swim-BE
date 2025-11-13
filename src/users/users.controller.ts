@@ -634,13 +634,10 @@ export class UsersController {
   ) {
     const { userId } = res.locals.user;
 
-    // 1. 회원 탈퇴 처리
+    // 1. 회원 탈퇴 처리 (개인정보 삭제, refreshToken 제거, 탈퇴 사유 기록)
     await this.usersService.withdrawUser(userId, createWithdrawalReasonDto);
 
-    // 2. 데이터베이스에서 refreshToken을 null로 처리
-    await this.usersService.removeRefreshToken(userId);
-
-    // 3. authorization과 refreshToken 쿠키 모두 삭제 - 설정 시와 동일한 옵션 사용
+    // 2. authorization과 refreshToken 쿠키 모두 삭제 - 설정 시와 동일한 옵션 사용
     res.clearCookie('authorization', {
       httpOnly: true,
       secure: true,

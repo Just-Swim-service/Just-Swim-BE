@@ -189,16 +189,47 @@ describe('UsersRepository', () => {
       withdrawalReasonContent: '더 이상 사용하지 않음',
     };
 
+    const mockInsert = jest.fn();
+    const mockUpdate = jest.fn();
+
     const mockTransaction = jest.fn(async (callback: any) => {
       return await callback({
-        update: jest.fn(),
-        insert: jest.fn(),
+        insert: mockInsert,
+        update: mockUpdate,
       });
     });
 
     repo.manager.transaction = mockTransaction;
 
     await usersRepository.withdrawUser(1, dto);
+    
+    // 트랜잭션이 호출되었는지 확인
     expect(mockTransaction).toHaveBeenCalled();
+    
+    // WithdrawalReason insert가 먼저 호출되었는지 확인
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        user: { userId: 1 },
+        withdrawalReasonContent: '더 이상 사용하지 않음',
+      }),
+    );
+    
+    // Users update가 호출되었는지 확인 (refreshToken null 포함)
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.anything(),
+      { userId: 1 },
+      expect.objectContaining({
+        email: null,
+        userType: null,
+        provider: null,
+        name: null,
+        profileImage: null,
+        birth: null,
+        phoneNumber: null,
+        refreshToken: null,
+        userDeletedAt: expect.any(Date),
+      }),
+    );
   });
 });

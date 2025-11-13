@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -13,7 +14,10 @@ export class WithdrawalReason {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   withdrawalReasonId: number;
 
-  @ManyToOne(() => Users, (user) => user.withdrawalReason)
+  @ManyToOne(() => Users, (user) => user.withdrawalReason, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userId' })
   user: Users;
 
   @Column({ type: 'varchar', nullable: true })

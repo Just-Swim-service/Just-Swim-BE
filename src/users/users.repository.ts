@@ -118,6 +118,13 @@ export class UsersRepository {
 
     await this.usersRepository.manager.transaction(
       async (entityManager: EntityManager) => {
+        // 1. WithdrawalReason을 먼저 삽입 (Users 정보가 아직 null이 아닌 상태에서)
+        await entityManager.insert(WithdrawalReason, {
+          user: { userId },
+          withdrawalReasonContent,
+        });
+
+        // 2. Users의 개인정보를 null로 처리 (콘텐츠는 보존됨)
         await entityManager.update(
           Users,
           { userId },
@@ -129,14 +136,10 @@ export class UsersRepository {
             profileImage: null,
             birth: null,
             phoneNumber: null,
+            refreshToken: null, // refreshToken도 함께 처리
             userDeletedAt: new Date(),
           },
         );
-
-        await entityManager.insert(WithdrawalReason, {
-          user: { userId },
-          withdrawalReasonContent,
-        });
       },
     );
   }

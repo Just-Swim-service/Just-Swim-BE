@@ -164,7 +164,7 @@ describe('UsersController', () => {
   });
 
   describe('withdrawUser', () => {
-    it('회원 탈퇴 처리, refreshToken null 처리 및 쿠키 삭제', async () => {
+    it('회원 탈퇴 처리 및 쿠키 삭제', async () => {
       const withdrawalReasonDto: CreateWithdrawalReasonDto = {
         withdrawalReasonContent: '기능이 유용하지 않아요.',
       };
@@ -178,16 +178,13 @@ describe('UsersController', () => {
 
       await controller.withdrawUser(res as Response, withdrawalReasonDto);
 
-      // 1. 회원 탈퇴 처리 확인
+      // 1. 회원 탈퇴 처리 확인 (refreshToken도 함께 처리됨)
       expect(mockUsersService.withdrawUser).toHaveBeenCalledWith(
         1,
         withdrawalReasonDto,
       );
 
-      // 2. 데이터베이스에서 refreshToken null 처리 확인
-      expect(mockUsersService.removeRefreshToken).toHaveBeenCalledWith(1);
-
-      // 3. authorization 쿠키 삭제 확인
+      // 2. authorization 쿠키 삭제 확인
       expect(res.clearCookie).toHaveBeenCalledWith('authorization', {
         httpOnly: true,
         secure: true,
@@ -197,7 +194,7 @@ describe('UsersController', () => {
         expires: new Date(0), // maxAge 대신 expires 사용
       });
 
-      // 4. refreshToken 쿠키 삭제 확인
+      // 3. refreshToken 쿠키 삭제 확인
       expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', {
         httpOnly: true,
         secure: true,

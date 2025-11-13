@@ -16,6 +16,7 @@ class MockLectureService {
   getScheduleLecturesByCustomer = jest.fn();
   getAllLecturesByCustomer = jest.fn();
   getLectureByPk = jest.fn();
+  getLecturePreview = jest.fn();
   updateLecture = jest.fn();
   softDeleteLecture = jest.fn();
   createLecture = jest.fn();
@@ -307,6 +308,39 @@ describe('LectureController', () => {
         res,
         '강의에 해당하는 수강생 목록 조회 성공',
         [mockMember],
+      );
+    });
+  });
+
+  describe('getLecturePreview', () => {
+    it('강의 미리보기 정보를 성공적으로 조회', async () => {
+      const res: Partial<Response> = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      const lectureId = 1;
+      const mockPreview = {
+        lectureId: 1,
+        lectureTitle: '수영 강습',
+        lectureContent: '초급 수영 강습입니다',
+        lectureTime: '14:00',
+        lectureDays: '월,수,금',
+        lectureLocation: '강남 수영장',
+        lectureEndDate: '2025-12-31',
+        instructorName: '김강사',
+        instructorProfileImage: 'https://example.com/profile.jpg',
+      };
+
+      lectureService.getLecturePreview.mockResolvedValue(mockPreview);
+
+      await controller.getLecturePreview(res as Response, lectureId);
+
+      expect(lectureService.getLecturePreview).toHaveBeenCalledWith(lectureId);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '강의 정보 조회 성공',
+        mockPreview,
       );
     });
   });

@@ -433,4 +433,117 @@ describe('LectureService', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('getLecturePreview', () => {
+    it('강의 미리보기 정보를 성공적으로 조회', async () => {
+      const lectureId = 1;
+      const mockLectureData = {
+        lectureId: 1,
+        lectureTitle: '수영 강습',
+        lectureContent: '초급 수영 강습입니다',
+        lectureTime: '14:00',
+        lectureDays: '월,수,금',
+        lectureLocation: '강남 수영장',
+        lectureEndDate: '2025-12-31',
+        lectureDeletedAt: null,
+        user: { userId: 1 },
+      };
+
+      const mockInstructor = {
+        userId: 1,
+        name: '김강사',
+        profileImage: 'https://example.com/profile.jpg',
+      };
+
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        mockLectureData,
+      );
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(
+        mockInstructor,
+      );
+
+      const result = await service.getLecturePreview(lectureId);
+
+      expect(result).toEqual({
+        lectureId: mockLectureData.lectureId,
+        lectureTitle: mockLectureData.lectureTitle,
+        lectureContent: mockLectureData.lectureContent,
+        lectureTime: mockLectureData.lectureTime,
+        lectureDays: mockLectureData.lectureDays,
+        lectureLocation: mockLectureData.lectureLocation,
+        lectureEndDate: mockLectureData.lectureEndDate,
+        instructorName: mockInstructor.name,
+        instructorProfileImage: mockInstructor.profileImage,
+      });
+    });
+
+    it('존재하지 않는 강의는 NotFoundException을 throw', async () => {
+      const lectureId = 999;
+
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        null,
+      );
+
+      await expect(service.getLecturePreview(lectureId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.getLecturePreview(lectureId)).rejects.toThrow(
+        '존재하지 않는 강의입니다.',
+      );
+    });
+
+    it('삭제된 강의는 BadRequestException을 throw', async () => {
+      const lectureId = 1;
+      const mockDeletedLecture = {
+        lectureId: 1,
+        lectureDeletedAt: new Date(),
+      };
+
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        mockDeletedLecture,
+      );
+
+      await expect(service.getLecturePreview(lectureId)).rejects.toThrow(
+        '삭제된 강의입니다.',
+      );
+    });
+
+    it('종료된 강의는 BadRequestException을 throw', async () => {
+      const lectureId = 1;
+      const mockEndedLecture = {
+        lectureId: 1,
+        lectureDeletedAt: null,
+        lectureEndDate: '2020-01-01', // 과거 날짜
+        user: { userId: 1 },
+      };
+
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        mockEndedLecture,
+      );
+
+      await expect(service.getLecturePreview(lectureId)).rejects.toThrow(
+        '종료된 강의입니다.',
+      );
+    });
+
+    it('강사 정보가 없으면 NotFoundException을 throw', async () => {
+      const lectureId = 1;
+      const mockLectureData = {
+        lectureId: 1,
+        lectureTitle: '수영 강습',
+        lectureDeletedAt: null,
+        lectureEndDate: '2025-12-31',
+        user: { userId: 999 },
+      };
+
+      (lectureRepository.getLectureForAuth as jest.Mock).mockResolvedValue(
+        mockLectureData,
+      );
+      (usersService.findUserByPk as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.getLecturePreview(lectureId)).rejects.toThrow(
+        '강사 정보를 찾을 수 없습니다.',
+      );
+    });
+  });
 });

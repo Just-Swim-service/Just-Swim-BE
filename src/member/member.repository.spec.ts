@@ -32,9 +32,21 @@ describe('MemberRepository', () => {
   });
 
   it('should insert member from QR', async () => {
+    const mockLecture = {
+      lectureId: 10,
+      lectureTitle: '수영 강습',
+      lectureDeletedAt: null,
+      lectureEndDate: '2025-12-31',
+    };
+
+    const mockFindOne = jest
+      .fn()
+      .mockResolvedValueOnce(mockLecture) // 첫 번째 호출: 강의 조회
+      .mockResolvedValueOnce(null); // 두 번째 호출: 중복 회원 체크
+
     const mockTransaction = jest.fn(async (callback: any) =>
       callback({
-        findOne: jest.fn().mockResolvedValue(null),
+        findOne: mockFindOne,
         create: jest.fn().mockReturnValue({ memberId: 1 }),
         save: jest.fn().mockResolvedValue({ memberId: 1 }),
       }),
@@ -45,6 +57,74 @@ describe('MemberRepository', () => {
     const result = await memberRepository.insertMemberFromQR(1, 'nickname', 10);
     expect(result).toEqual({ memberId: 1 });
     expect(mockTransaction).toHaveBeenCalled();
+    expect(mockFindOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throw NotFoundException when lecture does not exist', async () => {
+    const mockTransaction = jest.fn(async (callback: any) =>
+      callback({
+        findOne: jest.fn().mockResolvedValue(null), // 강의가 없음
+      }),
+    );
+
+    repo.manager.transaction = mockTransaction;
+
+    await expect(
+      memberRepository.insertMemberFromQR(1, 'nickname', 999),
+    ).rejects.toThrow('존재하지 않거나 삭제된 강의입니다.');
+  });
+
+  it('should throw BadRequestException when lecture has ended', async () => {
+    const mockLecture = {
+      lectureId: 10,
+      lectureTitle: '수영 강습',
+      lectureDeletedAt: null,
+      lectureEndDate: '2020-01-01', // 종료된 강의
+    };
+
+    const mockTransaction = jest.fn(async (callback: any) =>
+      callback({
+        findOne: jest.fn().mockResolvedValue(mockLecture),
+      }),
+    );
+
+    repo.manager.transaction = mockTransaction;
+
+    await expect(
+      memberRepository.insertMemberFromQR(1, 'nickname', 10),
+    ).rejects.toThrow('종료된 강의입니다.');
+  });
+
+  it('should throw ConflictException when member already exists', async () => {
+    const mockLecture = {
+      lectureId: 10,
+      lectureTitle: '수영 강습',
+      lectureDeletedAt: null,
+      lectureEndDate: '2025-12-31',
+    };
+
+    const mockExistingMember = {
+      memberId: 1,
+      userId: 1,
+      lectureId: 10,
+    };
+
+    const mockFindOne = jest
+      .fn()
+      .mockResolvedValueOnce(mockLecture) // 첫 번째 호출: 강의 조회
+      .mockResolvedValueOnce(mockExistingMember); // 두 번째 호출: 이미 등록된 회원
+
+    const mockTransaction = jest.fn(async (callback: any) =>
+      callback({
+        findOne: mockFindOne,
+      }),
+    );
+
+    repo.manager.transaction = mockTransaction;
+
+    await expect(
+      memberRepository.insertMemberFromQR(1, 'nickname', 10),
+    ).rejects.toThrow('이미 등록된 수업입니다.');
   });
 
   it('should get all members by lecture ID', async () => {

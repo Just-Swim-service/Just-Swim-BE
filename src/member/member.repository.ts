@@ -1,6 +1,12 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entity/member.entity';
+import { Lecture } from 'src/lecture/entity/lecture.entity';
 import { EntityManager, Repository } from 'typeorm';
 
 @Injectable()
@@ -18,6 +24,27 @@ export class MemberRepository {
   ): Promise<Member> {
     return await this.memberRepository.manager.transaction(
       async (entityManager: EntityManager) => {
+        // 1. 강의 존재 및 유효성 검증
+        const lecture = await entityManager.findOne(Lecture, {
+          where: { lectureId, lectureDeletedAt: null },
+        });
+
+        if (!lecture) {
+          throw new NotFoundException('존재하지 않거나 삭제된 강의입니다.');
+        }
+
+        // 2. 강의 종료일 검증
+        if (lecture.lectureEndDate) {
+          const endDate = new Date(lecture.lectureEndDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (endDate < today) {
+            throw new BadRequestException('종료된 강의입니다.');
+          }
+        }
+
+        // 3. 중복 등록 체크
         const exsitingMember = await entityManager.findOne(Member, {
           where: {
             user: { userId },
@@ -30,6 +57,7 @@ export class MemberRepository {
           throw new ConflictException('이미 등록된 수업입니다.');
         }
 
+        // 4. 회원 등록
         const newMember = entityManager.create(Member, {
           user: { userId },
           memberNickname: name,

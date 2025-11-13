@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Lecture } from './entity/lecture.entity';
 import { LectureRepository } from './lecture.repository';
@@ -13,6 +14,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { InstructorLectureDto } from './dto/instructor-lecture.dto';
 import { CustomerLectureDto } from './dto/customer-lecture.dto';
 import { LectureDetailDto } from './dto/lecture-detail.dto';
+import { LecturePreviewDto } from './dto/lecture-preview.dto';
 import { UsersService } from 'src/users/users.service';
 import { MemberRepository } from 'src/member/member.repository';
 
@@ -339,5 +341,48 @@ export class LectureService {
     } catch (error) {
       return false;
     }
+  }
+
+  // 강의 미리보기 (QR 스캔 시 사용)
+  async getLecturePreview(lectureId: number): Promise<LecturePreviewDto> {
+    const lecture =
+      await this.lectureRepository.getLectureForAuth(lectureId);
+
+    if (!lecture) {
+      throw new NotFoundException('존재하지 않는 강의입니다.');
+    }
+
+    if (lecture.lectureDeletedAt) {
+      throw new BadRequestException('삭제된 강의입니다.');
+    }
+
+    // 강의 종료일 검증
+    if (lecture.lectureEndDate) {
+      const endDate = new Date(lecture.lectureEndDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (endDate < today) {
+        throw new BadRequestException('종료된 강의입니다.');
+      }
+    }
+
+    // 강사 정보 조회
+    const instructor = await this.usersService.findUserByPk(lecture.user.userId);
+    if (!instructor) {
+      throw new NotFoundException('강사 정보를 찾을 수 없습니다.');
+    }
+
+    return {
+      lectureId: lecture.lectureId,
+      lectureTitle: lecture.lectureTitle,
+      lectureContent: lecture.lectureContent,
+      lectureTime: lecture.lectureTime,
+      lectureDays: lecture.lectureDays,
+      lectureLocation: lecture.lectureLocation,
+      lectureEndDate: lecture.lectureEndDate,
+      instructorName: instructor.name,
+      instructorProfileImage: instructor.profileImage,
+    };
   }
 }

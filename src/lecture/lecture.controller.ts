@@ -130,6 +130,39 @@ export class LectureController {
     }
   }
 
+  /* 강의 미리보기 (QR 스캔 시 사용) */
+  @Get(':lectureId/preview')
+  @ApiOperation({
+    summary: '강의 미리보기',
+    description: 'QR 스캔 후 등록 전 강의 정보를 미리 확인합니다.',
+  })
+  @ApiParam({
+    name: 'lectureId',
+    description: '강의 ID',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '강의 정보 조회 성공',
+    type: Object,
+  })
+  @ApiResponse({ status: 400, description: '잘못된 요청 (삭제/종료된 강의)' })
+  @ApiResponse({ status: 404, description: '강의를 찾을 수 없음' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async getLecturePreview(
+    @Res() res: Response,
+    @Param('lectureId', ParseIntPipe) lectureId: number,
+  ) {
+    const lecturePreview =
+      await this.lectureService.getLecturePreview(lectureId);
+
+    return this.responseService.success(
+      res,
+      '강의 정보 조회 성공',
+      lecturePreview,
+    );
+  }
+
   /* 강의 상세 조회 */
   @Get(':lectureId')
   @UseGuards(LectureOwnershipGuard)

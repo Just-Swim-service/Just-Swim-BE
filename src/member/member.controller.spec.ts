@@ -11,6 +11,7 @@ import { MyLogger } from 'src/common/logger/logger.service';
 
 class MockMemberService {
   insertMemberFromQR = jest.fn();
+  insertMemberFromQrToken = jest.fn();
   getAllMembersByFeedback = jest.fn();
   getMemberInfo = jest.fn();
 }
@@ -31,6 +32,7 @@ class MockResponseService {
   conflict = jest.fn();
   forbidden = jest.fn();
   internalServerError = jest.fn();
+  badRequest = jest.fn();
 }
 
 describe('MemberController', () => {
@@ -89,7 +91,7 @@ describe('MemberController', () => {
         redirect: redirectMock,
       };
 
-      await controller.insertMemberFromQR(1, res as Response);
+      await controller.insertMemberFromQR(undefined, undefined, res as Response);
 
       expect(responseService.unauthorized).toHaveBeenCalledWith(
         res,
@@ -108,7 +110,7 @@ describe('MemberController', () => {
         redirect: jest.fn(),
       };
 
-      await controller.insertMemberFromQR(1, res as Response);
+      await controller.insertMemberFromQR(undefined, undefined, res as Response);
       expect(responseService.unauthorized).toHaveBeenCalledWith(
         res,
         'userType 선택 후 사용해주세요.',
@@ -125,7 +127,7 @@ describe('MemberController', () => {
         },
       };
 
-      await controller.insertMemberFromQR(1, res as Response);
+      await controller.insertMemberFromQR(undefined, undefined, res as Response);
 
       expect(responseService.unauthorized).toHaveBeenCalledWith(
         res,
@@ -133,7 +135,7 @@ describe('MemberController', () => {
       );
     });
 
-    it('userType이 customer일 경우 insertMemberFromQR 호출 및 HOME_REDIRECT_URI로 리디렉션', async () => {
+    it('토큰이 있을 경우 insertMemberFromQrToken 호출', async () => {
       const res: Partial<Response> = {
         locals: {
           user: {
@@ -145,7 +147,38 @@ describe('MemberController', () => {
         redirect: jest.fn(),
       };
 
-      await controller.insertMemberFromQR(1, res as Response);
+      const token = 'mock-qr-token';
+      memberService.insertMemberFromQrToken.mockResolvedValue(mockMember);
+
+      await controller.insertMemberFromQR(token, undefined, res as Response);
+
+      expect(memberService.insertMemberFromQrToken).toHaveBeenCalledWith(
+        1,
+        'nickname',
+        token,
+      );
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        '회원 등록 완료',
+      );
+    });
+
+    it('lectureId가 있을 경우 insertMemberFromQR 호출 (하위 호환성)', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            name: 'nickname',
+            userType: 'customer',
+          },
+        },
+        redirect: jest.fn(),
+      };
+
+      const lectureId = '1';
+      memberService.insertMemberFromQR.mockResolvedValue(mockMember);
+
+      await controller.insertMemberFromQR(undefined, lectureId, res as Response);
 
       expect(memberService.insertMemberFromQR).toHaveBeenCalledWith(
         1,
@@ -158,6 +191,26 @@ describe('MemberController', () => {
       );
     });
 
+    it('토큰과 lectureId가 모두 없으면 badRequest 반환', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            name: 'nickname',
+            userType: 'customer',
+          },
+        },
+        redirect: jest.fn(),
+      };
+
+      await controller.insertMemberFromQR(undefined, undefined, res as Response);
+
+      expect(responseService.badRequest).toHaveBeenCalledWith(
+        res,
+        'QR 토큰 또는 강의 ID가 필요합니다.',
+      );
+    });
+
     it('에러 발생 시 internalServerError 호출', async () => {
       const res = {
         locals: { user: { userId: 1, userType: 'customer' } },
@@ -167,7 +220,7 @@ describe('MemberController', () => {
         new Error('Test Error'),
       );
 
-      await controller.insertMemberFromQR(1, res);
+      await controller.insertMemberFromQR(undefined, '1', res);
 
       expect(responseService.internalServerError).toHaveBeenCalledWith(
         res,

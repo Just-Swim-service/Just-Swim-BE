@@ -166,7 +166,7 @@ export class LectureRepository {
       lectureDays: createLectureDto.lectureDays,
       lectureColor: createLectureDto.lectureColor,
       lectureLocation: createLectureDto.lectureLocation,
-      lectureQRCode: createLectureDto.lectureQRCode,
+      lectureQRCode: null, // 동적 생성 방식으로 변경: 더 이상 저장하지 않음
       lectureEndDate: createLectureDto.lectureEndDate,
     });
 

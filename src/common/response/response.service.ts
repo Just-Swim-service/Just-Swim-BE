@@ -41,6 +41,10 @@ export class ResponseService {
     return this.error(res, message, 403);
   }
 
+  badRequest(res: Response, message: string) {
+    return this.error(res, message, 400);
+  }
+
   internalServerError(res: Response, message: string, errors: any = null) {
     return this.error(res, message, 500, errors);
   }

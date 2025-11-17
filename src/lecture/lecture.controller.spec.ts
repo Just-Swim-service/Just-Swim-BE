@@ -17,9 +17,11 @@ class MockLectureService {
   getAllLecturesByCustomer = jest.fn();
   getLectureByPk = jest.fn();
   getLecturePreview = jest.fn();
+  getLecturePreviewByToken = jest.fn();
   updateLecture = jest.fn();
   softDeleteLecture = jest.fn();
   createLecture = jest.fn();
+  generateQRCode = jest.fn();
 }
 
 class MockMemberService {
@@ -341,6 +343,65 @@ describe('LectureController', () => {
         res,
         '강의 정보 조회 성공',
         mockPreview,
+      );
+    });
+  });
+
+  describe('generateQRCode', () => {
+    it('QR 코드를 동적으로 생성하여 반환', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'instructor',
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      const lectureId = 1;
+      const mockLecture = {
+        lectureId: 1,
+        lectureTitle: '수영 강습',
+      };
+      const mockQRCodeData = 'data:image/png;base64,mock-qr-code-data';
+
+      lectureService.getLectureByPk.mockResolvedValue(mockLecture);
+      lectureService.generateQRCode.mockResolvedValue(mockQRCodeData);
+
+      await controller.generateQRCode(res as Response, lectureId);
+
+      expect(lectureService.getLectureByPk).toHaveBeenCalledWith(1, lectureId);
+      expect(lectureService.generateQRCode).toHaveBeenCalledWith(lectureId);
+      expect(responseService.success).toHaveBeenCalledWith(
+        res,
+        'QR 코드 생성 성공',
+        { qrCode: mockQRCodeData },
+      );
+    });
+
+    it('강의 접근 권한이 없으면 unauthorized 반환', async () => {
+      const res: Partial<Response> = {
+        locals: {
+          user: {
+            userId: 1,
+            userType: 'instructor',
+          },
+        },
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      };
+
+      const lectureId = 1;
+
+      lectureService.getLectureByPk.mockResolvedValue(null);
+
+      await controller.generateQRCode(res as Response, lectureId);
+
+      expect(responseService.unauthorized).toHaveBeenCalledWith(
+        res,
+        '강의 접근 권한이 없습니다.',
       );
     });
   });

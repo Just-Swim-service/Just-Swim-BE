@@ -88,21 +88,8 @@ export class CreateLectureDto {
   @Transform(({ value }) => value?.trim())
   readonly lectureColor: string;
 
-  @ApiProperty({
-    example: 'QR 코드',
-    description: 'QR 코드 정보',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  @Length(0, 500, { message: 'QR 코드 정보는 500자 이하여야 합니다.' })
-  @Transform(({ value }) => {
-    if (!value || value.trim() === '') {
-      return null;
-    }
-    return value.trim();
-  })
-  readonly lectureQRCode: string;
+  // lectureQRCode 필드는 제거됨 (동적 생성 방식으로 변경)
+  // @deprecated - 더 이상 사용하지 않음. QR 코드는 동적으로 생성됩니다.
 
   @ApiProperty({
     example: '2024.05.31',

@@ -9,6 +9,8 @@ import {
   Param,
   UseGuards,
   ConflictException,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -33,21 +35,23 @@ export class MemberController {
     private readonly responseService: ResponseService,
   ) {}
 
-  /* QR코드를 통한 회원 등록 */
+  /* QR 토큰을 통한 회원 등록 */
   @SkipAuth()
   @UseGuards(RedirectAuthGuard)
   @Get('/qr-code')
   @ApiOperation({
     summary: '강의 QR코드를 통한 회원 등록',
-    description: 'QR 코드를 통해 고객들이 강의 member가 될 수 있습니다.',
+    description:
+      'QR 코드 토큰을 통해 고객들이 강의 member가 될 수 있습니다. 토큰은 QR 코드에 포함되어 있습니다.',
   })
   @ApiResponse({ status: 200, description: '회원 등록 완료' })
-  @ApiResponse({ status: 401, description: '수강생이 아닌 경우 등록 불가' })
+  @ApiResponse({ status: 401, description: '수강생이 아닌 경우 또는 유효하지 않은 토큰' })
   @ApiResponse({ status: 500, description: '서버 오류' })
   @ApiBearerAuth('accessToken')
   async insertMemberFromQR(
-    @Query('lectureId', ParseIntPipe) lectureId: number,
-    @Res() res: Response,
+    @Query('token') token?: string,
+    @Query('lectureId') lectureId?: string,
+    @Res() res?: Response,
   ) {
     try {
       const user = res.locals.user;
@@ -73,17 +77,41 @@ export class MemberController {
         );
       }
 
-      if (user.userType === 'customer') {
+      // 토큰이 있으면 토큰 방식, 없으면 기존 lectureId 방식 (하위 호환성)
+      if (token) {
+        await this.memberService.insertMemberFromQrToken(
+          parseInt(user.userId),
+          user.name,
+          token,
+        );
+      } else if (lectureId) {
+        // 기존 방식 (하위 호환성)
+        const parsedLectureId = parseInt(lectureId);
+        if (isNaN(parsedLectureId)) {
+          return this.responseService.badRequest(
+            res,
+            '유효하지 않은 강의 ID입니다.',
+          );
+        }
         await this.memberService.insertMemberFromQR(
           parseInt(user.userId),
           user.name,
-          lectureId,
+          parsedLectureId,
         );
-        return this.responseService.success(res, '회원 등록 완료');
+      } else {
+        return this.responseService.badRequest(
+          res,
+          'QR 토큰 또는 강의 ID가 필요합니다.',
+        );
       }
+
+      return this.responseService.success(res, '회원 등록 완료');
     } catch (error) {
       if (error instanceof ConflictException) {
         return this.responseService.conflict(res, error.message);
+      }
+      if (error instanceof UnauthorizedException) {
+        return this.responseService.unauthorized(res, error.message);
       }
       return this.responseService.internalServerError(
         res,

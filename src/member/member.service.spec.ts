@@ -6,18 +6,26 @@ import {
   mockMember,
   MockMemberRepository,
 } from 'src/common/mocks/mock-member.repository';
+import { LectureQrTokenService } from 'src/lecture/lecture-qr-token.service';
 
 describe('MemberService', () => {
   let service: MemberService;
   let repository: MemberRepository;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         MemberService,
         {
           provide: MemberRepository,
           useValue: MockMemberRepository,
+        },
+        {
+          provide: LectureQrTokenService,
+          useValue: {
+            verifyQrToken: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -35,9 +43,41 @@ describe('MemberService', () => {
   });
 
   describe('insertMemberFromQR', () => {
-    it('QR을 통해 수강생으로 등록', async () => {
+    it('QR을 통해 수강생으로 등록 (기존 lectureId 방식)', async () => {
       const result = await service.insertMemberFromQR(1, 'nickname', 1);
       expect(result).toEqual(mockMember);
+    });
+  });
+
+  describe('insertMemberFromQrToken', () => {
+    it('QR 토큰을 통해 수강생으로 등록', async () => {
+      const token = 'mock-qr-token';
+      const mockTokenPayload = {
+        lectureId: 1,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 86400,
+        jti: 'mock-jti',
+      };
+
+      const qrTokenService = module.get<LectureQrTokenService>(
+        LectureQrTokenService,
+      );
+      (qrTokenService.verifyQrToken as jest.Mock).mockResolvedValue(
+        mockTokenPayload,
+      );
+      (repository.insertMemberFromQR as jest.Mock).mockResolvedValue(
+        mockMember,
+      );
+
+      const result = await service.insertMemberFromQrToken(1, 'nickname', token);
+
+      expect(result).toEqual(mockMember);
+      expect(qrTokenService.verifyQrToken).toHaveBeenCalledWith(token);
+      expect(repository.insertMemberFromQR).toHaveBeenCalledWith(
+        1,
+        'nickname',
+        mockTokenPayload.lectureId,
+      );
     });
   });
 

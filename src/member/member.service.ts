@@ -7,12 +7,37 @@ import { MemberInfoDto } from './dto/member-info.dto';
 import { LectureInfoDto } from 'src/lecture/dto/lecture-info.dto';
 import { FeedbackInfoDto } from 'src/feedback/dto/feedback-info.dto';
 import { ImageDto } from 'src/image/dto/image-info.dto';
+import { LectureQrTokenService } from 'src/lecture/lecture-qr-token.service';
 
 @Injectable()
 export class MemberService {
-  constructor(private readonly memberRepository: MemberRepository) {}
+  constructor(
+    private readonly memberRepository: MemberRepository,
+    private readonly qrTokenService: LectureQrTokenService,
+  ) {}
 
-  /* QR코드를 통한 회원 등록 */
+  /* QR 토큰을 통한 회원 등록 */
+  async insertMemberFromQrToken(
+    userId: number,
+    name: string,
+    token: string,
+  ): Promise<Member> {
+    // 토큰 검증 및 lectureId 추출
+    const tokenPayload = await this.qrTokenService.verifyQrToken(token);
+    const lectureId = tokenPayload.lectureId;
+
+    const result = await this.memberRepository.insertMemberFromQR(
+      userId,
+      name,
+      lectureId,
+    );
+    if (!result) {
+      throw new NotFoundException('회원 등록에 실패했습니다.');
+    }
+    return result;
+  }
+
+  /* QR코드를 통한 회원 등록 (하위 호환성 - 기존 lectureId 방식) */
   async insertMemberFromQR(
     userId: number,
     name: string,

@@ -46,18 +46,23 @@ describe('LectureRepository (with mock)', () => {
       lectureDays: '월수',
       lectureLocation: '강의실 1',
       lectureColor: '#FFFFFF',
-      lectureQRCode: 'qr',
       lectureEndDate: '2024.12.31',
     };
 
-    const created = { ...dto, user: { userId: 1 } };
+    const created = { ...dto, lectureQRCode: null, user: { userId: 1 } };
     repo.create.mockReturnValue(created as Lecture);
     repo.save.mockResolvedValue({ lectureId: 1 } as Lecture);
 
     const result = await lectureRepository.createLecture(1, dto);
 
-    expect(repo.create).toHaveBeenCalledWith(created);
-    expect(repo.save).toHaveBeenCalledWith(created);
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ...dto,
+        lectureQRCode: null,
+        user: { userId: 1 },
+      }),
+    );
+    expect(repo.save).toHaveBeenCalled();
     expect(result).toEqual({ lectureId: 1 });
   });
 

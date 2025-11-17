@@ -71,6 +71,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
         // JWT Secrets (보안상 최소 16자 권장, 32자 이상 강력 권장)
         ACCESS_TOKEN_SECRET: Joi.string().required().min(16),
         REFRESH_TOKEN_SECRET: Joi.string().required().min(16),
+        QR_TOKEN_SECRET: Joi.string().required().min(16),
         
         // OAuth - Kakao
         KAKAO_ID: Joi.string().required(),

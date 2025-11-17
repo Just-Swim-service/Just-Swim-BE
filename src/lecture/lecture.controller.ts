@@ -10,6 +10,10 @@ import {
   HttpStatus,
   Patch,
   UseGuards,
+  Query,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { LectureService } from './lecture.service';
@@ -130,10 +134,78 @@ export class LectureController {
     }
   }
 
-  /* 강의 미리보기 (QR 스캔 시 사용) */
+  /* 강의 미리보기 (QR 토큰으로 조회) */
+  @Get('preview')
+  @ApiOperation({
+    summary: '강의 미리보기 (토큰)',
+    description:
+      'QR 토큰을 통해 강의 정보를 미리 확인합니다. 토큰이 우선적으로 사용됩니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '강의 정보 조회 성공',
+    type: Object,
+  })
+  @ApiResponse({ status: 400, description: '잘못된 요청 (삭제/종료된 강의)' })
+  @ApiResponse({ status: 401, description: '유효하지 않은 토큰' })
+  @ApiResponse({ status: 404, description: '강의를 찾을 수 없음' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  async getLecturePreviewByToken(
+    @Res() res: Response,
+    @Query('token') token?: string,
+    @Query('lectureId') lectureId?: string,
+  ) {
+    try {
+      let lecturePreview;
+
+      // 토큰이 있으면 토큰 방식, 없으면 기존 lectureId 방식 (하위 호환성)
+      if (token) {
+        lecturePreview =
+          await this.lectureService.getLecturePreviewByToken(token);
+      } else if (lectureId) {
+        const parsedLectureId = parseInt(lectureId);
+        if (isNaN(parsedLectureId)) {
+          return this.responseService.badRequest(
+            res,
+            '유효하지 않은 강의 ID입니다.',
+          );
+        }
+        lecturePreview = await this.lectureService.getLecturePreview(
+          parsedLectureId,
+        );
+      } else {
+        return this.responseService.badRequest(
+          res,
+          'QR 토큰 또는 강의 ID가 필요합니다.',
+        );
+      }
+
+      return this.responseService.success(
+        res,
+        '강의 정보 조회 성공',
+        lecturePreview,
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return this.responseService.notFound(res, error.message);
+      }
+      if (error instanceof BadRequestException) {
+        return this.responseService.badRequest(res, error.message);
+      }
+      if (error instanceof UnauthorizedException) {
+        return this.responseService.unauthorized(res, error.message);
+      }
+      return this.responseService.internalServerError(
+        res,
+        '강의 정보 조회 중 오류가 발생했습니다.',
+      );
+    }
+  }
+
+  /* 강의 미리보기 (QR 스캔 시 사용) - 하위 호환성 유지 */
   @Get(':lectureId/preview')
   @ApiOperation({
-    summary: '강의 미리보기',
+    summary: '강의 미리보기 (강의 ID)',
     description: 'QR 스캔 후 등록 전 강의 정보를 미리 확인합니다.',
   })
   @ApiParam({
@@ -221,6 +293,74 @@ export class LectureController {
     await this.lectureService.updateLecture(userId, lectureId, editLectureDto);
 
     return this.responseService.success(res, '강의 수정 성공');
+  }
+
+  /* QR 코드 동적 생성 */
+  @Get(':lectureId/qr-code')
+  @UseGuards(LectureOwnershipGuard, UserTypeGuard)
+  @RequireUserType([UserType.Instructor])
+  @ApiOperation({
+    summary: 'QR 코드 동적 생성',
+    description:
+      '강사가 요청할 때마다 새로운 토큰으로 QR 코드를 동적으로 생성합니다.',
+  })
+  @ApiParam({
+    name: 'lectureId',
+    type: 'number',
+    description: '강의 ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'QR 코드 생성 성공 (Base64 Data URL)',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+        data: {
+          type: 'object',
+          properties: {
+            qrCode: { type: 'string', description: 'Base64 Data URL' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '인증 실패' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
+  @ApiResponse({ status: 404, description: '강의를 찾을 수 없음' })
+  @ApiResponse({ status: 500, description: '서버 오류' })
+  @ApiBearerAuth('accessToken')
+  async generateQRCode(
+    @Res() res: Response,
+    @Param('lectureId', ParseIntPipe) lectureId: number,
+  ) {
+    const { userId } = res.locals.user;
+
+    // 권한 확인 (강사만 자신의 강의 QR 코드 생성 가능)
+    const lecture = await this.lectureService.getLectureByPk(userId, lectureId);
+    if (!lecture) {
+      return this.responseService.unauthorized(
+        res,
+        '강의 접근 권한이 없습니다.',
+      );
+    }
+
+    try {
+      const qrCodeData = await this.lectureService.generateQRCode(lectureId);
+
+      return this.responseService.success(res, 'QR 코드 생성 성공', {
+        qrCode: qrCodeData,
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return this.responseService.notFound(res, error.message);
+      }
+      return this.responseService.internalServerError(
+        res,
+        'QR 코드 생성 중 오류가 발생했습니다.',
+      );
+    }
   }
 
   /* 강의 삭제(소프트 삭제) */

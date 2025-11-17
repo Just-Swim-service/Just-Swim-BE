@@ -17,6 +17,7 @@ import { LectureDetailDto } from './dto/lecture-detail.dto';
 import { LecturePreviewDto } from './dto/lecture-preview.dto';
 import { UsersService } from 'src/users/users.service';
 import { MemberRepository } from 'src/member/member.repository';
+import { LectureQrTokenService } from './lecture-qr-token.service';
 
 @Injectable()
 export class LectureService {
@@ -25,6 +26,7 @@ export class LectureService {
     private readonly lectureRepository: LectureRepository,
     private readonly usersService: UsersService,
     private readonly memberRepository: MemberRepository,
+    private readonly qrTokenService: LectureQrTokenService,
   ) {}
 
   /* 강의 전체 조회 */
@@ -279,6 +281,9 @@ export class LectureService {
       throw new ForbiddenException('이 강의를 삭제할 수 있는 권한이 없습니다.');
     }
 
+    // QR 토큰 무효화
+    await this.qrTokenService.revokeQrTokensByLectureId(lectureId);
+
     await this.lectureRepository.softDeleteLecture(lectureId);
   }
 
@@ -287,31 +292,34 @@ export class LectureService {
     userId: number,
     createLectureDto: CreateLectureDto,
   ): Promise<Lecture> {
+    // 동적 생성 방식으로 변경: S3에 저장하지 않음
     const newLecture = await this.lectureRepository.createLecture(
       userId,
       createLectureDto,
     );
 
-    // QR 생성
-    try {
-      const qrCodeData = await QRCode.toDataURL(
-        // BE 주소
-        `${process.env.SERVER_QR_CHECK_URI}?lectureId=${newLecture.lectureId}`,
-      );
-      const lectureQRCode = await this.awsService.uploadQRCodeToS3(
-        newLecture.lectureId,
-        qrCodeData,
-      );
-
-      await this.saveQRCode(newLecture.lectureId, lectureQRCode);
-    } catch (error) {
-      throw new InternalServerErrorException('QR 코드 생성에 실패했습니다.');
-    }
-
     return newLecture;
   }
 
-  // 강의 QR 코드 생성
+  // QR 코드 동적 생성 (요청 시마다 새로운 토큰으로 생성)
+  async generateQRCode(lectureId: number): Promise<string> {
+    // 강의 존재 및 권한 확인
+    const lecture = await this.lectureRepository.getLectureForAuth(lectureId);
+    if (!lecture || lecture.lectureDeletedAt) {
+      throw new NotFoundException('존재하지 않거나 삭제된 강의입니다.');
+    }
+
+    // 새로운 QR 토큰 생성
+    const qrToken = await this.qrTokenService.generateQrToken(lectureId);
+
+    // QR 코드 생성 (Base64 Data URL로 반환)
+    const qrUrl = `${process.env.SERVER_QR_CHECK_URI}?token=${qrToken}`;
+    const qrCodeData = await QRCode.toDataURL(qrUrl);
+
+    return qrCodeData;
+  }
+
+  // 강의 QR 코드 생성 (하위 호환성 - 사용 안 함)
   async saveQRCode(lectureId: number, lectureQRCode: string): Promise<void> {
     await this.lectureRepository.saveQRCode(lectureId, lectureQRCode);
   }
@@ -343,7 +351,16 @@ export class LectureService {
     }
   }
 
-  // 강의 미리보기 (QR 스캔 시 사용)
+  // 강의 미리보기 (QR 토큰으로 조회)
+  async getLecturePreviewByToken(token: string): Promise<LecturePreviewDto> {
+    // 토큰 검증 및 lectureId 추출
+    const tokenPayload = await this.qrTokenService.verifyQrToken(token);
+    const lectureId = tokenPayload.lectureId;
+
+    return this.getLecturePreview(lectureId);
+  }
+
+  // 강의 미리보기 (QR 스캔 시 사용) - 기존 메서드 유지 (하위 호환성)
   async getLecturePreview(lectureId: number): Promise<LecturePreviewDto> {
     const lecture =
       await this.lectureRepository.getLectureForAuth(lectureId);

@@ -4,15 +4,19 @@ import { LectureService } from './lecture.service';
 import { LectureRepository } from './lecture.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Lecture } from './entity/lecture.entity';
+import { LectureQrToken } from './entity/lecture-qr-token.entity';
+import { LectureQrTokenService } from './lecture-qr-token.service';
 import { MemberModule } from 'src/member/member.module';
 import { AwsModule } from 'src/common/aws/aws.module';
 import { UsersModule } from 'src/users/users.module';
 import { LectureOwnershipGuard } from 'src/auth/guard/lecture-ownership.guard';
 import { UserTypeGuard } from 'src/auth/guard/user-type.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Lecture]),
+    TypeOrmModule.forFeature([Lecture, LectureQrToken]),
+    JwtModule.register({}),
     forwardRef(() => MemberModule),
     forwardRef(() => AwsModule),
     forwardRef(() => UsersModule),
@@ -21,9 +25,10 @@ import { UserTypeGuard } from 'src/auth/guard/user-type.guard';
   providers: [
     LectureService,
     LectureRepository,
+    LectureQrTokenService,
     LectureOwnershipGuard,
     UserTypeGuard,
   ],
-  exports: [LectureService, LectureRepository],
+  exports: [LectureService, LectureRepository, LectureQrTokenService],
 })
 export class LectureModule {}

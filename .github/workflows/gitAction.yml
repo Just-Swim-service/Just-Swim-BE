@@ -32,7 +32,9 @@ jobs:
           echo "GOOGLE_ID=$GOOGLE_ID" >> .env
           echo "GOOGLE_SECRET=$GOOGLE_SECRET" >> .env
           echo "GOOGLE_CALLBACK_URL=$GOOGLE_CALLBACK_URL" >> .env
-          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET" >> .env
+          echo "REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET" >> .env
+          echo "QR_TOKEN_SECRET=$QR_TOKEN_SECRET" >> .env
           echo "SERVER_QR_CHECK_URI=$SERVER_QR_CHECK_URI" >> .env
           echo "DB_HOST=$DB_HOST" >> .env
           echo "DB_DATABASE=$DB_DATABASE" >> .env 
@@ -59,6 +61,7 @@ jobs:
           GOOGLE_CALLBACK_URL: ${{secrets.GOOGLE_CALLBACK_URL}}
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
           REFRESH_TOKEN_SECRET: ${{secrets.REFRESH_TOKEN_SECRET}}
+          QR_TOKEN_SECRET: ${{secrets.QR_TOKEN_SECRET}}
           SERVER_QR_CHECK_URI: ${{secrets.SERVER_QR_CHECK_URI}}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_DATABASE: ${{ secrets.DB_DATABASE }}

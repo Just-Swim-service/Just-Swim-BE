@@ -263,11 +263,13 @@ export class StatisticsService {
     // 강의 통계
     const lectures =
       await this.statisticsRepository.getStudentLectures(userId);
-    const activeLectures = lectures.filter(
+    // null인 lecture 필터링
+    const validLectures = lectures.filter((m) => m.lecture !== null && m.lecture !== undefined);
+    const activeLectures = validLectures.filter(
       (m) => !m.lecture.lectureEndDate || new Date(m.lecture.lectureEndDate) >= new Date(),
     ).length;
 
-    const firstLecture = lectures[0];
+    const firstLecture = validLectures[0];
     const totalDays = firstLecture
       ? Math.floor(
           (new Date().getTime() -
@@ -278,12 +280,12 @@ export class StatisticsService {
 
     const lectureStats: LectureStatsDto = {
       activeLectures,
-      totalLectures: lectures.length,
+      totalLectures: validLectures.length,
       firstLectureDate: firstLecture
         ? firstLecture.memberCreatedAt.toISOString().split('T')[0]
         : '',
       totalDays,
-      lectures: lectures.map((m) => ({
+      lectures: validLectures.map((m) => ({
         lectureId: m.lecture.lectureId,
         lectureTitle: m.lecture.lectureTitle,
         instructorName: m.lecture.user.name,

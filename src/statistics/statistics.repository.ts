@@ -114,7 +114,11 @@ export class StatisticsRepository {
   // 수강생 강의 정보
   async getStudentLectures(userId: number) {
     return await this.memberRepository.find({
-      where: { user: { userId }, memberDeletedAt: IsNull() },
+      where: { 
+        user: { userId }, 
+        memberDeletedAt: IsNull(),
+        lecture: { lectureDeletedAt: IsNull() }, // 삭제되지 않은 강의만
+      },
       relations: ['lecture', 'lecture.user'],
       order: { memberCreatedAt: 'ASC' },
     });

@@ -206,6 +206,11 @@ describe('StatisticsService', () => {
           },
           memberCreatedAt: new Date('2024-01-01'),
         },
+        // null lecture 테스트 케이스 추가
+        {
+          lecture: null,
+          memberCreatedAt: new Date('2024-01-02'),
+        },
       ];
 
       const mockCommunityStats = {

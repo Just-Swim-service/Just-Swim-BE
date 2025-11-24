@@ -27,7 +27,7 @@ const homeRedirectURI = 'HOME_REDIRECT_URI';
 const awsRegion = 'AWS_REGION';
 const awsS3AccessKey = 'AWS_S3_ACCESS_KEY';
 const awsS3SecretAccessKey = 'AWS_S3_SECRET_ACCESS_KEY';
-const awsS3BucetName = 'AWS_S3_BUCKET_NAME';
+const awsS3BucketName = 'AWS_S3_BUCKET_NAME';
 
 export const envVariables = {
   env,
@@ -49,6 +49,6 @@ export const envVariables = {
   homeRedirectURI,
   awsRegion,
   awsS3AccessKey,
-  awsS3BucetName,
+  awsS3BucketName,
   awsS3SecretAccessKey,
 };

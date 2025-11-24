@@ -3,7 +3,7 @@ import { Response } from 'express';
 
 @Injectable()
 export class ResponseService {
-  success(res: Response, message: string, data: any = null) {
+  success<T = unknown>(res: Response, message: string, data: T | null = null) {
     return res.status(200).json({
       success: true,
       message: message,
@@ -11,11 +11,11 @@ export class ResponseService {
     });
   }
 
-  error(
+  error<T = unknown>(
     res: Response,
     message: string,
     statusCode: number = 400,
-    errors: any = null,
+    errors: T | null = null,
   ) {
     if (res.headersSent || res.writableEnded) return;
     return res.status(statusCode).json({
@@ -45,7 +45,7 @@ export class ResponseService {
     return this.error(res, message, 400);
   }
 
-  internalServerError(res: Response, message: string, errors: any = null) {
+  internalServerError<T = unknown>(res: Response, message: string, errors: T | null = null) {
     return this.error(res, message, 500, errors);
   }
 }

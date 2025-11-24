@@ -11,6 +11,7 @@ import { MemberModule } from './member/member.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/response/http-exception.filter';
+import { AllExceptionsFilter } from './common/response/all-exceptions.filter';
 import { LoggerModule } from './common/logger/logger.module';
 import { ImageModule } from './image/image.module';
 import { AwsModule } from './common/aws/aws.module';
@@ -176,7 +177,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     { provide: APP_GUARD, useClass: SecurityGuard }, // 보안 가드 (가장 먼저 실행)
     { provide: APP_GUARD, useClass: ThrottlerGuard }, // Rate Limiting 가드
     { provide: APP_GUARD, useClass: AuthGuard },
-    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter }, // 모든 예외 처리 (HttpException 포함)
   ],
 })
 export class AppModule {}

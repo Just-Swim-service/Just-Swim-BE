@@ -168,15 +168,28 @@ async function bootstrap() {
 
   // 서버 포트
   await app.listen(3001);
+
+  // 프로세스 레벨 에러 핸들러 설정
+  const logger = app.get(MyLogger);
+  
+  process.on('uncaughtException', (err) => {
+    logger.error(`[🔥 Uncaught Exception] ${err.message}`, err.stack);
+    // 프로덕션 환경에서는 process.exit(1) 고려
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
+  });
+
+  process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
+    const errorMessage = reason instanceof Error 
+      ? reason.message 
+      : String(reason);
+    logger.error(`[💥 Unhandled Rejection] ${errorMessage}`, 
+      reason instanceof Error ? reason.stack : undefined);
+    // 프로덕션 환경에서는 process.exit(1) 고려
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
+  });
 }
 bootstrap();
-
-process.on('uncaughtException', (err) => {
-  console.error('[🔥 Uncaught Exception]', err);
-  // 프로덕션 환경에서는 process.exit(1) 고려
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[💥 Unhandled Rejection]', reason);
-  // 프로덕션 환경에서는 process.exit(1) 고려
-});
